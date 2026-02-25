@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "783142289414",
+    "project_id": "handynaija-e6150",
+    "storage_bucket": "handynaija-e6150.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:783142289414:android:c68947c3559efa51184387",
+        "android_client_info": {
+          "package_name": "com.handynaija"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_scifLfRUugGU24JnZQrwHcvqT8l0phc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
