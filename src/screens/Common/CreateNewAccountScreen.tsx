@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { navigate } from '../../navigation/navigationService';
+import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput, PasswordInput, Separator, SocialButton, FooterLink } from '../../components';
 
 export default function CreateNewAccountScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, 'CreateNewAccount'>>();
+  const roleKey = route.params?.roleKey; // 1 = client, 2 = pro
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +64,11 @@ export default function CreateNewAccountScreen() {
         <Button
           title="Create New Account"
           onPress={() => {
-            navigate('MainTabs');
+            if (roleKey === 2) {
+              navigate('BecomeProfessionalIntro');
+            } else {
+              navigate('MainTabs');
+            }
           }}
           variant="primary"
           style={{ marginTop: margin.lg}}

@@ -23,7 +23,7 @@ export default function BecomeProfessionalIntroScreen() {
           <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
           <Text style={styles.profileLabel}>Profile</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Become at professional</Text>
+        <Text style={styles.headerTitle}>Become a professional</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     marginBottom: margin.xxl,
   },
   illustrationImage: {
-    width: scale(200),
-    height: scale(200),
+    width: scale(350),
+    height: scale(350),
   },
   ctaButton: {
     marginTop: margin.lg,

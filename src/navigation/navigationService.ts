@@ -12,7 +12,7 @@ export type RootStackParamList = {
   RoleSelect: undefined;
   Login: undefined;
   EmailLogin: undefined;
-  CreateNewAccount: undefined;
+  CreateNewAccount: { roleKey?: 1 | 2 };
   PhoneSignup: undefined;
   ForgotPassword: undefined;
   OTP: { phoneNumber?: string; type?: 'email' | 'phone' };
