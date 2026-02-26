@@ -9,6 +9,7 @@ interface PasswordInputProps {
   placeholder?: string;
   value: string;
   onChangeText: (text: string) => void;
+  error?: string;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
 }
@@ -18,6 +19,7 @@ export default function PasswordInput({
   placeholder,
   value,
   onChangeText,
+  error,
   containerStyle,
   inputStyle,
 }: PasswordInputProps) {
@@ -26,7 +28,7 @@ export default function PasswordInput({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={styles.passwordContainer}>
+      <View style={[styles.passwordContainer, error && styles.passwordContainerError]}>
         <RNTextInput
           style={[styles.passwordInput, inputStyle]}
           placeholder={placeholder}
@@ -47,13 +49,14 @@ export default function PasswordInput({
 
         </TouchableOpacity>
       </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: margin.xl,
+    marginBottom: margin.lg,
   },
   label: {
     fontSize: fontSize(14),
@@ -68,6 +71,14 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     borderRadius: borderRadius.lg,
     backgroundColor: '#fff',
+  },
+  passwordContainerError: {
+    borderColor: '#D32F2F',
+  },
+  errorText: {
+    fontSize: fontSize(12),
+    color: '#D32F2F',
+    marginTop: padding.xs,
   },
   passwordInput: {
     flex: 1,

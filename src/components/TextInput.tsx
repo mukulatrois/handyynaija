@@ -7,10 +7,12 @@ interface TextInputProps {
   placeholder?: string;
   value: string;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   secureTextEntry?: boolean;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'number-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
+  error?: string;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
 }
@@ -20,10 +22,12 @@ export default function TextInput({
   placeholder,
   value,
   onChangeText,
+  onBlur,
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'none',
   autoCorrect = false,
+  error,
   containerStyle,
   inputStyle,
 }: TextInputProps) {
@@ -31,23 +35,25 @@ export default function TextInput({
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <RNTextInput
-        style={[styles.input, inputStyle]}
+        style={[styles.input, error && styles.inputError, inputStyle]}
         placeholder={placeholder}
         placeholderTextColor="#999"
         value={value}
         onChangeText={onChangeText}
+        onBlur={onBlur}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
       />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: margin.xl,
+    marginBottom: margin.lg,
   },
   label: {
     fontSize: fontSize(14),
@@ -62,5 +68,13 @@ const styles = StyleSheet.create({
     padding: padding.lg,
     fontSize: fontSize(16),
     backgroundColor: '#fff',
+  },
+  inputError: {
+    borderColor: '#D32F2F',
+  },
+  errorText: {
+    fontSize: fontSize(12),
+    color: '#D32F2F',
+    marginTop: padding.xs,
   },
 });
