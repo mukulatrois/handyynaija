@@ -36,6 +36,7 @@ import ChatConversationScreen from '../screens/Common/ChatConversationScreen';
 import TabNavigator from './TabNavigator';
 import ProviderTabNavigator from './ProviderTabNavigator';
 import SearchScreen from '../screens/Customer/SearchServices/SearchScreen';
+import ServiceSearchScreen from '../screens/Customer/SearchServices/ServiceSearchScreen';
 import RepairMaintenance from '../screens/Customer/SearchServices/RepairMaintenance';
 import Home from '../screens/Customer/SearchServices/Home';
 import Beauty from '../screens/Customer/SearchServices/Beauty';
@@ -45,6 +46,8 @@ import Automobile from '../screens/Customer/SearchServices/Automobile';
 import Others from '../screens/Customer/SearchServices/Others';
 import AddAddressScreen from '../screens/Common/AddAddress';
 import FindProfessionalsScreen from '../screens/Customer/Service/FindProfessionals';
+import ServiceAddressScreen from '../screens/Customer/Service/ServiceAddressScreen';
+import SelectDateTimeScreen from '../screens/Customer/SearchServices/SelectDateTimeScreen';
 import ProfessionalDetailScreen from '../screens/Customer/Service/ProfessionalDetail';
 import ServiceBookingDetailScreen from '../screens/Customer/Service/ServiceBookingDetailScreen';
 import PersonalDetailsScreen from '../screens/Customer/profile/PersonalDetailsScreen';
@@ -78,6 +81,7 @@ export default function StackNavigator() {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="RoleSelect" component={RoleSelectScreen} />
+        <Stack.Screen name="SearchService" component={ServiceSearchScreen} />
         <Stack.Screen
           name="Login"
           component={LoginSheet}
@@ -251,8 +255,24 @@ export default function StackNavigator() {
           }}
         />
         <Stack.Screen
+          name="ServiceAddress"
+          component={ServiceAddressScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
           name="FindProfessionals"
           component={FindProfessionalsScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="SelectDateTime"
+          component={SelectDateTimeScreen}
           options={{
             headerShown: false,
             animation: 'slide_from_right',

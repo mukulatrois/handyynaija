@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,25 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import RBSheet from 'react-native-raw-bottom-sheet';
+import Modal from 'react-native-modal';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
 import ServiceScreenHeader from './ServiceScreenHeader';
+
+const FEEDBACK_TAGS = [
+  'Polite Professional',
+  'Careful Professional',
+  'Good behavior',
+  'Professional work good',
+  'Comfortable Professional',
+];
 
 const ROUTE_COORDS = [
   { latitude: 6.5244, longitude: 3.3792 },
@@ -22,8 +32,46 @@ const ROUTE_COORDS = [
   { latitude: 6.531, longitude: 3.385 },
 ];
 
+const BOOKING_STATUS = 'accepted'; // 'accepted' | 'done'
+
 export default function ServiceBookingDetailScreen() {
   const refPaymentSheet = useRef<any>(null);
+  const refFeedbackSheet = useRef<any>(null);
+
+  const [starRating, setStarRating] = useState(4);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [comment, setComment] = useState('');
+  const [addCommentModalVisible, setAddCommentModalVisible] = useState(false);
+  const [commentInputValue, setCommentInputValue] = useState('');
+
+  const isDone = BOOKING_STATUS === 'accepted';
+
+  useEffect(() => {
+    if (isDone && refFeedbackSheet.current) {
+      refFeedbackSheet.current?.open();
+    }
+  }, [isDone]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const openAddCommentModal = () => {
+    setCommentInputValue(comment);
+    setAddCommentModalVisible(true);
+  };
+
+  const submitAddComment = () => {
+    setComment(commentInputValue);
+    setAddCommentModalVisible(false);
+  };
+
+  const handleFeedbackSubmit = () => {
+    refFeedbackSheet.current?.close();
+    // TODO : send rating, selectedTags, comment to API
+  };
 
   const handleSendMessage = () => {
     navigate('ChatConversation' as any, { chatId: '1' });
@@ -90,8 +138,10 @@ export default function ServiceBookingDetailScreen() {
         {/* Service title + status */}
         <View style={styles.titleRow}>
           <Text style={styles.serviceTitle}>Cleaning Service</Text>
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>Accepted</Text>
+          <View style={[styles.statusBadge, isDone && styles.statusBadgeDone]}>
+            <Text style={[styles.statusText, isDone && styles.statusTextDone]}>
+              {isDone ? 'Done' : 'Accepted'}
+            </Text>
           </View>
         </View>
 
@@ -167,20 +217,33 @@ export default function ServiceBookingDetailScreen() {
         </View>
 
         {/* Action buttons */}
-        <TouchableOpacity style={styles.messageBtn} onPress={handleSendMessage} activeOpacity={0.7}>
-          <Ionicons name="chatbubble-outline" size={scale(20)} color="#333" />
-          <Text style={styles.messageBtnText}>Send message</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelBooking} activeOpacity={0.7}>
-          <Ionicons name="close" size={scale(22)} color="#fff" />
-          <Text style={styles.cancelBtnText}>Cancel Booking</Text>
-        </TouchableOpacity>
+        {isDone ? (
+          <TouchableOpacity
+            style={styles.rateBtn}
+            onPress={() => refFeedbackSheet.current?.open()}
+            activeOpacity={0.7}
+          >
+            <FontAwesome name="star" size={scale(20)} color="#FFA500" />
+            <Text style={styles.rateBtnText}>Rate your experience</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.messageBtn} onPress={handleSendMessage} activeOpacity={0.7}>
+              <Ionicons name="chatbubble-outline" size={scale(20)} color="#333" />
+              <Text style={styles.messageBtnText}>Send message</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelBooking} activeOpacity={0.7}>
+              <Ionicons name="close" size={scale(22)} color="#fff" />
+              <Text style={styles.cancelBtnText}>Cancel Booking</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
 
       {/* Service price bottom sheet */}
       <RBSheet
         ref={refPaymentSheet}
-        height={scale(520)}
+        height={scale(600)}
         openDuration={250}
         closeOnPressMask
         customStyles={{
@@ -277,6 +340,134 @@ export default function ServiceBookingDetailScreen() {
           </View>
         </View>
       </RBSheet>
+
+      {/* Feedback / Rating bottom sheet - when service is done */}
+      <RBSheet
+        ref={refFeedbackSheet}
+        height={scale(480)}
+        openDuration={250}
+        closeOnPressMask
+        customStyles={{
+          container: feedbackSheetStyles.container,
+          wrapper: feedbackSheetStyles.wrapper,
+        }}
+      >
+        <View style={feedbackSheetStyles.handle} />
+        <View style={feedbackSheetStyles.headerRow}>
+          <View style={feedbackSheetStyles.headerSpacer} />
+          <Text style={feedbackSheetStyles.sheetTitle}>Excellent</Text>
+          <TouchableOpacity
+            style={feedbackSheetStyles.closeBtn}
+            onPress={() => refFeedbackSheet.current?.close()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={scale(22)} color="#333" />
+          </TouchableOpacity>
+        </View>
+        <Text style={feedbackSheetStyles.subtitle}>
+          You can thank your craftsman with a tip
+        </Text>
+
+        {/* Star rating */}
+        <View style={feedbackSheetStyles.starsRow}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => setStarRating(i)}
+              style={feedbackSheetStyles.starBtn}
+              activeOpacity={0.7}
+            >
+              <FontAwesome
+                name={i <= starRating ? 'star' : 'star-o'}
+                size={scale(28)}
+                color={i <= starRating ? '#FFA500' : '#CCC'}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Feedback tags */}
+        <View style={feedbackSheetStyles.tagsWrap}>
+          {FEEDBACK_TAGS.map((tag) => {
+            const selected = selectedTags.includes(tag);
+            return (
+              <TouchableOpacity
+                key={tag}
+                style={[feedbackSheetStyles.tag, selected && feedbackSheetStyles.tagSelected]}
+                onPress={() => toggleTag(tag)}
+                activeOpacity={0.7}
+              >
+                <Text style={[feedbackSheetStyles.tagText, selected && feedbackSheetStyles.tagTextSelected]}>
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Comments row - opens Add a comment modal */}
+        <TouchableOpacity
+          style={feedbackSheetStyles.commentsRow}
+          onPress={openAddCommentModal}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={comment ? feedbackSheetStyles.commentsValue : feedbackSheetStyles.commentsPlaceholder}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {comment || 'Comments'}
+          </Text>
+          <Ionicons name="chevron-forward" size={scale(20)} color="#999" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={feedbackSheetStyles.submitBtn}
+          onPress={handleFeedbackSubmit}
+          activeOpacity={0.7}
+        >
+          <Text style={feedbackSheetStyles.submitBtnText}>Submit</Text>
+        </TouchableOpacity>
+      </RBSheet>
+
+      {/* Add a comment modal */}
+      <Modal
+        isVisible={addCommentModalVisible}
+        onBackdropPress={() => setAddCommentModalVisible(false)}
+        onBackButtonPress={() => setAddCommentModalVisible(false)}
+        backdropOpacity={0.5}
+        style={addCommentModalStyles.modal}
+      >
+        <View style={addCommentModalStyles.container}>
+          <View style={addCommentModalStyles.headerRow}>
+            <Text style={addCommentModalStyles.title}>Add a comment</Text>
+            <TouchableOpacity
+              style={addCommentModalStyles.closeBtn}
+              onPress={() => setAddCommentModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close" size={scale(24)} color="#333" />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={addCommentModalStyles.input}
+            placeholder="Comments"
+            placeholderTextColor="#999"
+            value={commentInputValue}
+            onChangeText={setCommentInputValue}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+          <TouchableOpacity
+            style={addCommentModalStyles.submitBtn}
+            onPress={submitAddComment}
+            activeOpacity={0.7}
+          >
+            <Text style={addCommentModalStyles.submitBtnText}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -323,7 +514,22 @@ const styles = StyleSheet.create({
     paddingVertical: scale(6),
     borderRadius: 20,
   },
+  statusBadgeDone: {
+    backgroundColor: '#3FA565',
+  },
   statusText: { fontSize: fontSize(13), color: '#555', fontWeight: '500' },
+  statusTextDone: { color: '#fff' },
+  rateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3FA565',
+    borderRadius: 12,
+    paddingVertical: scale(14),
+    marginHorizontal: padding.lg,
+    gap: scale(8),
+  },
+  rateBtnText: { fontSize: fontSize(16), fontWeight: '600', color: '#fff' },
   paymentRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -417,7 +623,7 @@ const sheetStyles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     backgroundColor: '#fff',
-    paddingTop: scale(8),
+    paddingTop: scale(24),
     paddingHorizontal: padding.lg,
     paddingBottom: margin.xl,
   },
@@ -448,7 +654,7 @@ const sheetStyles = StyleSheet.create({
     borderRadius: scale(18),
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth:2,
+    borderWidth: 2,
     borderColor: '#555',
   },
   content: {},
@@ -490,4 +696,152 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   remainBtnText: { fontSize: fontSize(16), fontWeight: '600', color: '#fff' },
+});
+
+const feedbackSheetStyles = StyleSheet.create({
+  wrapper: { backgroundColor: 'rgba(0,0,0,0.4)' },
+  container: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: '#fff',
+    paddingTop: scale(16),
+    paddingHorizontal: padding.lg,
+    paddingBottom: margin.xl,
+  },
+  handle: {
+    width: scale(40),
+    height: scale(4),
+    borderRadius: 2,
+    backgroundColor: '#CCC',
+    alignSelf: 'center',
+    marginBottom: scale(12),
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: scale(4),
+  },
+  headerSpacer: { width: scale(36), height: scale(36) },
+  sheetTitle: {
+    flex: 1,
+    fontSize: fontSize(24),
+    fontWeight: '700',
+    color: '#000',
+    textAlign: 'center',
+  },
+  closeBtn: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(18),
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subtitle: {
+    fontSize: fontSize(14),
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: margin.lg,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: scale(8),
+    marginBottom: margin.lg,
+  },
+  starBtn: { padding: scale(4) },
+  tagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: scale(10),
+    marginBottom: margin.lg,
+  },
+  tag: {
+    paddingVertical: scale(10),
+    paddingHorizontal: scale(14),
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  tagSelected: {
+    borderColor: '#3FA565',
+    backgroundColor: '#3FA565',
+  },
+  tagText: { fontSize: fontSize(13), color: '#666' },
+  tagTextSelected: { fontSize: fontSize(13), color: '#fff', fontWeight: '500' },
+  commentsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EDEDED',
+    borderRadius: 12,
+    paddingVertical: scale(14),
+    paddingHorizontal: padding.md,
+    marginBottom: margin.lg,
+  },
+  commentsPlaceholder: {
+    fontSize: fontSize(15),
+    color: '#999',
+    flex: 1,
+  },
+  commentsValue: {
+    fontSize: fontSize(15),
+    color: '#000',
+    flex: 1,
+  },
+  submitBtn: {
+    backgroundColor: '#3FA565',
+    borderRadius: 12,
+    paddingVertical: scale(14),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitBtnText: { fontSize: fontSize(16), fontWeight: '600', color: '#fff' },
+});
+
+const addCommentModalStyles = StyleSheet.create({
+  modal: { margin: 0, justifyContent: 'center', alignItems: 'center' },
+  container: {
+    width: '88%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: padding.xl,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: margin.lg,
+  },
+  title: {
+    fontSize: fontSize(18),
+    fontWeight: '700',
+    color: '#000',
+  },
+  closeBtn: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(18),
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  input: {
+    backgroundColor: '#EDEDED',
+    borderRadius: 12,
+    paddingVertical: scale(14),
+    paddingHorizontal: padding.md,
+    fontSize: fontSize(15),
+    color: '#000',
+    minHeight: scale(100),
+    marginBottom: margin.lg,
+  },
+  submitBtn: {
+    backgroundColor: '#3FA565',
+    borderRadius: 12,
+    paddingVertical: scale(14),
+    alignItems: 'center',
+  },
+  submitBtnText: { fontSize: fontSize(16), fontWeight: '600', color: '#fff' },
 });

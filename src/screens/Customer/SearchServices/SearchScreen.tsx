@@ -47,7 +47,10 @@ export default function HandyNaijaScreen() {
         <Text style={styles.title}>HandyNaija</Text>
 
         <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity style={styles.headerBtn}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigate('SearchService')}
+          >
             <CustomIcon name={IconNames.search} size={fontSize(18)} color="#000" />
           </TouchableOpacity>
           <TouchableOpacity 

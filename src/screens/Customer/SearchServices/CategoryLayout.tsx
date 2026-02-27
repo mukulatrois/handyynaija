@@ -31,10 +31,11 @@ interface CircleItem {
 
 interface CircleProps {
     item: CircleItem;
+    onPress?: () => void;
 }
 
-const Circle = ({ item }: CircleProps) => (
-    <TouchableOpacity style={styles.circle}>
+const Circle = ({ item, onPress }: CircleProps) => (
+    <TouchableOpacity style={styles.circle} onPress={onPress} activeOpacity={0.7}>
         <Image source={item.image} style={styles.icon} resizeMode="contain" />
         <Text style={styles.label}>{item.title}</Text>
     </TouchableOpacity>
@@ -44,13 +45,12 @@ interface CategoryLayoutProps {
     title: string;
     items: CircleItem[];
     layout?: 'grid' | 'center';
+    onItemPress?: (item: CircleItem) => void;
 }
 
-const CategoryLayout = ({ title, items, layout = 'grid' }: CategoryLayoutProps) => {
-    // 🔥 chunk into rows of 3
+const CategoryLayout = ({ title, items, layout = 'grid', onItemPress }: CategoryLayoutProps) => {
     const rows = chunkArray(items, 3);
 
-console.log(items);
     return (
         <SafeAreaView style={styles.container}>
             {/* HEADER */}
@@ -81,7 +81,11 @@ console.log(items);
                     rows.map((row, rowIndex) => (
                         <View key={rowIndex} style={styles.row}>
                             {row.map((item, i) => (
-                                <Circle key={i} item={item} />
+                                <Circle
+                                    key={i}
+                                    item={item}
+                                    onPress={() => onItemPress?.(item)}
+                                />
                             ))}
                         </View>
                     ))}
@@ -92,7 +96,11 @@ console.log(items);
                         {rows[0] && (
                             <View style={styles.row}>
                                 {rows[0].map((item, i) => (
-                                    <Circle key={i} item={item} />
+                                    <Circle
+                                        key={i}
+                                        item={item}
+                                        onPress={() => onItemPress?.(item)}
+                                    />
                                 ))}
                             </View>
                         )}
@@ -100,7 +108,11 @@ console.log(items);
                         {rows[1] && (
                             <View style={styles.centerRow}>
                                 {rows[1].map((item, i) => (
-                                    <Circle key={i} item={item} />
+                                    <Circle
+                                        key={i}
+                                        item={item}
+                                        onPress={() => onItemPress?.(item)}
+                                    />
                                 ))}
                             </View>
                         )}
