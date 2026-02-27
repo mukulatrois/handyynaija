@@ -401,6 +401,7 @@ export default function ServiceBookingDetailScreen() {
                   {tag}
                 </Text>
               </TouchableOpacity>
+              // <text> is written here
             );
           })}
         </View>
