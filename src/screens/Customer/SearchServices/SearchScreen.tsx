@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  BackHandler,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { wp, hp, scale, fontSize, padding, margin, borderRadius } from '../../../utils/responsive';
@@ -40,6 +42,23 @@ const Circle = ({ label, image, style, imageStyle, onPress }: CircleProps) => {
 };
 
 export default function HandyNaijaScreen() {
+  useEffect(() => {
+    const onBackPress = () => {
+      Alert.alert(
+        'Exit App',
+        'Do you want to exit the app?',
+        [
+          { text: 'No', onPress: () => {}, style: 'cancel' },
+          { text: 'Yes', onPress: () => BackHandler.exitApp() },
+        ]
+      );
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}

@@ -120,7 +120,7 @@ export default function HandyNaijaScreen() {
       {/* ADD ADDRESS BUTTON */}
       <View style={styles.addBtnWrapper}>
         <Button
-          title="Add address"
+          title="Add addressioio"
           onPress={() => { }}
           variant="primary"
           style={styles.addBtn}

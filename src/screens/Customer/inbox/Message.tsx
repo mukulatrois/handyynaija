@@ -17,9 +17,9 @@ interface ChatMessage {
 export default function MessageScreen() {
   const [chats] = useState<ChatMessage[]>([
     { id: '1', name: 'YERXON', service: 'Cleaning', lastMessage: 'Cleaning de ester...', time: 'Thursday', avatar: '👤', hasSupport: true },
-    { id: '2', name: 'YERXON', service: 'Handyman', lastMessage: 'Need a service', time: '15/6/25', avatar: '👤' },
-    { id: '3', name: 'Professional', service: 'Plumbing', lastMessage: 'Thank you for booking', time: '14/5/25', avatar: '👤' },
-    { id: '4', name: 'Service Provider', service: 'Electrical', lastMessage: 'Service completed', time: '25/4/24', avatar: '👤' },
+    // { id: '2', name: 'YERXON', service: 'Handyman', lastMessage: 'Need a service', time: '15/6/25', avatar: '👤' },
+    // { id: '3', name: 'Professional', service: 'Plumbing', lastMessage: 'Thank you for booking', time: '14/5/25', avatar: '👤' },
+    // { id: '4', name: 'Service Provider', service: 'Electrical', lastMessage: 'Service completed', time: '25/4/24', avatar: '👤' },
   ]);
 
   return (
