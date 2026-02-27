@@ -1,86 +1,146 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button } from '../../components';
 
+const VERIFY_OTP_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/verify-otp';
+
+const OTP_LENGTH = 6;
+
+const validationSchema = Yup.object().shape({
+  otp: Yup.string()
+    .required('Please enter the OTP')
+    .length(OTP_LENGTH, `Enter all ${OTP_LENGTH} digits`)
+    .matches(new RegExp(`^\\d{${OTP_LENGTH}}$`), `OTP must be ${OTP_LENGTH} digits`),
+});
+
+type FormValues = { otp: string };
+
+const initialValues: FormValues = { otp: '' };
+
 type OTPScreenRouteProp = RouteProp<RootStackParamList, 'OTP'>;
 
 export default function OTPScreen() {
   const route = useRoute<OTPScreenRouteProp>();
-  const { type = 'email', phoneNumber } = route.params || {};
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const { type = 'email', phoneNumber, email } = route.params || {};
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const formik = useFormik<FormValues>({
+    initialValues,
+    validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values) => {
+      if (type === 'phone') {
+        navigate('ProfileSetup');
+        return;
+      }
+      // Email flow: verify OTP via API
+      if (!email) {
+        Alert.alert('Error', 'Email is required to verify OTP.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(VERIFY_OTP_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            otp: values.otp,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const message = data?.message ?? data?.error ?? `Verification failed (${res.status})`;
+          Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+          return;
+        }
+        navigate('ResetPassword', { email, otp: values.otp });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        Alert.alert('Error', message);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  const { values, errors, touched, handleSubmit, setFieldValue, setFieldTouched } = formik;
+  const otpDigits = Array.from({ length: OTP_LENGTH }, (_, i) => values.otp[i] || '');
 
   const handleOtpChange = (value: string, index: number) => {
     if (value.length > 1) {
-      // Handle paste
-      const pastedOtp = value.slice(0, 4).split('');
-      const newOtp = [...otp];
-      pastedOtp.forEach((char, i) => {
-        if (index + i < 4) {
-          newOtp[index + i] = char;
-        }
-      });
-      setOtp(newOtp);
-      // Focus next empty input
-      const nextIndex = Math.min(index + pastedOtp.length, 3);
+      const pasted = value.replace(/\D/g, '').slice(0, OTP_LENGTH);
+      setFieldValue('otp', pasted);
+      setFieldTouched('otp', true);
+      const nextIndex = Math.min(pasted.length, OTP_LENGTH - 1);
       inputRefs.current[nextIndex]?.focus();
       return;
     }
 
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
+    const newDigits = [...otpDigits];
+    newDigits[index] = value.replace(/\D/g, '');
+    const newOtp = newDigits.join('').slice(0, OTP_LENGTH);
+    setFieldValue('otp', newOtp);
+    setFieldTouched('otp', true);
 
-    // Auto-focus next input
-    if (value && index < 3) {
+    if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.nativeEvent.key === 'Backspace' && !otpDigits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Image
-                  source={require('../../Images/logo.png')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
+          source={require('../../Images/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.title}>OTP Verification</Text>
         <Text style={styles.subtitle}>
-          {type === 'phone' 
+          {type === 'phone'
             ? `We have sent the verification code to ${phoneNumber || 'your phone number'}`
             : 'We have sent the verification code to your email address'}
         </Text>
 
-        <View style={styles.otpContainer}>
-          {otp.map((digit, index) => (
+        <View style={[styles.otpContainer, errors.otp && touched.otp && styles.otpContainerError]}>
+          {otpDigits.map((digit, index) => (
             <TextInput
               key={index}
               ref={(ref) => (inputRefs.current[index] = ref)}
-              style={styles.otpInput}
+              style={[styles.otpInput, errors.otp && touched.otp && styles.otpInputError]}
               value={digit}
               onChangeText={(value) => handleOtpChange(value, index)}
               onKeyPress={(e) => handleKeyPress(e, index)}
+              onBlur={() => setFieldTouched('otp', true)}
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
             />
           ))}
         </View>
+        {errors.otp && touched.otp ? (
+          <Text style={styles.errorText}>{errors.otp}</Text>
+        ) : null}
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't get the code? </Text>
@@ -90,15 +150,10 @@ export default function OTPScreen() {
         </View>
 
         <Button
-          title="Continue"
-          onPress={() => {
-            if (type === 'phone') {
-              navigate('ProfileSetup');
-            } else {
-              navigate('ResetPassword');
-            }
-          }}
+          title={loading ? 'Verifying...' : 'Continue'}
+          onPress={() => handleSubmit()}
           variant="primary"
+          disabled={loading}
           style={{ marginBottom: scale(40) }}
         />
       </ScrollView>
@@ -137,12 +192,15 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: margin.xxl,
+    marginBottom: padding.sm,
     paddingHorizontal: 0,
   },
+  otpContainerError: {
+    marginBottom: 0,
+  },
   otpInput: {
-    width: scale(60),
-    height: scale(60),
+    width: scale(48),
+    height: scale(56),
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: borderRadius.lg,
@@ -150,6 +208,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     backgroundColor: '#fff',
+  },
+  otpInputError: {
+    borderColor: '#D32F2F',
+  },
+  errorText: {
+    fontSize: fontSize(12),
+    color: '#D32F2F',
+    marginBottom: margin.xxl,
   },
   resendContainer: {
     flexDirection: 'row',

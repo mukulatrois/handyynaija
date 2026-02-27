@@ -1,44 +1,98 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { navigate } from '../../navigation/navigationService';
-import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
+import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, FooterLink } from '../../components';
+import TextInput from '../../components/TextInput';
+
+const FORGOT_PASSWORD_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/forgot-password';
+
+const validationSchema = Yup.object().shape({
+  email: Yup.string()
+    .trim()
+    .required('Email is required')
+    .email('Please enter a valid email address'),
+});
+
+type FormValues = { email: string };
+
+const initialValues: FormValues = { email: '' };
 
 export default function ForgotPasswordScreen() {
-  const [selectedMethod, setSelectedMethod] = useState('email');
+  const [loading, setLoading] = useState(false);
+
+  const formik = useFormik<FormValues>({
+    initialValues,
+    validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const res = await fetch(FORGOT_PASSWORD_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: values.email.trim().toLowerCase() }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+          Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+          return;
+        }
+        Alert.alert(
+          'Check your email',
+          'If an account exists for this email, you will receive a link to reset your password.',
+          [{ text: 'OK', onPress: () => navigate('OTP', { email: values.email }) }]
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        Alert.alert('Error', message);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  const { values, errors, touched, handleSubmit } = formik;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Image
-                          source={require('../../Images/logo.png')}
-                          style={styles.logo}
-                          resizeMode="contain"
-                        />
+          source={require('../../Images/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.title}>Forgot Password</Text>
         <Text style={styles.subtitle}>
-          Select which contact details should we used to reset your password
+          Enter your email address and we'll send you a link to reset your password
         </Text>
 
-        <TouchableOpacity style={styles.contactBox}>
-          <View style={styles.contactLeft}>
-            <Text style={styles.emailIcon}>✉️</Text>
-            <View>
-              <Text style={styles.contactLabel}>Via Email</Text>
-              <Text style={styles.contactValue}>gdg***fsf@azlotv.com</Text>
-            </View>
-          </View>
-          <Text style={styles.dropdownIcon}>▼</Text>
-        </TouchableOpacity>
+        <TextInput
+          label="Email"
+          placeholder="Enter email"
+          value={values.email}
+          onChangeText={(text) => formik.setFieldValue('email', text)}
+          onBlur={() => formik.setFieldTouched('email')}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          error={touched.email ? errors.email : undefined}
+          containerStyle={styles.emailInput}
+        />
 
         <Button
-          title="Continue"
-          onPress={() => navigate('OTP')}
+          title={loading ? 'Sending...' : 'Continue'}
+          onPress={() => handleSubmit()}
           variant="primary"
+          disabled={loading}
           style={{ marginBottom: margin.xxl }}
         />
 
@@ -80,38 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: scale(32),
     lineHeight: fontSize(22),
   },
-  contactBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: borderRadius.lg,
-    padding: padding.lg,
+  emailInput: {
     marginBottom: margin.xxl,
-  },
-  contactLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  emailIcon: {
-    fontSize: fontSize(24),
-    marginRight: margin.md,
-  },
-  contactLabel: {
-    fontSize: fontSize(14),
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: scale(4),
-  },
-  contactValue: {
-    fontSize: fontSize(14),
-    color: '#666',
-  },
-  dropdownIcon: {
-    fontSize: fontSize(16),
-    color: '#666',
   },
 });
