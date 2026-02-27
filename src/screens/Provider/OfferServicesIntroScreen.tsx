@@ -12,7 +12,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { goBack, navigate } from '../../navigation/navigationService';
+import { navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button } from '../../components';
 
@@ -118,9 +118,7 @@ export default function OfferServicesIntroScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header: Exit on right */}
       <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>Become a professional</Text>
-        <TouchableOpacity onPress={goBack} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => navigate('ProviderSelectCountry')} activeOpacity={0.7}>
           <Text style={styles.exitText}>Exit</Text>
         </TouchableOpacity>
       </View>
@@ -172,11 +170,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: padding.xl,
     paddingVertical: padding.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
   },
   headerSpacer: {
     width: scale(50),
@@ -205,8 +201,8 @@ const styles = StyleSheet.create({
     marginBottom: margin.xxl,
   },
   slideImage: {
-    width: scale(200),
-    height: scale(200),
+    width: scale(300),
+    height: scale(300),
   },
   title: {
     fontSize: fontSize(24),

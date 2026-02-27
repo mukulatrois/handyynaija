@@ -56,7 +56,7 @@ export default function PhoneSignupScreen() {
         <FooterLink
           text="Already have an account?"
           linkText="Sign In"
-          onPress={() => navigate('Login')}
+          onPress={() => navigate('Welcome')}
         />
       </ScrollView>
     </SafeAreaView>

@@ -22,6 +22,7 @@ import WorkScheduleScreen from '../screens/Provider/WorkScheduleScreen';
 import UpdateEventScreen from '../screens/Provider/UpdateEventScreen';
 import RequestDetailScreen from '../screens/Provider/RequestDetailScreen';
 import ProviderPersonalDetailsScreen from '../screens/Provider/PersonalDetailsScreen';
+import ProviderProfileInfoScreen from '../screens/Provider/ProviderProfileInfoScreen';
 import ListingVerificationScreen from '../screens/Provider/ListingVerificationScreen';
 import ListingPriceScreen from '../screens/Provider/ListingPriceScreen';
 import ListingPhoneScreen from '../screens/Provider/ListingPhoneScreen';
@@ -410,6 +411,14 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ProviderPersonalDetails"
           component={ProviderPersonalDetailsScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ProviderProfileInfo"
+          component={ProviderProfileInfoScreen}
           options={{
             headerShown: false,
             animation: 'slide_from_right',

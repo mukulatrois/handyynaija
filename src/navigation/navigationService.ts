@@ -15,8 +15,8 @@ export type RootStackParamList = {
   CreateNewAccount: { roleKey?: 1 | 2 };
   PhoneSignup: undefined;
   ForgotPassword: undefined;
-  OTP: { phoneNumber?: string; type?: 'email' | 'phone' };
-  ResetPassword: undefined;
+  OTP: { phoneNumber?: string; email?: string; type?: 'email' | 'phone' };
+  ResetPassword: { email: string; otp: string };
   ProfileSetup: undefined;
   BecomeProfessionalIntro: undefined;
   OfferServicesIntro: undefined;
@@ -63,6 +63,7 @@ export type RootStackParamList = {
   UpdateEvent: undefined;
   RequestDetail: { requestId?: string };
   ProviderPersonalDetails: undefined;
+  ProviderProfileInfo: undefined;
   ListingVerification: undefined;
   ListingPrice: undefined;
   ListingPhone: undefined;

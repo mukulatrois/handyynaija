@@ -1,13 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal } from '../../../components';
-import { navigate } from '../../../navigation/navigationService';
+import { navigate, resetNavigation } from '../../../navigation/navigationService';
+
+const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
+const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
+
+type UserProfile = { name?: string; email?: string; avatar?: string; photo?: string; image?: string } | null;
 
 export default function MyAccountScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+        if (!token) return;
+
+        const res = await fetch(ME_API_URL, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setProfile(data?.user ?? data ?? null);
+        } else {
+          const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+          if (stored) {
+            try {
+              setProfile(JSON.parse(stored));
+            } catch {
+              // ignore invalid stored user
+            }
+          }
+        }
+      } catch {
+        const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+        if (stored) {
+          try {
+            setProfile(JSON.parse(stored));
+          } catch {
+            // ignore invalid stored user
+          }
+        }
+      }
+    };
+    loadProfile();
+  }, []);
 
   const goToPersonalDetails = () => navigate('PersonalDetails');
   const goToShareAndEarn = () => navigate('ShareAndEarn');
@@ -38,10 +85,26 @@ export default function MyAccountScreen() {
     Alert.alert('Thank you!', `You rated us ${rating} stars.`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLogoutModalVisible(false);
-    // TODO: Implement actual logout
-    Alert.alert('Logged out', 'You have been logged out.');
+
+    try {
+      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        await fetch(LOGOUT_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch {
+      // Ignore API errors; we still clear local session
+    } finally {
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      resetNavigation('Welcome');
+    }
   };
 
   return (
@@ -51,11 +114,17 @@ export default function MyAccountScreen() {
         {/* Profile */}
         <View style={styles.profile}>
           <Image
-            source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
+            source={{
+              uri:
+                profile?.avatar ??
+                profile?.photo ??
+                profile?.image ??
+                'https://i.pravatar.cc/150?img=12',
+            }}
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.name}>Paschaloliver</Text>
+            <Text style={styles.name}>{profile?.name ?? 'Guest'}</Text>
             <TouchableOpacity onPress={goToPersonalDetails} activeOpacity={0.7}>
               <Text style={styles.profileLink}>View Profile</Text>
             </TouchableOpacity>

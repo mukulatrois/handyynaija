@@ -1,9 +1,35 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { navigate } from '../../navigation/navigationService';
 import { fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { HandleBar, CloseButton, TextInput as CustomTextInput, PasswordInput, Checkbox, Button } from '../../components';
+
+const LOGIN_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/login';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
+
+const validationSchema = Yup.object().shape({
+  email: Yup.string()
+    .trim()
+    .required('Email is required')
+    .email('Please enter a valid email address'),
+  password: Yup.string()
+    .required('Password is required'),
+});
+
+type FormValues = {
+  email: string;
+  password: string;
+};
+
+const initialValues: FormValues = {
+  email: '',
+  password: '',
+};
 
 export type LoginEmailHandle = {
   open: () => void;
@@ -12,15 +38,62 @@ export type LoginEmailHandle = {
 
 const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
   const refRBSheet = useRef<any>(null);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const formik = useFormik<FormValues>({
+    initialValues,
+    validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(LOGIN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: values.email.trim().toLowerCase(),
+            password: values.password,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+          setError(typeof message === 'string' ? message : JSON.stringify(message));
+          return;
+        }
+
+        const { accessToken, user } = data;
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+        await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+
+        refRBSheet.current?.close();
+        navigate('MainTabs');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
   useImperativeHandle(ref, () => ({
-    open: () => refRBSheet.current?.open(),
+    open: () => {
+      setError(null);
+      formik.resetForm();
+      refRBSheet.current?.open();
+    },
     close: () => refRBSheet.current?.close(),
   }));
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const { values, errors, touched, handleSubmit, setFieldTouched } = formik;
 
   return (
     <RBSheet
@@ -41,19 +114,24 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
       <CustomTextInput
         label="Email Address"
         placeholder="email@gmail.com"
-        value={email}
-        onChangeText={setEmail}
+        value={values.email}
+        onChangeText={(t) => formik.setFieldValue('email', t)}
+        onBlur={() => formik.setFieldTouched('email')}
         keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
+        error={touched.email && errors.email ? errors.email : undefined}
       />
 
       <PasswordInput
         label="Password"
         placeholder="********"
-        value={password}
-        onChangeText={setPassword}
+        value={values.password}
+        onChangeText={(t) => formik.setFieldValue('password', t)}
+        error={touched.password && errors.password ? errors.password : undefined}
       />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.optionsRow}>
         <Checkbox
@@ -68,13 +146,14 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
       </View>
 
       <Button
-        title="Log in"
+        title={loading ? 'Logging in...' : 'Log in'}
         onPress={() => {
-          // After successful login, navigate to main tabs
-          refRBSheet.current?.close();
-          navigate('MainTabs');
+          setFieldTouched('email');
+          setFieldTouched('password');
+          handleSubmit();
         }}
         variant="primary"
+        disabled={loading}
       />
     </RBSheet>
   );
@@ -114,5 +193,10 @@ const styles = StyleSheet.create({
   forgotPassword: {
     fontSize: fontSize(14),
     color: '#666',
+  },
+  errorText: {
+    fontSize: fontSize(14),
+    color: '#D32F2F',
+    marginBottom: margin.lg,
   },
 });

@@ -21,7 +21,7 @@ const NIGERIAN_CITIES = [
 
 export default function ChooseCityScreen() {
   const handleSelectCity = () => {
-    navigate('WorkAreas');
+    navigate('ProviderProfileInfo');
   };
 
   const renderItem = ({ item }: { item: string }) => (
