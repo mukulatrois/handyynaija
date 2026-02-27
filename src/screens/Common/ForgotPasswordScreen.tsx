@@ -99,7 +99,7 @@ export default function ForgotPasswordScreen() {
         <FooterLink
           text="Remember Password"
           linkText="Sign In"
-          onPress={() => navigate('Login')}
+          onPress={() => navigate('Welcome')}
         />
       </ScrollView>
     </SafeAreaView>

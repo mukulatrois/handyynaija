@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useFormik } from 'formik';
@@ -8,6 +9,9 @@ import { navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput, PasswordInput, Separator, SocialButton, FooterLink } from '../../components';
+
+const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
+const AUTH_USER_KEY = 'auth_user';
 
 const validationSchema = Yup.object().shape({
   fullName: Yup.string()
@@ -42,19 +46,51 @@ const initialValues: FormValues = {
 
 export default function CreateNewAccountScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'CreateNewAccount'>>();
-  const roleKey = route.params?.roleKey; // 1 = client, 2 = pro
+  const roleKey = route.params?.roleKey ?? 1; // 1 = client, 2 = pro
+  const [loading, setLoading] = useState(false);
 
   const formik = useFormik<FormValues>({
     initialValues,
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
-    onSubmit: (values) => {
-      // TODO: call signup API with values
-      if (roleKey === 2) {
-        navigate('BecomeProfessionalIntro');
-      } else {
-        navigate('MainTabs');
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const res = await fetch(REGISTER_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: values.fullName.trim(),
+            email: values.email.trim().toLowerCase(),
+            password: values.password,
+            role: roleKey,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+          Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+          return;
+        }
+
+        const { user } = data;
+        if (user) {
+          await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+        }
+
+        if (roleKey === 2) {
+          navigate('BecomeProfessionalIntro');
+        } else {
+          navigate('MainTabs');
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        Alert.alert('Error', message);
+      } finally {
+        setLoading(false);
       }
     },
   });
@@ -115,7 +151,7 @@ export default function CreateNewAccountScreen() {
         />
 
         <Button
-          title="Create New Account"
+          title={loading ? 'Creating Account...' : 'Create New Account'}
           onPress={() => {
             setFieldTouched('fullName');
             setFieldTouched('email');
@@ -124,6 +160,7 @@ export default function CreateNewAccountScreen() {
             handleSubmit();
           }}
           variant="primary"
+          disabled={loading}
           style={{ marginTop: margin.lg }}
         />
 
@@ -136,7 +173,7 @@ export default function CreateNewAccountScreen() {
         <FooterLink
           text="Already have an account?"
           linkText="Sign In"
-          onPress={() => navigate('Login')}
+          onPress={() => navigate('Welcome')}
         />
       </ScrollView>
     </SafeAreaView>

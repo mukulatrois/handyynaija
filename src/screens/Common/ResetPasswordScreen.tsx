@@ -61,7 +61,7 @@ export default function ResetPasswordScreen() {
         Alert.alert(
           'Password Reset',
           'Your password has been reset successfully.',
-          [{ text: 'OK', onPress: () => navigate('Login') }]
+          [{ text: 'OK', onPress: () => navigate('Welcome') }]
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Network error. Please try again.';
