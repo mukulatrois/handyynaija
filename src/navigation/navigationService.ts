@@ -27,6 +27,7 @@ export type RootStackParamList = {
   SelectCountry: undefined;
   MainTabs: undefined;
   ProviderTabs: undefined;
+  SearchService: undefined;
   ProfessionalProfile: { categoryId?: string };
   ChatConversation: { chatId?: string };
   Search: undefined;
@@ -41,8 +42,10 @@ export type RootStackParamList = {
   Others: undefined;
   RepairMaintenance: undefined;
   Automobile: undefined;
-  AddAddress: undefined;
+  AddAddress: { fromBooking?: boolean } | undefined;
+  ServiceAddress: { address?: string } | undefined;
   FindProfessionals: undefined;
+  SelectDateTime: { serviceTitle?: string } | undefined;
   ProfessionalDetail: { professionalId: string };
   ServiceBookingDetail: { bookingId?: string };
   PersonalDetails: undefined;
