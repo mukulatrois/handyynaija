@@ -25,6 +25,7 @@ import {
 } from '../../utils/responsive';
 import { TextInput, Button } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
+import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
 
 const PRIMARY_GREEN = '#3FA565';
 const ERROR_RED = '#D32F2F';
@@ -174,9 +175,9 @@ export default function ProviderProfileInfoScreen() {
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
-    onSubmit: (values) => {
-      // TODO: submit to API
-      navigate('WorkAreas');
+    onSubmit: async (values) => {
+      await setProviderProfileInfo(values);
+      navigate('ProviderUploadPhoto');
     },
   });
 
@@ -487,10 +488,7 @@ export default function ProviderProfileInfoScreen() {
 
           <Button
             title="Save"
-            onPress={()=>{
-              // onSavePress()
-              navigate('WorkAreas');
-            }}
+            onPress={onSavePress}
             variant="primary"
             style={styles.saveButton}
           />

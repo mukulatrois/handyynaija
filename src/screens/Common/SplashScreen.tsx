@@ -1,4 +1,4 @@
- import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,58 +7,67 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { scale, fontSize, margin } from '../../utils/responsive';
 import { RootStackParamList } from '../../navigation/navigationService';
 
-const AUTH_TOKEN_KEY = 'auth_accessToken';
-const AUTH_USER_KEY = 'auth_user';
-const MIN_SPLASH_MS = 1500;
+// const AUTH_TOKEN_KEY = 'auth_accessToken';
+// const AUTH_USER_KEY = 'auth_user';
+// const MIN_SPLASH_MS = 1500;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function SplashScreen() {
   const navigation = useNavigation<NavigationProp>();
 
+  // useEffect(() => {
+  //   const checkAuthAndNavigate = async () => {
+  //     const start = Date.now();
+
+  //     try {
+  //       const [token, storedUser] = await Promise.all([
+  //         AsyncStorage.getItem(AUTH_TOKEN_KEY),
+  //         AsyncStorage.getItem(AUTH_USER_KEY),
+  //       ]);
+
+  //       const isLoggedIn = Boolean(token) || Boolean(storedUser);
+
+  //       let roleKey: number | undefined;
+  //       if (storedUser) {
+  //         try {
+  //           const user = JSON.parse(storedUser);
+  //           roleKey = user?.role ?? user?.roleKey;
+  //         } catch {
+  //           // ignore parse errors
+  //         }
+  //       }
+
+  //       const elapsed = Date.now() - start;
+  //       const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
+
+  //       setTimeout(() => {
+  //         if (isLoggedIn) {
+  //           if (roleKey === 2) {
+  //             navigation.replace('ProviderTabs');
+  //           } else {
+  //             navigation.replace('MainTabs');
+  //           }
+  //         } else {
+  //           navigation.replace('Welcome');
+  //         }
+  //       }, remaining);
+  //     } catch {
+  //       setTimeout(() => navigation.replace('Welcome'), MIN_SPLASH_MS);
+  //     }
+  //   };
+
+  //   checkAuthAndNavigate();
+  // }, [navigation]);
+
   useEffect(() => {
-    const checkAuthAndNavigate = async () => {
-      const start = Date.now();
+    const timer = setTimeout(() => {
+      navigation.replace('Welcome');
+    }, 2000); // 2 seconds splash
 
-      try {
-        const [token, storedUser] = await Promise.all([
-          AsyncStorage.getItem(AUTH_TOKEN_KEY),
-          AsyncStorage.getItem(AUTH_USER_KEY),
-        ]);
+    return () => clearTimeout(timer);
+  }, []);
 
-        const isLoggedIn = Boolean(token) || Boolean(storedUser);
-
-        let roleKey: number | undefined;
-        if (storedUser) {
-          try {
-            const user = JSON.parse(storedUser);
-            roleKey = user?.role ?? user?.roleKey;
-          } catch {
-            // ignore parse errors
-          }
-        }
-
-        const elapsed = Date.now() - start;
-        const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
-
-        setTimeout(() => {
-          if (isLoggedIn) {
-            if (roleKey === 2) {
-              navigation.replace('ProviderTabs');
-            } else {
-              navigation.replace('MainTabs');
-            }
-          } else {
-            navigation.replace('Welcome');
-          }
-        }, remaining);
-      } catch {
-        setTimeout(() => navigation.replace('Welcome'), MIN_SPLASH_MS);
-      }
-    };
-
-    checkAuthAndNavigate();
-  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
