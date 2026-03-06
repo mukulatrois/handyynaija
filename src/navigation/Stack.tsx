@@ -23,6 +23,8 @@ import UpdateEventScreen from '../screens/Provider/UpdateEventScreen';
 import RequestDetailScreen from '../screens/Provider/RequestDetailScreen';
 import ProviderPersonalDetailsScreen from '../screens/Provider/PersonalDetailsScreen';
 import ProviderProfileInfoScreen from '../screens/Provider/ProviderProfileInfoScreen';
+import ProviderUploadPhotoScreen from '../screens/Provider/ProviderUploadPhotoScreen';
+import ProviderVerifyPhotoScreen from '../screens/Provider/ProviderVerifyPhotoScreen';
 import ListingVerificationScreen from '../screens/Provider/ListingVerificationScreen';
 import ListingPriceScreen from '../screens/Provider/ListingPriceScreen';
 import ListingPhoneScreen from '../screens/Provider/ListingPhoneScreen';
@@ -179,6 +181,14 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ProviderWorkSchedule"
           component={WorkScheduleScreen}
+        />
+        <Stack.Screen
+          name="ProviderUploadPhoto"
+          component={ProviderUploadPhotoScreen}
+        />
+        <Stack.Screen
+          name="ProviderVerifyPhoto"
+          component={ProviderVerifyPhotoScreen}
         />
         <Stack.Screen
           name="SelectCountry"
