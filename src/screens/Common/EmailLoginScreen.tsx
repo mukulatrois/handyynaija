@@ -70,11 +70,18 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
         }
 
         const { accessToken, user } = data;
+        console.log(data,"data");
+        
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, accessToken);
         await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 
         refRBSheet.current?.close();
-        navigate('MainTabs');
+        if (user.role === 2) {
+          navigate('ProviderTabs');
+        } else {
+          navigate('MainTabs');
+        }
+        // navigate('MainTabs');
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Network error. Please try again.';
         setError(message);

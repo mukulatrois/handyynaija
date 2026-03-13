@@ -194,7 +194,7 @@ export default function WorkScheduleScreen() {
 
   const handleContinue = () => {
     if (hasActiveDay) {
-      navigate('ProviderTabs');
+      navigate('ProviderProfileInfo');
     }
   };
 
@@ -205,7 +205,7 @@ export default function WorkScheduleScreen() {
           <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '35%' }]} />
+          <View style={[styles.progressFill, { width: '83%' }]} />
         </View>
       </View>
 

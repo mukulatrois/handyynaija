@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal } from '../../../components';
+import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames } from '../../../components';
 import { navigate, resetNavigation } from '../../../navigation/navigationService';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
@@ -10,7 +11,28 @@ const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
-type UserProfile = { name?: string; email?: string; avatar?: string; photo?: string; image?: string } | null;
+type UserProfile = {
+  name?: string;
+  full_name?: string;
+  fullName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  email?: string;
+  avatar?: string;
+  photo?: string;
+  image?: string;
+} | null;
+
+function getDisplayName(profile: UserProfile): string {
+  if (!profile) return 'Guest';
+  const n =
+    profile.name ??
+    profile.full_name ??
+    profile.fullName ??
+    ([profile.first_name, profile.last_name ?? profile.lastName].filter(Boolean).join(' ') || '');
+  return (n && n.trim()) || 'Guest';
+}
 
 export default function MyAccountScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
@@ -18,23 +40,42 @@ export default function MyAccountScreen() {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [profile, setProfile] = useState<UserProfile>(null);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-        if (!token) return;
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-        const res = await fetch(ME_API_URL, {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const loadProfile = async () => {
+        try {
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          if (!token || !isActive) return;
 
-        if (res.ok) {
-          const data = await res.json();
-          setProfile(data?.user ?? data ?? null);
-        } else {
+          const res = await fetch(ME_API_URL, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!isActive) return;
+
+          if (res.ok) {
+            const data = await res.json();
+            
+            const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+            console.log(user,"user");
+            console.log(token,"access token");
+            if (isActive) setProfile(user ?? null);
+          } else {
+            const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+            if (stored && isActive) {
+              try {
+                setProfile(JSON.parse(stored));
+              } catch {
+                // ignore invalid stored user
+              }
+            }
+          }
+        } catch {
           const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
-          if (stored) {
+          if (stored && isActive) {
             try {
               setProfile(JSON.parse(stored));
             } catch {
@@ -42,19 +83,15 @@ export default function MyAccountScreen() {
             }
           }
         }
-      } catch {
-        const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
-        if (stored) {
-          try {
-            setProfile(JSON.parse(stored));
-          } catch {
-            // ignore invalid stored user
-          }
-        }
-      }
-    };
-    loadProfile();
-  }, []);
+      };
+
+      loadProfile();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
 
   const goToPersonalDetails = () => navigate('PersonalDetails');
   const goToShareAndEarn = () => navigate('ShareAndEarn');
@@ -113,18 +150,20 @@ export default function MyAccountScreen() {
 
         {/* Profile */}
         <View style={styles.profile}>
-          <Image
-            source={{
-              uri:
-                profile?.avatar ??
-                profile?.photo ??
-                profile?.image ??
-                'https://i.pravatar.cc/150?img=12',
-            }}
-            style={styles.avatar}
-          />
+          {profile?.avatar || profile?.photo || profile?.image ? (
+            <Image
+              source={{
+                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+              }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Icon name={IconNames.person} size={32} color="#3FA565" />
+            </View>
+          )}
           <View>
-            <Text style={styles.name}>{profile?.name ?? 'Guest'}</Text>
+            <Text style={styles.name}>{getDisplayName(profile)}</Text>
             <TouchableOpacity onPress={goToPersonalDetails} activeOpacity={0.7}>
               <Text style={styles.profileLink}>View Profile</Text>
             </TouchableOpacity>
@@ -250,6 +289,16 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     marginRight: 12,
+  },
+
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
+    backgroundColor: '#E8F5EC',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   name: {

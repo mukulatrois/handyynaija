@@ -1,35 +1,124 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput as RNTextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput as RNTextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  scale,
-  fontSize,
-  padding,
-  margin,
-  borderRadius,
-} from '../../utils/responsive';
+import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
+
+type UserProfile = {
+  name?: string;
+  full_name?: string;
+  fullName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  email?: string;
+  avatar?: string;
+  photo?: string;
+  image?: string;
+} | null;
+
+function getDisplayName(profile: UserProfile): string {
+  if (!profile) return 'Guest';
+  const n =
+    profile.name ??
+    profile.full_name ??
+    profile.fullName ??
+    ([profile.first_name, profile.last_name ?? profile.lastName].filter(Boolean).join(' ') || '');
+  return (n && n.trim()) || 'Guest';
+}
 
 const PRIMARY_GREEN = '#3FA565';
 const NAME_MAX_LENGTH = 50;
 
 export default function PersonalDetailsScreen() {
-  const [name, setName] = useState('Paschaloiver');
-  const [email] = useState('Paschaloiver@example.com');
+  const [profile, setProfile] = useState<UserProfile>(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadProfile = async () => {
+        try {
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          if (!token || !isActive) return;
+
+          const res = await fetch(ME_API_URL, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!isActive) return;
+
+          if (res.ok) {
+            const data = await res.json();
+            const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+            if (isActive) {
+              setProfile(user ?? null);
+              const displayName = getDisplayName(user ?? null);
+              if (displayName) {
+                setName(displayName);
+              }
+              if (user?.email) {
+                setEmail(user.email);
+              }
+            }
+          } else {
+            const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+            if (stored && isActive) {
+              try {
+                const storedUser = JSON.parse(stored);
+                setProfile(storedUser);
+                const displayName = getDisplayName(storedUser);
+                if (displayName) {
+                  setName(displayName);
+                }
+                if (storedUser?.email) {
+                  setEmail(storedUser.email);
+                }
+              } catch {
+                // ignore invalid stored user
+              }
+            }
+          }
+        } catch {
+          const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+          if (stored && isActive) {
+            try {
+              const storedUser = JSON.parse(stored);
+              setProfile(storedUser);
+              const displayName = getDisplayName(storedUser);
+              if (displayName) {
+                setName(displayName);
+              }
+              if (storedUser?.email) {
+                setEmail(storedUser.email);
+              }
+            } catch {
+              // ignore invalid stored user
+            }
+          }
+        }
+      };
+
+      loadProfile();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
