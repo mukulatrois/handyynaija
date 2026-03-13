@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBack, navigate } from '../../navigation/navigationService';
@@ -16,14 +16,16 @@ const COUNTRY_LIST: CountryItem[] = [
 ];
 
 export default function SelectCountryScreen() {
+  const [selectedCountry, setSelectedCountry] = useState<CountryItem | null>(null);
 
   const handleSelectCountry = (item: CountryItem) => {
+    setSelectedCountry(item);
     navigate('ProviderChooseCity');
   };
 
   const renderItem = ({ item }: { item: CountryItem }) => (
     <TouchableOpacity
-      style={[styles.item, styles.activeItem]}
+      style={[styles.item, selectedCountry?.code === item.code && styles.activeItem]}
       onPress={() => handleSelectCountry(item)}
       activeOpacity={0.7}
     >
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressFill: {
-    width: '40%',
+    width: '17%',
     height: '100%',
     backgroundColor: '#3FA565',
     borderRadius: scale(10),

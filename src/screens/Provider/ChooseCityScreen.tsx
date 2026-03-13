@@ -21,7 +21,7 @@ const NIGERIAN_CITIES = [
 
 export default function ChooseCityScreen() {
   const handleSelectCity = () => {
-    navigate('ProviderProfileInfo');
+    navigate('ProviderUploadPhoto');
   };
 
   const renderItem = ({ item }: { item: string }) => (
@@ -42,7 +42,7 @@ export default function ChooseCityScreen() {
           <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '60%' }]} />
+          <View style={[styles.progressFill, { width: '34%' }]} />
         </View>
       </View>
 

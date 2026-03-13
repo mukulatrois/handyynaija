@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,39 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import CustomIcon from '../../../components/Icon';
+import CustomIcon, { IconNames } from '../../../components/Icon';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, wp, hp, padding } from '../../../utils/responsive';
+
+const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
+
+type UserProfile = {
+  name?: string;
+  full_name?: string;
+  fullName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  email?: string;
+  avatar?: string;
+  photo?: string;
+  image?: string;
+} | null;
+
+function getDisplayName(profile: UserProfile): string {
+  if (!profile) return 'Guest';
+  const n =
+    profile.name ??
+    profile.full_name ??
+    profile.fullName ??
+    ([profile.first_name, profile.last_name ?? profile.lastName].filter(Boolean).join(' ') || '');
+  return (n && n.trim()) || 'Guest';
+}
 
 const RATING_CATEGORIES = [
   { label: 'Service', value: 4.8 },
@@ -71,6 +100,58 @@ function RatingBar({ value }: { value: number }) {
 
 export default function PersonalDetailsScreen() {
 
+  const [profile, setProfile] = useState<UserProfile>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadProfile = async () => {
+        try {
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          if (!token || !isActive) return;
+
+          const res = await fetch(ME_API_URL, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!isActive) return;
+
+          if (res.ok) {
+            const data = await res.json();
+            const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+            if (isActive) setProfile(user ?? null);
+          } else {
+            const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+            if (stored && isActive) {
+              try {
+                setProfile(JSON.parse(stored));
+              } catch {
+                // ignore invalid stored user
+              }
+            }
+          }
+        } catch {
+          const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+          if (stored && isActive) {
+            try {
+              setProfile(JSON.parse(stored));
+            } catch {
+              // ignore invalid stored user
+            }
+          }
+        }
+      };
+
+      loadProfile();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header - back arrow GREEN, title black bold */}
@@ -93,11 +174,19 @@ export default function PersonalDetailsScreen() {
       >
         {/* Profile Summary */}
         <View style={styles.profileSummary}>
-          <Image
-            source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-            style={styles.avatar}
-          />
-          <Text style={styles.name}>Paschaloliver</Text>
+          {profile?.avatar || profile?.photo || profile?.image ? (
+            <Image
+              source={{
+                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+              }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <CustomIcon name={IconNames.person} size={scale(32)} color="#3FA565" />
+            </View>
+          )}
+          <Text style={styles.name}>{getDisplayName(profile)}</Text>
           <View style={styles.statsRow}>
             <TouchableOpacity style={styles.statItem}>
               <View style={styles.statMain}>
@@ -113,13 +202,6 @@ export default function PersonalDetailsScreen() {
           </View>
         </View>
         <View style={styles.profileDivider} />
-
-        {/* About me - larger bold GREEN header */}
-        <Text style={styles.aboutHeader}>About me</Text>
-        <Text style={styles.aboutText}>
-          Integer id augue iaculis, iaculis orci ut, blandit quam. Donec in elit
-          auctor, finibus quam in, pharetra neque.
-        </Text>
 
         {/* Overall Rating - 5 + star, Outstanding, (13 ratings) below */}
         <View style={styles.ratingsSection}>
@@ -226,6 +308,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: scale(16),
   },
+  avatarPlaceholder: {
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    marginBottom: scale(12),
+    backgroundColor: '#E8F5EC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatar: {
     width: scale(100),
     height: scale(100),
@@ -269,18 +360,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#E8E8E8',
     marginBottom: scale(20),
-  },
-  aboutHeader: {
-    fontSize: fontSize(18),
-    fontWeight: '700',
-    color: '#3FA565',
-    marginBottom: scale(8),
-  },
-  aboutText: {
-    fontSize: fontSize(14),
-    color: '#000',
-    lineHeight: scale(22),
-    marginBottom: scale(24),
   },
   ratingsSection: {
     marginBottom: scale(24),

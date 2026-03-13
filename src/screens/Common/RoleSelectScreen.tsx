@@ -12,7 +12,7 @@ export default function RoleSelectScreen() {
 
   const handleContinue = () => {
     if (!selected) return;
-    const roleKey = selected === 'client' ? 1 : 2;
+    const roleKey = selected === 'client' ? 3 : 2;
     navigate('CreateNewAccount', { roleKey });
   };
 

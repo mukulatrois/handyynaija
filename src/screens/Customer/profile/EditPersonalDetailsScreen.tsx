@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,24 +11,177 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CustomIcon from '../../../components/Icon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomIcon, { IconNames } from '../../../components/Icon';
 import { Button } from '../../../components';
-import { goBack } from '../../../navigation/navigationService';
+import { goBack, resetNavigation } from '../../../navigation/navigationService';
 import { scale, fontSize, hp, padding } from '../../../utils/responsive';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import {
+  launchCamera,
+  launchImageLibrary,
+  ImageLibraryOptions,
+  CameraOptions,
+} from 'react-native-image-picker';
 
 const MAX_NAME_LENGTH = 50;
+const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
+const DELETE_ACCOUNT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/account';
+const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
 
 export default function EditPersonalDetailsScreen() {
   const [name, setName] = useState('Paschaloliver');
   const [email, setEmail] = useState('Paschaloliver@example.com');
   const [phone, setPhone] = useState('');
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<any | null>(null);
+  const bottomSheetRef = useRef<RBSheet | null>(null);
 
-  const handleSave = () => {
-    goBack();
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+        if (!token) return;
+
+        const res = await fetch(ME_API_URL, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+
+          if (user) {
+            if (user.name || user.full_name || user.fullName) {
+              setName(
+                user.name ||
+                  user.full_name ||
+                  user.fullName,
+              );
+            }
+            if (user.email) {
+              setEmail(user.email);
+            }
+            if (user.phone || user.phone_number) {
+              setPhone(user.phone || user.phone_number);
+            }
+            if (user.avatar || user.photo || user.image) {
+              setAvatar(user.avatar || user.photo || user.image);
+            }
+          }
+        }
+      } catch {
+        // ignore load errors for now
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const handleOpenBottomSheet = () => {
+    bottomSheetRef.current?.open();
   };
 
-  const handleDeleteAccount = () => {
-    // TODO: Implement delete account flow
+  const handleCloseBottomSheet = () => {
+    bottomSheetRef.current?.close();
+  };
+
+  const handlePickFromGallery = async () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo',
+      selectionLimit: 1,
+      quality: 0.8,
+    };
+    const result = await launchImageLibrary(options);
+    if (result.didCancel || !result.assets || !result.assets[0]) {
+      handleCloseBottomSheet();
+      return;
+    }
+    const asset = result.assets[0];
+    setAvatar(asset.uri || null);
+    setAvatarFile({
+      uri: asset.uri,
+      type: asset.type || 'image/jpeg',
+      name: asset.fileName || 'avatar.jpg',
+    });
+    handleCloseBottomSheet();
+  };
+
+  const handleOpenCamera = async () => {
+    const options: CameraOptions = {
+      mediaType: 'photo',
+      quality: 0.8,
+      saveToPhotos: false,
+    };
+    const result = await launchCamera(options);
+    if (result.didCancel || !result.assets || !result.assets[0]) {
+      handleCloseBottomSheet();
+      return;
+    }
+    const asset = result.assets[0];
+    setAvatar(asset.uri || null);
+    setAvatarFile({
+      uri: asset.uri,
+      type: asset.type || 'image/jpeg',
+      name: asset.fileName || 'avatar.jpg',
+    });
+    handleCloseBottomSheet();
+  };
+
+  const handleSave = async () => {
+    try {
+      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      if (!token) {
+        goBack();
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('phone', phone);
+      if (avatarFile) {
+        formData.append('avatar', avatarFile as any);
+      }
+
+      const res = await fetch(PROFILE_API_URL, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        goBack();
+      }
+    } catch {
+      // ignore errors for now
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        await fetch(DELETE_ACCOUNT_API_URL, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch {
+      // ignore errors
+    } finally {
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      resetNavigation('Welcome');
+    }
   };
 
   return (
@@ -53,11 +206,25 @@ export default function EditPersonalDetailsScreen() {
           {/* Profile Picture with Camera Overlay */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
-              <Image
-                source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-                style={styles.avatar}
-              />
-              <TouchableOpacity style={styles.cameraButton} activeOpacity={0.7}>
+              {avatar ? (
+                <Image
+                  source={{ uri: avatar }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <CustomIcon
+                    name={IconNames.person}
+                    size={scale(40)}
+                    color="#3FA565"
+                  />
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.cameraButton}
+                activeOpacity={0.7}
+                onPress={handleOpenBottomSheet}
+              >
                 <CustomIcon
                   name="camera"
                   size={scale(20)}
@@ -128,6 +295,45 @@ export default function EditPersonalDetailsScreen() {
           <View style={{ height: hp(5) }} />
         </ScrollView>
       </KeyboardAvoidingView>
+      <RBSheet
+        ref={bottomSheetRef}
+        height={scale(220)}
+        openDuration={250}
+        closeOnDragDown
+        closeOnPressMask
+        customStyles={{
+          container: styles.sheetContainer,
+          draggableIcon: styles.sheetDragIcon,
+        }}
+      >
+        <View style={styles.sheetContent}>
+          <Text style={styles.sheetTitle}>Profile photo</Text>
+          <TouchableOpacity
+            style={styles.sheetRow}
+            onPress={handlePickFromGallery}
+            activeOpacity={0.7}
+          >
+            <CustomIcon name="image-outline" size={scale(22)} color="#3FA565" />
+            <Text style={styles.sheetRowText}>Select from gallery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.sheetRow}
+            onPress={handleOpenCamera}
+            activeOpacity={0.7}
+          >
+            <CustomIcon name="camera-outline" size={scale(22)} color="#3FA565" />
+            <Text style={styles.sheetRowText}>Open camera</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.sheetRow}
+            onPress={handleCloseBottomSheet}
+            activeOpacity={0.7}
+          >
+            <CustomIcon name="close" size={scale(22)} color="#999" />
+            <Text style={styles.sheetRowText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </RBSheet>
     </SafeAreaView>
   );
 }
@@ -168,6 +374,14 @@ const styles = StyleSheet.create({
   },
   avatarWrapper: {
     position: 'relative',
+  },
+  avatarPlaceholder: {
+    width: scale(120),
+    height: scale(120),
+    borderRadius: scale(60),
+    backgroundColor: '#E8F5EC',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatar: {
     width: scale(120),
@@ -218,5 +432,33 @@ const styles = StyleSheet.create({
     fontSize: fontSize(14),
     color: '#3FA565',
     fontWeight: '500',
+  },
+  sheetContainer: {
+    borderTopLeftRadius: scale(16),
+    borderTopRightRadius: scale(16),
+    paddingHorizontal: padding.lg,
+    paddingBottom: padding.lg,
+  },
+  sheetDragIcon: {
+    backgroundColor: '#CCC',
+  },
+  sheetContent: {
+    marginTop: scale(8),
+  },
+  sheetTitle: {
+    fontSize: fontSize(16),
+    fontWeight: '600',
+    marginBottom: scale(16),
+    color: '#000',
+  },
+  sheetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: scale(10),
+  },
+  sheetRowText: {
+    marginLeft: scale(12),
+    fontSize: fontSize(15),
+    color: '#000',
   },
 });

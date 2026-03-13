@@ -11,6 +11,7 @@ import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput, PasswordInput, Separator, SocialButton, FooterLink } from '../../components';
 
 const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
 const validationSchema = Yup.object().shape({
@@ -46,7 +47,7 @@ const initialValues: FormValues = {
 
 export default function CreateNewAccountScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'CreateNewAccount'>>();
-  const roleKey = route.params?.roleKey ?? 1; // 1 = client, 2 = pro
+  const roleKey = route.params?.roleKey ?? 3; // 1 = client, 2 = pro
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik<FormValues>({
@@ -75,11 +76,22 @@ export default function CreateNewAccountScreen() {
           Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
           return;
         }
+console.log(data,"register");
 
-        const { user } = data;
-        if (user) {
-          await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-        }
+        const { user, accessToken, token } = data;
+        const authToken = accessToken ?? token ?? '';
+
+        const userPayload = {
+          ...(user || {}),
+          name: user?.name ?? values.fullName.trim(),
+          email: user?.email ?? values.email.trim().toLowerCase(),
+          userType: user?.userType ?? user?.role ?? roleKey,
+        };
+
+        await AsyncStorage.multiSet([
+          [AUTH_TOKEN_KEY, authToken],
+          [AUTH_USER_KEY, JSON.stringify(userPayload)],
+        ]);
 
         if (roleKey === 2) {
           navigate('BecomeProfessionalIntro');

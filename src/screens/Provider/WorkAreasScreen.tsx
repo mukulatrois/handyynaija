@@ -49,7 +49,7 @@ export default function WorkAreasScreen() {
           <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '80%' }]} />
+          <View style={[styles.progressFill, { width: '67%' }]} />
         </View>
       </View>
 

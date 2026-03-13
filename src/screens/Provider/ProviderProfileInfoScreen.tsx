@@ -10,10 +10,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  Alert,
+  ActivityIndicator,
+  PermissionsAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ImageCropPicker from 'react-native-image-crop-picker';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -26,6 +31,10 @@ import {
 import { TextInput, Button } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
+
+const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
 
 const PRIMARY_GREEN = '#3FA565';
 const ERROR_RED = '#D32F2F';
@@ -167,8 +176,21 @@ function DropdownField({
   );
 }
 
+function formatDateForApi(isoDate: string): string {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export default function ProviderProfileInfoScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [identityDocFrontUri, setIdentityDocFrontUri] = useState<string | null>(null);
+  const [identityDocBackUri, setIdentityDocBackUri] = useState<string | null>(null);
+  const [selfieUri, setSelfieUri] = useState<string | null>(null);
 
   const formik = useFormik<FormValues>({
     initialValues,
@@ -176,30 +198,111 @@ export default function ProviderProfileInfoScreen() {
     validateOnChange: true,
     validateOnBlur: true,
     onSubmit: async (values) => {
-      await setProviderProfileInfo(values);
-      navigate('ProviderUploadPhoto');
+      setSaving(true);
+      try {
+        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+        const userJson = await AsyncStorage.getItem(AUTH_USER_KEY);
+        let providerId = '';
+        let phoneNumber = '';
+        if (userJson) {
+          try {
+            const user = JSON.parse(userJson) as { id?: string; phone?: string; phone_number?: string; provider_id?: string };
+            providerId = String(user?.id ?? user?.provider_id ?? '');
+            phoneNumber = user?.phone ?? user?.phone_number ?? '';
+          } catch {
+            // ignore
+          }
+        }
+
+        const formData = new FormData();
+        formData.append('provider_id', providerId);
+        formData.append('phone_number', phoneNumber);
+        formData.append('name', values.name.trim());
+        formData.append('surname', values.surname.trim());
+        formData.append('gender', values.gender.toLowerCase());
+        formData.append('date_of_birth', formatDateForApi(values.dateOfBirth));
+        formData.append('birth_country', values.countryOfBirth);
+        formData.append('birth_city', values.cityOfBirth);
+        formData.append('country', values.country);
+        formData.append('city', values.city);
+        formData.append('street', values.street.trim());
+        formData.append('street_number', values.streetNumber.trim());
+        formData.append('postal_code', values.zipCode.trim());
+        formData.append('work_country', values.country);
+        formData.append('work_city', values.city);
+        formData.append('work_area_name', JSON.stringify([values.region]));
+        formData.append('document_type', values.docType);
+        formData.append('document_number', values.documentNumber.trim());
+        formData.append('document_country', values.countryOfDoc);
+
+        if (identityDocFrontUri) {
+          formData.append('identity_document_front', {
+            uri: identityDocFrontUri,
+            type: 'image/jpeg',
+            name: 'identity_document_front.jpg',
+          } as any);
+        }
+        if (identityDocBackUri) {
+          formData.append('identity_document_back', {
+            uri: identityDocBackUri,
+            type: 'image/jpeg',
+            name: 'identity_document_back.jpg',
+          } as any);
+        }
+        if (selfieUri) {
+          formData.append('selfie_image', {
+            uri: selfieUri,
+            type: 'image/jpeg',
+            name: 'selfie.jpg',
+          } as any);
+        }
+
+
+        // Alert.alert("All Fields are required")
+        const headers: Record<string, string> = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+
+        // const res :any=''
+        const res = await fetch(SAVE_PROVIDER_DETAIL_API_URL, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+          Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+          return;
+        }
+
+        await setProviderProfileInfo(values);
+        navigate('ProviderTabs');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        Alert.alert('Error', message);
+        // Alert.alert("All Fields are required")
+      } finally {
+        setSaving(false);
+      }
     },
   });
 
-  const { values, errors, touched, handleSubmit, setFieldValue, setFieldTouched, setTouched } = formik;
+  const { values, errors, touched, submitCount, handleSubmit, setFieldValue, setFieldTouched } = formik;
+
+  // Show field error when touched or after submit attempt, but never when the field has a value
+  // (avoids showing "Please fill in the field" after user has selected a value)
+  const showError = (field: keyof FormValues) => {
+    const err = errors[field];
+    if (!err) return undefined;
+    const val = values[field];
+    const hasValue = typeof val === 'string' ? val.trim() !== '' : !!val;
+    if (hasValue) return undefined;
+    return (touched[field] || submitCount > 0) ? err : undefined;
+  };
 
   const onSavePress = () => {
-    setTouched({
-      name: true,
-      surname: true,
-      gender: true,
-      dateOfBirth: true,
-      countryOfBirth: true,
-      cityOfBirth: true,
-      countryOfDoc: true,
-      documentNumber: true,
-      street: true,
-      streetNumber: true,
-      zipCode: true,
-      city: true,
-      region: true,
-      country: true,
-    });
     handleSubmit();
   };
 
@@ -231,21 +334,116 @@ export default function ProviderProfileInfoScreen() {
     }
   };
 
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera access',
+          message: 'HandyNaija needs camera access to take photos for your documents.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  };
+
+  const requestGalleryPermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    const apiLevel = (Platform.Version as number) || 0;
+    const permission =
+      apiLevel >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+    try {
+      const result = await PermissionsAndroid.request(permission, {
+        title: 'Photo access',
+        message: 'HandyNaija needs access to your photos to select images.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      });
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  };
+
+  const pickImageFromGallery = async (onSuccess: (path: string) => void) => {
+    const granted = await requestGalleryPermission();
+    if (!granted) {
+      Alert.alert(
+        'Permission required',
+        'Photo access is needed to choose an image. Please enable it in Settings.',
+      );
+      return;
+    }
+    try {
+      const image = await ImageCropPicker.openPicker({ cropping: false });
+      onSuccess(image.path);
+    } catch (e: any) {
+      if (e?.code !== 'E_PICKER_CANCELLED') {
+        Alert.alert('Error', e?.message ?? 'Failed to pick image');
+      }
+    }
+  };
+
+  const takePhotoWithCamera = async (
+    onSuccess: (path: string) => void,
+    useFrontCamera = false,
+  ) => {
+    const granted = await requestCameraPermission();
+    if (!granted) {
+      Alert.alert(
+        'Permission required',
+        'Camera access is needed to take a photo. Please enable it in Settings.',
+      );
+      return;
+    }
+    try {
+      const image = await ImageCropPicker.openCamera({
+        cropping: false,
+        useFrontCamera: !!useFrontCamera,
+      });
+      onSuccess(image.path);
+    } catch (e: any) {
+      if (e?.code !== 'E_PICKER_CANCELLED') {
+        Alert.alert('Error', e?.message ?? 'Failed to take photo');
+      }
+    }
+  };
+
+  const showImageSourceAlert = (
+    title: string,
+    onCamera: () => void,
+    onGallery: () => void,
+  ) => {
+    Alert.alert(title, 'Take a photo or choose from gallery', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Take Photo', onPress: onCamera },
+      { text: 'Choose from Gallery', onPress: onGallery },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Header */}
+        {/* Header with back arrow and progress bar */}
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerButton} activeOpacity={0.7}>
             <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            Information about your profile
-          </Text>
-          <View style={styles.headerButton} />
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: '100%' }]} />
+          </View>
         </View>
 
         <ScrollView
@@ -254,6 +452,7 @@ export default function ProviderProfileInfoScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          <Text style={styles.screenTitle}>Information about your profile</Text>
           {/* Important notice */}
           <View style={styles.noticeBox}>
             <Icon name="bulb-outline" size={scale(24)} color="#E6A800" />
@@ -273,14 +472,14 @@ export default function ProviderProfileInfoScreen() {
             value={values.name}
             onChangeText={(text) => setFieldValue('name', text)}
             onBlur={() => setFieldTouched('name')}
-            error={touched.name && errors.name ? errors.name : undefined}
+            error={showError('name')}
           />
           <TextInput
             placeholder="Surname"
             value={values.surname}
             onChangeText={(text) => setFieldValue('surname', text)}
             onBlur={() => setFieldTouched('surname')}
-            error={touched.surname && errors.surname ? errors.surname : undefined}
+            error={showError('surname')}
           />
           <DropdownField
             placeholder="Gender"
@@ -290,13 +489,13 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('gender', item);
               setFieldTouched('gender', true);
             }}
-            error={touched.gender && errors.gender ? errors.gender : undefined}
+            error={showError('gender')}
           />
           <View style={styles.fieldContainer}>
             <TouchableOpacity
               style={[
                 styles.dropdownTouch,
-                touched.dateOfBirth && errors.dateOfBirth && styles.inputError,
+                showError('dateOfBirth') && styles.inputError,
               ]}
               onPress={() => setShowDatePicker(true)}
               activeOpacity={0.7}
@@ -311,7 +510,7 @@ export default function ProviderProfileInfoScreen() {
               </Text>
               <Icon name="chevron-down" size={scale(20)} color="#333" />
             </TouchableOpacity>
-            {touched.dateOfBirth && errors.dateOfBirth ? (
+            {showError('dateOfBirth') ? (
               <Text style={styles.errorText}>{errors.dateOfBirth}</Text>
             ) : null}
             {showDatePicker && Platform.OS === 'android' && (
@@ -365,7 +564,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('countryOfBirth', item);
               setFieldTouched('countryOfBirth', true);
             }}
-            error={touched.countryOfBirth && errors.countryOfBirth ? errors.countryOfBirth : undefined}
+            error={showError('countryOfBirth')}
           />
           <DropdownField
             placeholder="City of birth"
@@ -375,7 +574,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('cityOfBirth', item);
               setFieldTouched('cityOfBirth', true);
             }}
-            error={touched.cityOfBirth && errors.cityOfBirth ? errors.cityOfBirth : undefined}
+            error={showError('cityOfBirth')}
           />
 
           {/* Identify Documents */}
@@ -415,15 +614,60 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('countryOfDoc', item);
               setFieldTouched('countryOfDoc', true);
             }}
-            error={touched.countryOfDoc && errors.countryOfDoc ? errors.countryOfDoc : undefined}
+            error={showError('countryOfDoc')}
           />
           <TextInput
             placeholder="Document number"
             value={values.documentNumber}
             onChangeText={(text) => setFieldValue('documentNumber', text)}
             onBlur={() => setFieldTouched('documentNumber')}
-            error={touched.documentNumber && errors.documentNumber ? errors.documentNumber : undefined}
+            error={showError('documentNumber')}
           />
+          <Text style={styles.uploadLabel}>Identity document (front)</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() =>
+              showImageSourceAlert(
+                'Identity document (front)',
+                () => takePhotoWithCamera(setIdentityDocFrontUri, false),
+                () => pickImageFromGallery(setIdentityDocFrontUri),
+              )
+            }
+            activeOpacity={0.7}
+          >
+            <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+            <Text style={styles.uploadButtonText}>
+              {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.uploadLabel}>Identity document (back)</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() =>
+              showImageSourceAlert(
+                'Identity document (back)',
+                () => takePhotoWithCamera(setIdentityDocBackUri, false),
+                () => pickImageFromGallery(setIdentityDocBackUri),
+              )
+            }
+            activeOpacity={0.7}
+          >
+            <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+            <Text style={styles.uploadButtonText}>
+              {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.uploadLabel}>Selfie</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() => takePhotoWithCamera(setSelfieUri, true)}
+            activeOpacity={0.7}
+          >
+            <Icon name="person-outline" size={scale(20)} color={PRIMARY_GREEN} />
+            <Text style={styles.uploadButtonText}>
+              {selfieUri ? 'Selfie selected' : 'Take selfie'}
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.emailPrompt}>
             Don't have any of these document?{' '}
             <Text style={styles.emailLink} onPress={openEmail}>
@@ -438,14 +682,14 @@ export default function ProviderProfileInfoScreen() {
             value={values.street}
             onChangeText={(text) => setFieldValue('street', text)}
             onBlur={() => setFieldTouched('street')}
-            error={touched.street && errors.street ? errors.street : undefined}
+            error={showError('street')}
           />
           <TextInput
             placeholder="Street number"
             value={values.streetNumber}
             onChangeText={(text) => setFieldValue('streetNumber', text)}
             onBlur={() => setFieldTouched('streetNumber')}
-            error={touched.streetNumber && errors.streetNumber ? errors.streetNumber : undefined}
+            error={showError('streetNumber')}
           />
           <TextInput
             placeholder="Zip/Postal Code"
@@ -453,7 +697,7 @@ export default function ProviderProfileInfoScreen() {
             onChangeText={(text) => setFieldValue('zipCode', text)}
             onBlur={() => setFieldTouched('zipCode')}
             keyboardType="numeric"
-            error={touched.zipCode && errors.zipCode ? errors.zipCode : undefined}
+            error={showError('zipCode')}
           />
           <DropdownField
             placeholder="City"
@@ -463,7 +707,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('city', item);
               setFieldTouched('city', true);
             }}
-            error={touched.city && errors.city ? errors.city : undefined}
+            error={showError('city')}
           />
           <DropdownField
             placeholder="Street/Country/Region"
@@ -473,7 +717,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('region', item);
               setFieldTouched('region', true);
             }}
-            error={touched.region && errors.region ? errors.region : undefined}
+            error={showError('region')}
           />
           <DropdownField
             placeholder="Country"
@@ -483,15 +727,19 @@ export default function ProviderProfileInfoScreen() {
               setFieldValue('country', item);
               setFieldTouched('country', true);
             }}
-            error={touched.country && errors.country ? errors.country : undefined}
+            error={showError('country')}
           />
 
           <Button
-            title="Save"
+            title={saving ? 'Saving…' : 'Save'}
             onPress={onSavePress}
             variant="primary"
             style={styles.saveButton}
+            disabled={saving}
           />
+          {saving ? (
+            <ActivityIndicator size="small" color={PRIMARY_GREEN} style={styles.loader} />
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -509,21 +757,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: padding.lg,
-    paddingVertical: padding.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: padding.xl,
+    paddingVertical: padding.lg,
+    paddingBottom: padding.md,
+    gap: padding.md,
   },
   headerButton: {
-    minWidth: scale(40),
+    padding: padding.xs,
   },
-  headerTitle: {
-    fontSize: fontSize(18),
-    fontWeight: '700',
-    color: '#1A1A1A',
+  progressBar: {
     flex: 1,
-    textAlign: 'center',
+    height: scale(6),
+    backgroundColor: '#E0E0E0',
+    borderRadius: scale(10),
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#3FA565',
+    borderRadius: scale(10),
   },
   scrollView: {
     flex: 1,
@@ -532,6 +784,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.xl,
     paddingTop: padding.lg,
     paddingBottom: margin.xxxl,
+  },
+  screenTitle: {
+    fontSize: fontSize(24),
+    fontWeight: 'bold',
+    color: PRIMARY_GREEN,
+    marginBottom: margin.lg,
   },
   noticeBox: {
     flexDirection: 'row',
@@ -678,8 +936,27 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
     fontWeight: '600',
   },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: padding.sm,
+    paddingVertical: padding.md,
+    paddingHorizontal: padding.lg,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: borderRadius.lg,
+    marginBottom: margin.lg,
+  },
+  uploadButtonText: {
+    fontSize: fontSize(14),
+    color: PRIMARY_GREEN,
+    fontWeight: '500',
+  },
   saveButton: {
     marginTop: margin.xl,
+  },
+  loader: {
+    marginTop: margin.md,
   },
   modalOverlay: {
     flex: 1,

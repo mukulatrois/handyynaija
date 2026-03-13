@@ -22,6 +22,7 @@ import WorkScheduleScreen from '../screens/Provider/WorkScheduleScreen';
 import UpdateEventScreen from '../screens/Provider/UpdateEventScreen';
 import RequestDetailScreen from '../screens/Provider/RequestDetailScreen';
 import ProviderPersonalDetailsScreen from '../screens/Provider/PersonalDetailsScreen';
+import ProviderEditPersonalDetailsScreen from '../screens/Provider/EditProfileScreen';
 import ProviderProfileInfoScreen from '../screens/Provider/ProviderProfileInfoScreen';
 import ProviderUploadPhotoScreen from '../screens/Provider/ProviderUploadPhotoScreen';
 import ProviderVerifyPhotoScreen from '../screens/Provider/ProviderVerifyPhotoScreen';
@@ -77,6 +78,7 @@ export default function StackNavigator() {
           headerShown: false,
           animation: 'slide_from_right',
         }}
+        // initialRouteName='ProviderSelectCountry'
         initialRouteName='Splash'
       >
         <Stack.Screen name="Home" component={Home} />
@@ -421,6 +423,14 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ProviderPersonalDetails"
           component={ProviderPersonalDetailsScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ProviderEditPersonal"
+          component={ProviderEditPersonalDetailsScreen}
           options={{
             headerShown: false,
             animation: 'slide_from_right',
