@@ -174,7 +174,7 @@ export default function PProfile() {
             <Text style={styles.userName}>{getDisplayName(profile)}</Text>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => navigate('PersonalDetails')}
+              onPress={() => navigate('ProviderPersonalDetails')}
             >
               <Text style={styles.viewProfileLink}>View Profile</Text>
             </TouchableOpacity>
@@ -194,8 +194,8 @@ export default function PProfile() {
         <SectionHeader title="Your Account" />
         <MenuItem
           icon="person-outline"
-          text="Personal details"
-          onPress={() => navigate('PersonalDetails')}
+          text="Personal detailss"
+          onPress={() => navigate('ProviderPersonalDetails')}
         />
         <View style={styles.separator} />
         <MenuItem

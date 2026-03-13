@@ -44,6 +44,7 @@ export default function PersonalDetailsScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,9 +136,13 @@ export default function PersonalDetailsScreen() {
           <TouchableOpacity
             style={[styles.headerButton, styles.headerButtonRight]}
             activeOpacity={0.7}
-            onPress={() => navigate('EditProfile')}
+            onPress={() => setIsEditing((prev) => !prev)}
           >
-            <Icon name="pencil" size={scale(22)} color={PRIMARY_GREEN} />
+            <Icon
+              name={isEditing ? 'checkmark' : 'pencil'}
+              size={scale(22)}
+              color={PRIMARY_GREEN}
+            />
           </TouchableOpacity>
         </View>
 
@@ -164,12 +169,13 @@ export default function PersonalDetailsScreen() {
           <View style={styles.inputSection}>
             <View style={styles.inputRow}>
               <RNTextInput
-                style={styles.input}
+                style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={name}
                 onChangeText={setName}
                 placeholder="Name"
                 placeholderTextColor={colors.textMuted}
                 maxLength={NAME_MAX_LENGTH}
+                editable={isEditing}
               />
               <Text style={styles.charCount}>
                 {name.length}/{NAME_MAX_LENGTH}
@@ -178,7 +184,7 @@ export default function PersonalDetailsScreen() {
 
             <View style={styles.inputRow}>
               <RNTextInput
-                style={styles.input}
+                style={[styles.input, styles.inputDisabled]}
                 value={email}
                 placeholder="Email"
                 placeholderTextColor={colors.textMuted}
@@ -188,23 +194,26 @@ export default function PersonalDetailsScreen() {
 
             <View style={styles.inputRow}>
               <RNTextInput
-                style={styles.input}
+                style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder="Phone"
                 placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
+                editable={isEditing}
               />
             </View>
           </View>
 
           {/* Save Button */}
-          <Button
-            title="Save"
-            onPress={() => {}}
-            variant="primary"
-            style={styles.saveButton}
-          />
+          {isEditing && (
+            <Button
+              title="Save"
+              onPress={() => {}}
+              variant="primary"
+              style={styles.saveButton}
+            />
+          )}
 
           {/* Delete Account */}
           <TouchableOpacity
@@ -297,6 +306,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize(16),
     color: colors.text,
     padding: 0,
+  },
+  inputDisabled: {
+    color: colors.textMuted,
   },
   charCount: {
     fontSize: fontSize(14),
