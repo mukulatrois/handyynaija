@@ -6,6 +6,7 @@ import EmailLoginScreen, { LoginEmailHandle } from './EmailLoginScreen';
 import { HandleBar, CloseButton, Separator, SocialButton, Button } from '../../components';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { googleLogin } from '../../GFALogins/googleLogin';
+import { facebookLogin } from '../../GFALogins/facebookLogin';
 export type LoginSheetHandle = {
   open: () => void;
   close: () => void;
@@ -45,7 +46,7 @@ const LoginSheet = forwardRef<LoginSheetHandle, {}>((_, ref) => {
         </View>
 
         <SocialButton provider="apple" onPress={() => { }} />
-        <SocialButton provider="facebook" onPress={() => { }} />
+        <SocialButton provider="facebook" onPress={facebookLogin} />
         <SocialButton provider="google" onPress={googleLogin} />
 
         <Separator />
