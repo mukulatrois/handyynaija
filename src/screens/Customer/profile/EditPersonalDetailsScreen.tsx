@@ -51,11 +51,12 @@ export default function EditPersonalDetailsScreen() {
             Authorization: `Bearer ${token}`,
           },
         });
+console.log(res,"res");
 
         if (res.ok) {
           const data = await res.json();
           const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
-
+console.log(user,"user");
           if (user) {
             if (user.name || user.full_name || user.fullName) {
               setName(
@@ -194,7 +195,7 @@ export default function EditPersonalDetailsScreen() {
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
             <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
-            <Text style={styles.headerTitle}>Personal Details</Text>
+            <Text style={styles.headerTitle}>Edit Details</Text>
           </TouchableOpacity>
         </View>
 

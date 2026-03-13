@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
         <HandleBar />
         <Button
           title="Create new account"
-          onPress={() => navigate('RoleSelect')}
+          onPress={() => navigate('RoleSelect',{type:"normal"})}
           variant="primary"
           style={{ marginBottom: margin.md }}
         />

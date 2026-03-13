@@ -9,10 +9,10 @@ import {
 export type RootStackParamList = {
   Splash: undefined;
   Welcome: undefined;
-  RoleSelect: undefined;
+  RoleSelect: { type?: string; name?: string; email?: string } | undefined;
   Login: undefined;
   EmailLogin: undefined;
-  CreateNewAccount: { roleKey?: 1 | 2 };
+  CreateNewAccount: { roleKey?: 2 | 3 };
   PhoneSignup: undefined;
   ForgotPassword: undefined;
   OTP: { phoneNumber?: string; email?: string; type?: 'email' | 'phone' };

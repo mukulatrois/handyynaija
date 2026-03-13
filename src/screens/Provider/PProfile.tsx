@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { fontSize, padding, margin, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { LogoutModal } from '../../components';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -135,11 +136,13 @@ export default function PProfile() {
             Authorization: `Bearer ${token}`,
           },
         });
+      
       }
     } catch {
       // Ignore API errors; we still clear local session
     } finally {
       await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      await GoogleSignin.signOut();
       resetNavigation('Welcome');
     }
   };
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: margin.xxxl,
+    paddingBottom: 100,
   },
   profileHeader: {
     flexDirection: 'row',
