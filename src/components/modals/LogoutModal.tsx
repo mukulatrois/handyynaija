@@ -1,6 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Modal from 'react-native-modal';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from 'react-native';
 import CustomIcon from '../Icon';
 import { scale, fontSize, padding } from '../../utils/responsive';
 
@@ -17,14 +23,16 @@ export default function LogoutModal({
 }: LogoutModalProps) {
   return (
     <Modal
-      isVisible={visible}
-      onBackdropPress={onCancel}
-      onBackButtonPress={onCancel}
-      backdropOpacity={0.5}
-      style={styles.modal}
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+      statusBarTranslucent
     >
-      <View style={styles.container}>
-        <CustomIcon
+      <View style={styles.backdrop}>
+        <Pressable style={styles.backdropTouchable} onPress={onCancel} />
+        <View style={styles.container}>
+          <CustomIcon
           name="log-out-outline"
           size={scale(48)}
           color="#3FA565"
@@ -51,16 +59,21 @@ export default function LogoutModal({
             <Text style={styles.logoutText}>Log out</Text>
           </TouchableOpacity>
         </View>
+        </View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backdropTouchable: {
+    ...StyleSheet.absoluteFillObject,
   },
   container: {
     width: '85%',

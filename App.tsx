@@ -1,6 +1,7 @@
-import { StyleSheet, View } from 'react-native'
+import { LogBox, StyleSheet, View } from 'react-native'
 import React from 'react'
 import StackNavigator from './src/navigation/Stack'
+LogBox.ignoreAllLogs
 
 const App = () => {
   return (

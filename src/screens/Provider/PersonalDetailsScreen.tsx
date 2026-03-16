@@ -1,13 +1,23 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput as RNTextInput, KeyboardAvoidingView, Platform } from 'react-native';
+
+
+
+
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
-import { colors } from '../../theme/colors';
-import { goBack, navigate } from '../../navigation/navigationService';
-import { Button } from '../../components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import CustomIcon, { IconNames } from '../../components/Icon';
+import { goBack, navigate } from '../../navigation/navigationService';
+import { scale, fontSize, wp, hp, padding } from '../../utils/responsive';
 
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -36,15 +46,65 @@ function getDisplayName(profile: UserProfile): string {
   return (n && n.trim()) || 'Guest';
 }
 
-const PRIMARY_GREEN = '#3FA565';
-const NAME_MAX_LENGTH = 50;
+const RATING_CATEGORIES = [
+  { label: 'Service', value: 4.8 },
+  { label: 'Communication', value: 5 },
+  { label: 'Kindness', value: 5 },
+  { label: 'Booked Time', value: 5 },
+  { label: 'Comport', value: 5 },
+];
+
+const SAMPLE_COMMENTS = [
+  {
+    id: '1',
+    name: 'Esther',
+    avatar: 'https://i.pravatar.cc/100?img=5',
+    timeAgo: '3 day ago',
+    text: 'He is very polite and compostable.',
+    rating: 5,
+    verified: true,
+  },
+  {
+    id: '2',
+    name: 'Esther',
+    avatar: 'https://i.pravatar.cc/100?img=5',
+    timeAgo: '3 day ago',
+    text: 'He is very polite and compostable.',
+    rating: 5,
+    verified: true,
+  },
+  {
+    id: '3',
+    name: 'Esther',
+    avatar: 'https://i.pravatar.cc/100?img=5',
+    timeAgo: '3 day ago',
+    text: 'He is very polite and compostable.',
+    rating: 5,
+    verified: true,
+  },
+  {
+    id: '4',
+    name: 'Esther',
+    avatar: 'https://i.pravatar.cc/100?img=5',
+    timeAgo: '3 day ago',
+    text: 'He is very polite and compostable.',
+    rating: 5,
+    verified: true,
+  },
+];
+
+function RatingBar({ value }: { value: number }) {
+  const fillPercent = (value / 5) * 100;
+  return (
+    <View style={styles.ratingBarTrack}>
+      <View style={[styles.ratingBarFill, { width: `${fillPercent}%` }]} />
+    </View>
+  );
+}
 
 export default function PersonalDetailsScreen() {
+
   const [profile, setProfile] = useState<UserProfile>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,29 +125,12 @@ export default function PersonalDetailsScreen() {
           if (res.ok) {
             const data = await res.json();
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
-            if (isActive) {
-              setProfile(user ?? null);
-              const displayName = getDisplayName(user ?? null);
-              if (displayName) {
-                setName(displayName);
-              }
-              if (user?.email) {
-                setEmail(user.email);
-              }
-            }
+            if (isActive) setProfile(user ?? null);
           } else {
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {
-                const storedUser = JSON.parse(stored);
-                setProfile(storedUser);
-                const displayName = getDisplayName(storedUser);
-                if (displayName) {
-                  setName(displayName);
-                }
-                if (storedUser?.email) {
-                  setEmail(storedUser.email);
-                }
+                setProfile(JSON.parse(stored));
               } catch {
                 // ignore invalid stored user
               }
@@ -97,15 +140,7 @@ export default function PersonalDetailsScreen() {
           const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
           if (stored && isActive) {
             try {
-              const storedUser = JSON.parse(stored);
-              setProfile(storedUser);
-              const displayName = getDisplayName(storedUser);
-              if (displayName) {
-                setName(displayName);
-              }
-              if (storedUser?.email) {
-                setEmail(storedUser.email);
-              }
+              setProfile(JSON.parse(stored));
             } catch {
               // ignore invalid stored user
             }
@@ -123,108 +158,119 @@ export default function PersonalDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={goBack} style={styles.headerButton}>
-            <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
-          </TouchableOpacity>
+      {/* Header - back arrow GREEN, title black bold */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
+          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
           <Text style={styles.headerTitle}>Personal Details</Text>
-          <TouchableOpacity
-            style={[styles.headerButton, styles.headerButtonRight]}
-            activeOpacity={0.7}
-            onPress={() => setIsEditing((prev) => !prev)}
-          >
-            <Icon
-              name={isEditing ? 'checkmark' : 'pencil'}
-              size={scale(22)}
-              color={PRIMARY_GREEN}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigate('EditPersonalDetails')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.editText}>Edit</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Summary */}
+        <View style={styles.profileSummary}>
+          {profile?.avatar || profile?.photo || profile?.image ? (
+            <Image
+              source={{
+                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+              }}
+              style={styles.avatar}
             />
-          </TouchableOpacity>
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <CustomIcon name={IconNames.person} size={scale(32)} color="#3FA565" />
+            </View>
+          )}
+          <Text style={styles.name}>{getDisplayName(profile)}</Text>
+          <View style={styles.statsRow}>
+            <TouchableOpacity style={styles.statItem}>
+              <View style={styles.statMain}>
+                <FontAwesome name="star" size={scale(16)} color="#FFA500" />
+                <Text style={styles.statValue}>5</Text>
+              </View>
+              <Text style={[styles.statLabel, styles.statLabelReviews]}>13 reviews</Text>
+            </TouchableOpacity>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>19</Text>
+              <Text style={styles.statLabel}>Services</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.profileDivider} />
+
+        {/* Overall Rating - 5 + star, Outstanding, (13 ratings) below */}
+        <View style={styles.ratingsSection}>
+          <View style={styles.ratingsHeader}>
+            <View style={styles.ratingMainRow}>
+              <FontAwesome name="star" size={scale(18)} color="#FFA500" />
+              <Text style={styles.outstandingText}>5 Outstanding</Text>
+            </View>
+            <Text style={styles.ratingsCount}>(13 ratings)</Text>
+          </View>
+          {RATING_CATEGORIES.map((item) => (
+            <View key={item.label} style={styles.ratingRow}>
+              <Text style={styles.ratingLabel}>{item.label}</Text>
+              <RatingBar value={item.value} />
+              <Text style={styles.ratingValue}>{item.value}</Text>
+            </View>
+          ))}
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Profile Picture */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-                style={styles.avatar}
-              />
-              <TouchableOpacity style={styles.cameraButton} activeOpacity={0.7}>
-                <Icon name="camera" size={scale(16)} color={colors.white} />
-              </TouchableOpacity>
+        {/* Comments - list with dividers, grey checkmark, star on far right */}
+        <Text style={styles.commentsHeader}>Comments</Text>
+        <View style={styles.commentsList}>
+          {SAMPLE_COMMENTS.map((comment, index) => (
+            <View key={comment.id}>
+              <View style={styles.commentRow}>
+                <Image
+                  source={{ uri: comment.avatar }}
+                  style={styles.commentAvatar}
+                />
+                <View style={styles.commentMeta}>
+                  <View style={styles.commentNameRow}>
+                    <Text style={styles.commentName}>{comment.name}</Text>
+                    <CustomIcon
+                      name="time-outline"
+                      size={scale(14)}
+                      color="#999"
+                    />
+                    <Text style={styles.commentTime}>{comment.timeAgo}</Text>
+                  </View>
+                  {comment.verified && (
+                    <View style={styles.verifiedBadge}>
+                      <CustomIcon
+                        name="checkmark-circle-outline"
+                        size={scale(14)}
+                        color="#999"
+                      />
+                      <Text style={styles.verifiedText}>Verified service</Text>
+                    </View>
+                  )}
+                  <Text style={styles.commentText}>{comment.text}</Text>
+                </View>
+                <View style={styles.commentRatingRight}>
+                  <FontAwesome name="star" size={scale(12)} color="#FFA500" />
+                  <Text style={styles.commentRatingValue}>{comment.rating}</Text>
+                </View>
+              </View>
+              {index < SAMPLE_COMMENTS.length - 1 && (
+                <View style={styles.commentDivider} />
+              )}
             </View>
-          </View>
+          ))}
+        </View>
 
-          {/* Input Fields */}
-          <View style={styles.inputSection}>
-            <View style={styles.inputRow}>
-              <RNTextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                value={name}
-                onChangeText={setName}
-                placeholder="Name"
-                placeholderTextColor={colors.textMuted}
-                maxLength={NAME_MAX_LENGTH}
-                editable={isEditing}
-              />
-              <Text style={styles.charCount}>
-                {name.length}/{NAME_MAX_LENGTH}
-              </Text>
-            </View>
-
-            <View style={styles.inputRow}>
-              <RNTextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={email}
-                placeholder="Email"
-                placeholderTextColor={colors.textMuted}
-                editable={false}
-              />
-            </View>
-
-            <View style={styles.inputRow}>
-              <RNTextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="Phone"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="phone-pad"
-                editable={isEditing}
-              />
-            </View>
-          </View>
-
-          {/* Save Button */}
-          {isEditing && (
-            <Button
-              title="Save"
-              onPress={() => {}}
-              variant="primary"
-              style={styles.saveButton}
-            />
-          )}
-
-          {/* Delete Account */}
-          <TouchableOpacity
-            style={styles.deleteLink}
-            activeOpacity={0.7}
-            onPress={() => {}}
-          >
-            <Text style={styles.deleteLinkText}>Delete account permanently</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <View style={{ height: hp(5) }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -232,98 +278,211 @@ export default function PersonalDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-  },
-  keyboardView: {
-    flex: 1,
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: padding.lg,
-    paddingVertical: padding.md,
+    paddingVertical: scale(12),
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E8E8E8',
   },
-  headerButton: {
-    minWidth: scale(40),
-  },
-  headerButtonRight: {
-    alignItems: 'flex-end',
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(8),
   },
   headerTitle: {
     fontSize: fontSize(18),
     fontWeight: '700',
-    color: colors.text,
+    color: '#000',
   },
-  scrollView: {
-    flex: 1,
+  editText: {
+    fontSize: fontSize(16),
+    fontWeight: '500',
+    color: '#3FA565',
   },
   scrollContent: {
-    paddingHorizontal: padding.xl,
-    paddingTop: padding.xxl,
-    paddingBottom: margin.xxxl,
+    paddingHorizontal: padding.lg,
+    paddingTop: padding.lg,
   },
-  avatarSection: {
+  profileSummary: {
     alignItems: 'center',
-    marginBottom: margin.xl,
+    marginBottom: scale(16),
   },
-  avatarWrapper: {
-    position: 'relative',
+  avatarPlaceholder: {
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    marginBottom: scale(12),
+    backgroundColor: '#E8F5EC',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatar: {
-    width: scale(120),
-    height: scale(120),
-    borderRadius: scale(60),
-    backgroundColor: colors.borderLight,
+    width: scale(100),
+    height: scale(100),
+    borderRadius: scale(50),
+    marginBottom: scale(12),
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: scale(36),
-    height: scale(36),
-    borderRadius: scale(18),
-    backgroundColor: PRIMARY_GREEN,
+  name: {
+    fontSize: fontSize(20),
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: scale(12),
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: scale(40),
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
   },
-  inputSection: {
-    marginBottom: margin.xl,
+  statItem: {
+    alignItems: 'center',
   },
-  inputRow: {
+  statMain: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingVertical: padding.lg,
+    gap: scale(4),
   },
-  input: {
+  statValue: {
+    fontSize: fontSize(18),
+    fontWeight: '700',
+    color: '#000',
+  },
+  statLabel: {
+    fontSize: fontSize(12),
+    color: '#666',
+    marginTop: scale(2),
+  },
+  statLabelReviews: {
+    textDecorationLine: 'underline',
+    color: '#000',
+  },
+  profileDivider: {
+    height: 1,
+    backgroundColor: '#E8E8E8',
+    marginBottom: scale(20),
+  },
+  ratingsSection: {
+    marginBottom: scale(24),
+  },
+  ratingsHeader: {
+    marginBottom: scale(14),
+  },
+  ratingMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(6),
+  },
+  outstandingText: {
+    fontSize: fontSize(18),
+    fontWeight: '700',
+    color: '#000',
+  },
+  ratingsCount: {
+    fontSize: fontSize(12),
+    color: '#999',
+    marginTop: scale(4),
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: scale(10),
+    gap: scale(12),
+  },
+  ratingLabel: {
+    flex: 0,
+    width: wp(22),
+    fontSize: fontSize(14),
+    color: '#333',
+  },
+  ratingBarTrack: {
     flex: 1,
-    fontSize: fontSize(16),
-    color: colors.text,
-    padding: 0,
+    height: scale(8),
+    backgroundColor: '#E8E8E8',
+    borderRadius: scale(4),
+    overflow: 'hidden',
   },
-  inputDisabled: {
-    color: colors.textMuted,
+  ratingBarFill: {
+    height: '100%',
+    backgroundColor: '#FFA500',
+    borderRadius: scale(4),
   },
-  charCount: {
+  ratingValue: {
+    width: scale(32),
     fontSize: fontSize(14),
-    color: colors.textMuted,
-    marginLeft: padding.md,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
   },
-  saveButton: {
-    marginBottom: margin.lg,
+  commentsHeader: {
+    fontSize: fontSize(18),
+    fontWeight: '700',
+    color: '#3FA565',
+    marginBottom: scale(12),
   },
-  deleteLink: {
-    alignSelf: 'center',
+  commentsList: {
+    backgroundColor: '#fff',
+    borderRadius: 0,
   },
-  deleteLinkText: {
+  commentRow: {
+    flexDirection: 'row',
+    paddingVertical: scale(14),
+  },
+  commentAvatar: {
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(22),
+  },
+  commentMeta: {
+    marginLeft: scale(12),
+    flex: 1,
+  },
+  commentNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(6),
+    marginBottom: scale(4),
+  },
+  commentName: {
     fontSize: fontSize(14),
-    color: PRIMARY_GREEN,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#000',
+  },
+  commentTime: {
+    fontSize: fontSize(12),
+    color: '#999',
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(4),
+    marginBottom: scale(6),
+  },
+  verifiedText: {
+    fontSize: fontSize(12),
+    color: '#999',
+  },
+  commentText: {
+    fontSize: fontSize(14),
+    color: '#000',
+    lineHeight: scale(20),
+  },
+  commentRatingRight: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: scale(4),
+  },
+  commentRatingValue: {
+    fontSize: fontSize(12),
+    fontWeight: '600',
+    color: '#333',
+  },
+  commentDivider: {
+    height: 1,
+    backgroundColor: '#E8E8E8',
   },
 });
+

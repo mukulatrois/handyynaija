@@ -1,19 +1,83 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { navigate, goBack } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { Button } from '../../components';
 
-export default function RoleSelectScreen() {
+const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
 
+export default function RoleSelectScreen(props: any) {
   const [selected, setSelected] = useState<'client' | 'pro' | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { type, name, email } = props.route?.params ?? {};
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selected) return;
     const roleKey = selected === 'client' ? 3 : 2;
-    navigate('CreateNewAccount', { roleKey });
+
+    if (type === 'normal') {
+      navigate('CreateNewAccount', { roleKey: roleKey as 2 | 3 });
+      return;
+    }
+
+    if (!name?.trim() || !email?.trim()) {
+      Alert.alert('Error', 'Name and email are required to continue.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(REGISTER_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: String(name).trim(),
+          email: String(email).trim().toLowerCase(),
+          // password: '', // Social signup - backend may use provider token
+          role: roleKey,
+          type: type,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+        Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+        return;
+      }
+
+      const { user, accessToken, token } = data;
+      const authToken = accessToken ?? token ?? '';
+
+      const userPayload = {
+        ...(user || {}),
+        name: user?.name ?? String(name).trim(),
+        email: user?.email ?? String(email).trim().toLowerCase(),
+        userType: user?.userType ?? user?.role ?? roleKey,
+      };
+
+      await AsyncStorage.multiSet([
+        [AUTH_TOKEN_KEY, authToken],
+        [AUTH_USER_KEY, JSON.stringify(userPayload)],
+      ]);
+
+      if (roleKey === 2) {
+        navigate('BecomeProfessionalIntro');
+      } else {
+        navigate('MainTabs');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+      Alert.alert('Error', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,10 +128,10 @@ export default function RoleSelectScreen() {
 
       <View style={styles.footer}>
         <Button
-          title="Continue"
+          title={loading ? 'Please wait...' : 'Continue'}
           onPress={handleContinue}
           variant="primary"
-          disabled={!selected}
+          disabled={!selected || loading}
         />
       </View>
     </SafeAreaView>

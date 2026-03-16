@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames } from '../../../components';
 import { navigate, resetNavigation } from '../../../navigation/navigationService';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -135,11 +136,13 @@ export default function MyAccountScreen() {
             Authorization: `Bearer ${token}`,
           },
         });
+     
       }
     } catch {
       // Ignore API errors; we still clear local session
     } finally {
       await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      await GoogleSignin.signOut();
       resetNavigation('Welcome');
     }
   };
