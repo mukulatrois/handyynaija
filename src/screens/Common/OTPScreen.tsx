@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image, Alert, Keyboard } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useFormik } from 'formik';
@@ -35,7 +35,7 @@ export default function OTPScreen() {
   const formik = useFormik<FormValues>({
     initialValues,
     validationSchema,
-    validateOnChange: true,
+    validateOnChange: false,
     validateOnBlur: true,
     onSubmit: async (values) => {
       if (type === 'phone') {
@@ -73,14 +73,18 @@ export default function OTPScreen() {
     },
   });
 
-  const { values, errors, touched, handleSubmit, setFieldValue, setFieldTouched } = formik;
+  const { values, errors, touched, handleSubmit, setFieldValue, setFieldTouched, validateField } = formik;
   const otpDigits = Array.from({ length: OTP_LENGTH }, (_, i) => values.otp[i] || '');
 
   const handleOtpChange = (value: string, index: number) => {
     if (value.length > 1) {
       const pasted = value.replace(/\D/g, '').slice(0, OTP_LENGTH);
-      setFieldValue('otp', pasted);
-      setFieldTouched('otp', true);
+      setFieldValue('otp', pasted, false);
+      if (pasted.length === OTP_LENGTH) {
+        setFieldTouched('otp', true, false);
+        validateField('otp');
+        Keyboard.dismiss();
+      }
       const nextIndex = Math.min(pasted.length, OTP_LENGTH - 1);
       inputRefs.current[nextIndex]?.focus();
       return;
@@ -89,8 +93,13 @@ export default function OTPScreen() {
     const newDigits = [...otpDigits];
     newDigits[index] = value.replace(/\D/g, '');
     const newOtp = newDigits.join('').slice(0, OTP_LENGTH);
-    setFieldValue('otp', newOtp);
-    setFieldTouched('otp', true);
+    setFieldValue('otp', newOtp, false);
+
+    if (newOtp.length === OTP_LENGTH) {
+      setFieldTouched('otp', true, false);
+      validateField('otp');
+      Keyboard.dismiss();
+    }
 
     if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
