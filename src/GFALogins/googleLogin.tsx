@@ -31,8 +31,8 @@ export const googleLogin = async () => {
       });
 
       const apiData = await res.json().catch(() => ({}));
-console.log(apiData,"apiData");
-console.log(res,"res");
+      console.log(apiData, "apiData");
+      console.log(res, "res");
 
       if (res.ok) {
         const { accessToken, token, user: apiUser } = apiData;
@@ -53,22 +53,22 @@ console.log(res,"res");
           navigate('MainTabs');
         }
         return;
-      }else{
+      } else {
         const message = apiData?.message ?? apiData?.error ?? `Request failed (${res.status})`;
-        
-        if(message == "Invalid credentials."){
- navigate('RoleSelect', { type: 'google', name, email });
-        }else{
+
+        if (message == "Invalid credentials.") {
+          navigate('RoleSelect', { type: 'google', name, email });
+        } else {
           Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
           return;
         }
-       
+
       }
     } catch (apiErr) {
       console.log('Google login API error:', apiErr);
     }
 
-   
+
   } catch (error) {
     console.log('Google login error:', error);
   }
