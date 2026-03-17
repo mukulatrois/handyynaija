@@ -89,7 +89,7 @@ export default function PProfile() {
           });
 
           if (!isActive) return;
-console.log(res,"res");
+          console.log(res, "res");
           if (res.ok) {
             const data = await res.json();
 
@@ -99,9 +99,9 @@ console.log(res,"res");
             const errorData = await res.json();   // read error response
             console.log("API ERROR STATUS:", res.status);
             console.log("API ERROR BODY:", errorData);
-          
+
             Alert.alert("Error", errorData?.message || "Something went wrong");
-          
+
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {
@@ -142,14 +142,24 @@ console.log(res,"res");
             Authorization: `Bearer ${token}`,
           },
         });
-      
+
       }
-    } catch {
+    } catch (error) {
+      console.log(error, "error");
       // Ignore API errors; we still clear local session
     } finally {
-      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
-      await GoogleSignin.signOut();
+      console.log("lop");
+
+      await AsyncStorage.clear();
+      console.log("lopp");
+      try {
+        await GoogleSignin.signOut();
+      } catch {
+        // Ignore Google sign-out errors
+      }
+      console.log("loppp");
       resetNavigation('Welcome');
+      console.log("loppppp");
     }
   };
 

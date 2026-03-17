@@ -34,6 +34,7 @@ import {
 import { TextInput, Button } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
+import { Loadingcomponent } from '../../components/LoadingComponent';
 
 const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -139,8 +140,8 @@ function DropdownField({
     search.trim().length === 0
       ? options
       : options.filter((opt) =>
-          opt.toLowerCase().includes(search.trim().toLowerCase()),
-        );
+        opt.toLowerCase().includes(search.trim().toLowerCase()),
+      );
 
   const filteredOptions =
     search.trim().length === 0 && value && selectedIndex >= 0
@@ -482,10 +483,12 @@ export default function ProviderProfileInfoScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+      { saving && <Loadingcomponent />}
         {/* Header with back arrow and progress bar */}
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerButton} activeOpacity={0.7}>
@@ -791,7 +794,7 @@ export default function ProviderProfileInfoScreen() {
             returnKeyType="done"
             error={showError('zipCode')}
           />
-            <DropdownField
+          <DropdownField
             placeholder="Country"
             value={values.country}
             options={COUNTRIES}
@@ -822,7 +825,7 @@ export default function ProviderProfileInfoScreen() {
             }}
             error={showError('region')}
           />
-        
+
           <Button
             title={saving ? 'Saving…' : 'Save'}
             onPress={onSavePress}
@@ -880,11 +883,11 @@ export default function ProviderProfileInfoScreen() {
               ) : null}
               {((activeDocSide === 'back' && !identityDocBackUri) ||
                 (activeDocSide !== 'back' && !identityDocFrontUri)) && (
-                <>
-                  <Icon name="camera-outline" size={scale(40)} color={PRIMARY_GREEN} />
-                  <Text style={styles.docModalFrameText}>Position your ID within the frame</Text>
-                </>
-              )}
+                  <>
+                    <Icon name="camera-outline" size={scale(40)} color={PRIMARY_GREEN} />
+                    <Text style={styles.docModalFrameText}>Position your ID within the frame</Text>
+                  </>
+                )}
             </View>
             <View style={styles.docModalChecklist}>
               <View style={styles.docModalChecklistRow}>
