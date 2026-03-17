@@ -1,10 +1,13 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RBSheet from 'react-native-raw-bottom-sheet';
@@ -13,6 +16,8 @@ import { fontSize, padding, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { HandleBar, CloseButton } from '../../components';
 import { navigate } from '../../navigation/navigationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Loadingcomponent } from '../../components/LoadingComponent';
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const MONTHS = [
@@ -20,11 +25,17 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const VERIFICATION_STATUS_URL =
+  'https://jolloyard-be.myfileshosting.com/api/v1/auth/69aa6765e018f81cc539e439/verification-status';
+
+const AUTH_USER_KEY = 'auth_user';
+
 function getCalendarDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // Convert JS Sunday=0 to Monday=0 system
+  // Convert JS Sunday=0 to Monday=0 system 
+
   const startOffset = (firstDay.getDay() + 6) % 7;
 
   const totalDays = lastDay.getDate();
@@ -62,6 +73,66 @@ export default function PCalendar() {
   );
 
   const [availabilityExpanded, setAvailabilityExpanded] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const [checkingVerification, setCheckingVerification] = useState(true);
+  const [verificationPending, setVerificationPending] = useState(false);
+
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      try {
+        setLoading(true);
+        const userJson = await AsyncStorage.getItem(AUTH_USER_KEY);
+        let providerId = '';
+
+        if (userJson) {
+          try {
+            const user = JSON.parse(userJson) 
+            console.log(user,"user");
+            
+            providerId = user?.id;
+          } catch {
+            // ignore parse error, fall back to empty providerId
+          }
+        }
+
+        const formData = new FormData();
+        formData.append('provider_id', providerId);
+
+        const res = await fetch(VERIFICATION_STATUS_URL, {
+          method: 'POST',
+          body: formData as any,
+        });
+
+        const data = await res.json().catch(() => ({}));
+console.log(data,"data");
+
+        const isVerified =
+          data?.isVerified === true ||
+          data?.verified === true ||
+          data?.status === 'verified' ||
+          data?.verification_status === 'verified';
+
+        if (!res.ok || !isVerified) {
+          setVerificationPending(true);
+        } else {
+          setVerificationPending(false);
+        }
+        setLoading(false)
+      } catch (err) {
+        setLoading(false)
+        setVerificationPending(true);
+        const message =
+          err instanceof Error ? err.message : 'Unable to check verification status.';
+        Alert.alert('Verification', message);
+      } finally {
+        setCheckingVerification(false);
+        setLoading(false)
+      }
+    };
+
+    checkVerificationStatus();
+  }, []);
 
   const calendarDays = useMemo(
     () => getCalendarDays(viewDate.year, viewDate.month),
@@ -96,6 +167,7 @@ export default function PCalendar() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+    {loading &&  <Loadingcomponent />}
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Calendar</Text>
@@ -320,6 +392,38 @@ export default function PCalendar() {
           </TouchableOpacity>
         </View>
       </RBSheet>
+
+      {/* Blocking modal when verification is pending */}
+      <Modal
+        visible={false}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => {
+          // Intentionally left blank to avoid closing the modal with back button
+        }}
+      >
+        <SafeAreaView style={styles.blockModalContainer}>
+          <View style={styles.blockModalContent}>
+            <Icon
+              name="shield-checkmark-outline"
+              size={scale(56)}
+              color={colors.primary}
+            />
+            <Text style={styles.blockModalTitle}>Verification in progress</Text>
+            <Text style={styles.blockModalMessage}>
+              Your account verification is still pending. Please wait while we complete the
+              process. You cannot use any feature in the app before verification is completed.
+            </Text>
+            {checkingVerification && (
+              <ActivityIndicator
+                size="small"
+                color={colors.primary}
+                style={styles.blockModalLoader}
+              />
+            )}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -494,5 +598,31 @@ const styles = StyleSheet.create({
     fontSize: fontSize(16),
     fontWeight: '600',
     color: colors.white,
+  },
+  blockModalContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: padding.xl,
+  },
+  blockModalContent: {
+    alignItems: 'center',
+  },
+  blockModalTitle: {
+    marginTop: padding.lg,
+    fontSize: fontSize(20),
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  blockModalMessage: {
+    marginTop: padding.md,
+    fontSize: fontSize(15),
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  blockModalLoader: {
+    marginTop: padding.lg,
   },
 });

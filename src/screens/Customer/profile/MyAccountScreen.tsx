@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames } from '../../../components';
-import { navigate, resetNavigation } from '../../../navigation/navigationService';
+import { navigate, replace, resetNavigation } from '../../../navigation/navigationService';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
@@ -35,7 +35,7 @@ function getDisplayName(profile: UserProfile): string {
   return (n && n.trim()) || 'Guest';
 }
 
-export default function MyAccountScreen() {
+ const  MyAccountScreen=(props) =>{
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -59,10 +59,10 @@ export default function MyAccountScreen() {
 
           if (res.ok) {
             const data = await res.json();
-            
+
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
-            console.log(user,"user");
-            console.log(token,"access token");
+            console.log(user, "user");
+            console.log(token, "access token");
             if (isActive) setProfile(user ?? null);
           } else {
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
@@ -125,6 +125,7 @@ export default function MyAccountScreen() {
 
   const handleLogout = async () => {
     setLogoutModalVisible(false);
+    console.log("ko");
 
     try {
       const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
@@ -136,14 +137,23 @@ export default function MyAccountScreen() {
             Authorization: `Bearer ${token}`,
           },
         });
-     
+
       }
     } catch {
       // Ignore API errors; we still clear local session
     } finally {
-      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
-      await GoogleSignin.signOut();
+      console.log("lop");
+
+      await AsyncStorage.clear();
+      console.log("lopp");
+      try {
+        await GoogleSignin.signOut();
+      } catch {
+        // Ignore Google sign-out errors
+      }
+      console.log("loppp");
       resetNavigation('Welcome');
+      console.log("loppppp");
     }
   };
 
@@ -153,10 +163,11 @@ export default function MyAccountScreen() {
 
         {/* Profile */}
         <View style={styles.profile}>
-          {profile?.avatar || profile?.photo || profile?.image ? (
+          {profile?.profilePicture ? (
             <Image
               source={{
-                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+                // uri: https://jolloyard-be.myfileshosting.com/api/v1/${profile?.profilePicture}
+                uri: profile?.profilePicture,
               }}
               style={styles.avatar}
             />
@@ -231,10 +242,10 @@ export default function MyAccountScreen() {
 
         {/* Support */}
         <Text style={styles.sectionTitle}>SUPPORT CENTER</Text>
-        <SettingsRow 
-        title="Help" 
-        icon="headset-outline"
-        onPress={goToHelp}
+        <SettingsRow
+          title="Help"
+          icon="headset-outline"
+          onPress={goToHelp}
         />
         <SettingsRow
           title="How can we improve?"
@@ -274,6 +285,8 @@ export default function MyAccountScreen() {
   );
 }
 
+
+export default MyAccountScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,

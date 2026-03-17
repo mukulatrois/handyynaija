@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
   Alert,
   ActivityIndicator,
   PermissionsAndroid,
+  TextInput as RNTextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +23,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { countries } from 'countries-list';
 import {
   scale,
   fontSize,
@@ -40,7 +43,9 @@ const PRIMARY_GREEN = '#3FA565';
 const ERROR_RED = '#D32F2F';
 
 const GENDERS = ['Male', 'Female', 'Other'];
-const COUNTRIES = ['Nigeria', 'Ghana', 'Cameroon'];
+const COUNTRIES = Object.values(countries)
+  .map((c) => c.name)
+  .sort((a, b) => a.localeCompare(b));
 const NIGERIAN_CITIES = [
   'Abuja',
   'Lagos',
@@ -126,6 +131,21 @@ function DropdownField({
   error?: string;
 }) {
   const [visible, setVisible] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const selectedIndex = options.findIndex((opt) => opt === value);
+
+  const rawFiltered =
+    search.trim().length === 0
+      ? options
+      : options.filter((opt) =>
+          opt.toLowerCase().includes(search.trim().toLowerCase()),
+        );
+
+  const filteredOptions =
+    search.trim().length === 0 && value && selectedIndex >= 0
+      ? [value, ...rawFiltered.filter((opt) => opt !== value)]
+      : rawFiltered;
   return (
     <View style={styles.fieldContainer}>
       {label ? <Text style={styles.dropdownLabel}>{label}</Text> : null}
@@ -153,19 +173,40 @@ function DropdownField({
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
+            {options.length > 10 && (
+              <View style={styles.searchContainer}>
+                <RNTextInput
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Search..."
+                  placeholderTextColor="#999"
+                  style={styles.searchInput}
+                />
+              </View>
+            )}
             <FlatList
-              data={options}
+              data={filteredOptions}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.modalItem}
+                  style={[
+                    styles.modalItem,
+                    item === value && styles.modalItemSelected,
+                  ]}
                   onPress={() => {
                     onSelect(item);
                     setVisible(false);
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalItemText}>{item}</Text>
+                  <Text
+                    style={[
+                      styles.modalItemText,
+                      item === value && styles.modalItemTextSelected,
+                    ]}
+                  >
+                    {item}
+                  </Text>
                 </TouchableOpacity>
               )}
             />
@@ -191,6 +232,15 @@ export default function ProviderProfileInfoScreen() {
   const [identityDocFrontUri, setIdentityDocFrontUri] = useState<string | null>(null);
   const [identityDocBackUri, setIdentityDocBackUri] = useState<string | null>(null);
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
+  const [docModalVisible, setDocModalVisible] = useState(false);
+  const [activeDocSide, setActiveDocSide] = useState<'front' | 'back' | null>(null);
+
+  const nameRef = useRef<RNTextInput | null>(null);
+  const surnameRef = useRef<RNTextInput | null>(null);
+  const documentNumberRef = useRef<RNTextInput | null>(null);
+  const streetRef = useRef<RNTextInput | null>(null);
+  const streetNumberRef = useRef<RNTextInput | null>(null);
+  const zipCodeRef = useRef<RNTextInput | null>(null);
 
   const formik = useFormik<FormValues>({
     initialValues,
@@ -472,6 +522,10 @@ export default function ProviderProfileInfoScreen() {
             value={values.name}
             onChangeText={(text) => setFieldValue('name', text)}
             onBlur={() => setFieldTouched('name')}
+            inputRef={nameRef}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => surnameRef.current?.focus()}
             error={showError('name')}
           />
           <TextInput
@@ -479,6 +533,9 @@ export default function ProviderProfileInfoScreen() {
             value={values.surname}
             onChangeText={(text) => setFieldValue('surname', text)}
             onBlur={() => setFieldTouched('surname')}
+            inputRef={surnameRef}
+            returnKeyType="next"
+            blurOnSubmit={false}
             error={showError('surname')}
           />
           <DropdownField
@@ -621,41 +678,57 @@ export default function ProviderProfileInfoScreen() {
             value={values.documentNumber}
             onChangeText={(text) => setFieldValue('documentNumber', text)}
             onBlur={() => setFieldTouched('documentNumber')}
+            inputRef={documentNumberRef}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => streetRef.current?.focus()}
             error={showError('documentNumber')}
           />
           <Text style={styles.uploadLabel}>Identity document (front)</Text>
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={() =>
-              showImageSourceAlert(
-                'Identity document (front)',
-                () => takePhotoWithCamera(setIdentityDocFrontUri, false),
-                () => pickImageFromGallery(setIdentityDocFrontUri),
-              )
-            }
+            onPress={() => {
+              setActiveDocSide('front');
+              setDocModalVisible(true);
+            }}
             activeOpacity={0.7}
           >
-            <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
-            <Text style={styles.uploadButtonText}>
-              {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
-            </Text>
+            <View style={styles.uploadButtonLeft}>
+              <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Text style={styles.uploadButtonText}>
+                {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
+              </Text>
+            </View>
+            {identityDocFrontUri ? (
+              <Image
+                source={{ uri: identityDocFrontUri }}
+                style={styles.imagePreview}
+                resizeMode="cover"
+              />
+            ) : null}
           </TouchableOpacity>
           <Text style={styles.uploadLabel}>Identity document (back)</Text>
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={() =>
-              showImageSourceAlert(
-                'Identity document (back)',
-                () => takePhotoWithCamera(setIdentityDocBackUri, false),
-                () => pickImageFromGallery(setIdentityDocBackUri),
-              )
-            }
+            onPress={() => {
+              setActiveDocSide('back');
+              setDocModalVisible(true);
+            }}
             activeOpacity={0.7}
           >
-            <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
-            <Text style={styles.uploadButtonText}>
-              {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
-            </Text>
+            <View style={styles.uploadButtonLeft}>
+              <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Text style={styles.uploadButtonText}>
+                {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
+              </Text>
+            </View>
+            {identityDocBackUri ? (
+              <Image
+                source={{ uri: identityDocBackUri }}
+                style={styles.imagePreview}
+                resizeMode="cover"
+              />
+            ) : null}
           </TouchableOpacity>
           <Text style={styles.uploadLabel}>Selfie</Text>
           <TouchableOpacity
@@ -663,10 +736,19 @@ export default function ProviderProfileInfoScreen() {
             onPress={() => takePhotoWithCamera(setSelfieUri, true)}
             activeOpacity={0.7}
           >
-            <Icon name="person-outline" size={scale(20)} color={PRIMARY_GREEN} />
-            <Text style={styles.uploadButtonText}>
-              {selfieUri ? 'Selfie selected' : 'Take selfie'}
-            </Text>
+            <View style={styles.uploadButtonLeft}>
+              <Icon name="person-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Text style={styles.uploadButtonText}>
+                {selfieUri ? 'Selfie selected' : 'Take selfie'}
+              </Text>
+            </View>
+            {selfieUri ? (
+              <Image
+                source={{ uri: selfieUri }}
+                style={styles.imagePreview}
+                resizeMode="cover"
+              />
+            ) : null}
           </TouchableOpacity>
           <Text style={styles.emailPrompt}>
             Don't have any of these document?{' '}
@@ -682,6 +764,10 @@ export default function ProviderProfileInfoScreen() {
             value={values.street}
             onChangeText={(text) => setFieldValue('street', text)}
             onBlur={() => setFieldTouched('street')}
+            inputRef={streetRef}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => streetNumberRef.current?.focus()}
             error={showError('street')}
           />
           <TextInput
@@ -689,6 +775,10 @@ export default function ProviderProfileInfoScreen() {
             value={values.streetNumber}
             onChangeText={(text) => setFieldValue('streetNumber', text)}
             onBlur={() => setFieldTouched('streetNumber')}
+            inputRef={streetNumberRef}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => zipCodeRef.current?.focus()}
             error={showError('streetNumber')}
           />
           <TextInput
@@ -697,8 +787,21 @@ export default function ProviderProfileInfoScreen() {
             onChangeText={(text) => setFieldValue('zipCode', text)}
             onBlur={() => setFieldTouched('zipCode')}
             keyboardType="numeric"
+            inputRef={zipCodeRef}
+            returnKeyType="done"
             error={showError('zipCode')}
           />
+            <DropdownField
+            placeholder="Country"
+            value={values.country}
+            options={COUNTRIES}
+            onSelect={(item) => {
+              setFieldValue('country', item);
+              setFieldTouched('country', true);
+            }}
+            error={showError('country')}
+          />
+
           <DropdownField
             placeholder="City"
             value={values.city}
@@ -719,17 +822,7 @@ export default function ProviderProfileInfoScreen() {
             }}
             error={showError('region')}
           />
-          <DropdownField
-            placeholder="Country"
-            value={values.country}
-            options={COUNTRIES}
-            onSelect={(item) => {
-              setFieldValue('country', item);
-              setFieldTouched('country', true);
-            }}
-            error={showError('country')}
-          />
-
+        
           <Button
             title={saving ? 'Saving…' : 'Save'}
             onPress={onSavePress}
@@ -742,6 +835,108 @@ export default function ProviderProfileInfoScreen() {
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* Identity document full-screen modal */}
+      <Modal
+        visible={docModalVisible}
+        transparent={false}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setDocModalVisible(false)}
+      >
+        <SafeAreaView style={styles.docModalOverlay}>
+          <View style={styles.docModalHeader}>
+            <TouchableOpacity
+              onPress={() => setDocModalVisible(false)}
+              style={styles.docModalBackButton}
+              activeOpacity={0.7}
+            >
+              <Icon name="chevron-back" size={scale(24)} color="#000" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.docModalCard}>
+            <Text style={styles.docModalTitle}>
+              {activeDocSide === 'back'
+                ? 'Upload ID (Back Side)'
+                : 'Upload ID (Front Side)'}
+            </Text>
+            <Text style={styles.docModalSubtitle}>
+              Take a clear photo of the {activeDocSide === 'back' ? 'back' : 'front'} side of
+              your ID
+            </Text>
+            <View style={styles.docModalFrame}>
+              {activeDocSide === 'back' && identityDocBackUri ? (
+                <Image
+                  source={{ uri: identityDocBackUri }}
+                  style={styles.docModalPreviewImage}
+                  resizeMode="cover"
+                />
+              ) : null}
+              {activeDocSide !== 'back' && identityDocFrontUri ? (
+                <Image
+                  source={{ uri: identityDocFrontUri }}
+                  style={styles.docModalPreviewImage}
+                  resizeMode="cover"
+                />
+              ) : null}
+              {((activeDocSide === 'back' && !identityDocBackUri) ||
+                (activeDocSide !== 'back' && !identityDocFrontUri)) && (
+                <>
+                  <Icon name="camera-outline" size={scale(40)} color={PRIMARY_GREEN} />
+                  <Text style={styles.docModalFrameText}>Position your ID within the frame</Text>
+                </>
+              )}
+            </View>
+            <View style={styles.docModalChecklist}>
+              <View style={styles.docModalChecklistRow}>
+                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Text style={styles.docModalChecklistText}>Make sure Image is clear</Text>
+              </View>
+              <View style={styles.docModalChecklistRow}>
+                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Text style={styles.docModalChecklistText}>Make sure No shadows detected</Text>
+              </View>
+              <View style={styles.docModalChecklistRow}>
+                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Text style={styles.docModalChecklistText}>Make sure No glare detected</Text>
+              </View>
+              <View style={styles.docModalChecklistRow}>
+                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Text style={styles.docModalChecklistText}>Make sure Text is readable</Text>
+              </View>
+            </View>
+            <View style={styles.docModalButtonsRow}>
+              <TouchableOpacity
+                style={styles.docModalButton}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (activeDocSide === 'back') {
+                    takePhotoWithCamera(setIdentityDocBackUri, false);
+                  } else {
+                    takePhotoWithCamera(setIdentityDocFrontUri, false);
+                  }
+                }}
+              >
+                <Icon name="camera-outline" size={scale(18)} color="#fff" />
+                <Text style={styles.docModalButtonText}>Take Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.docModalButtonOutline}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (activeDocSide === 'back') {
+                    pickImageFromGallery(setIdentityDocBackUri);
+                  } else {
+                    pickImageFromGallery(setIdentityDocFrontUri);
+                  }
+                }}
+              >
+                <Icon name="cloud-upload-outline" size={scale(18)} color={PRIMARY_GREEN} />
+                <Text style={styles.docModalButtonTextOutline}>Upload</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -939,7 +1134,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: padding.sm,
+    justifyContent: 'space-between',
     paddingVertical: padding.md,
     paddingHorizontal: padding.lg,
     borderWidth: 1,
@@ -951,6 +1146,18 @@ const styles = StyleSheet.create({
     fontSize: fontSize(14),
     color: PRIMARY_GREEN,
     fontWeight: '500',
+  },
+  uploadButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: padding.sm,
+    flexShrink: 1,
+  },
+  imagePreview: {
+    width: scale(48),
+    height: scale(32),
+    borderRadius: borderRadius.sm,
+    marginLeft: padding.sm,
   },
   saveButton: {
     marginTop: margin.xl,
@@ -979,6 +1186,20 @@ const styles = StyleSheet.create({
     marginTop: padding.md,
     marginBottom: padding.sm,
   },
+  searchContainer: {
+    paddingHorizontal: padding.xl,
+    paddingBottom: padding.sm,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: padding.lg,
+    paddingVertical: padding.sm,
+    fontSize: fontSize(14),
+    color: '#1A1A1A',
+    backgroundColor: '#fafafa',
+  },
   modalItem: {
     paddingVertical: padding.lg,
     paddingHorizontal: padding.xl,
@@ -988,5 +1209,116 @@ const styles = StyleSheet.create({
   modalItemText: {
     fontSize: fontSize(16),
     color: '#1A1A1A',
+  },
+  modalItemSelected: {
+    backgroundColor: '#E8F5E9',
+  },
+  modalItemTextSelected: {
+    fontWeight: '700',
+    color: PRIMARY_GREEN,
+  },
+  docModalOverlay: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+    paddingHorizontal: padding.xl,
+    paddingBottom: padding.xl,
+  },
+  docModalCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 0,
+    paddingTop: padding.sm,
+  },
+  docModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: padding.sm,
+  },
+  docModalBackButton: {
+    paddingVertical: padding.xs,
+    paddingRight: padding.md,
+  },
+  docModalTitle: {
+    fontSize: fontSize(20),
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: padding.sm,
+  },
+  docModalSubtitle: {
+    fontSize: fontSize(14),
+    color: '#555',
+    marginBottom: margin.lg,
+  },
+  docModalFrame: {
+    borderWidth: 1,
+    borderColor: PRIMARY_GREEN,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: margin.xl,
+    overflow: 'hidden',
+    height: scale(180),
+    width: '100%',
+  },
+  docModalFrameText: {
+    fontSize: fontSize(14),
+    color: '#555',
+    marginTop: padding.md,
+    textAlign: 'center',
+  },
+  docModalPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  docModalChecklist: {
+    marginBottom: margin.xl,
+  },
+  docModalChecklistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: padding.xs,
+    gap: padding.sm,
+  },
+  docModalChecklistText: {
+    fontSize: fontSize(14),
+    color: 'black',
+  },
+  docModalButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: margin.md,
+  },
+  docModalButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: padding.md,
+    borderRadius: borderRadius.lg,
+    backgroundColor: PRIMARY_GREEN,
+    gap: padding.sm,
+  },
+  docModalButtonOutline: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: padding.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: PRIMARY_GREEN,
+    gap: padding.sm,
+  },
+  docModalButtonText: {
+    fontSize: fontSize(14),
+    color: '#fff',
+    fontWeight: '600',
+  },
+  docModalButtonTextOutline: {
+    fontSize: fontSize(14),
+    color: PRIMARY_GREEN,
+    fontWeight: '600',
   },
 });

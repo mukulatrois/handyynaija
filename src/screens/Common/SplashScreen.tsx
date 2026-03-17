@@ -29,7 +29,7 @@ export default function SplashScreen() {
         ]);
 
         const isLoggedIn = Boolean(token) || Boolean(storedUser);
-
+const isRegistered = await AsyncStorage.getItem("isRegistered");
         let userType: number | undefined;
         if (storedUser) {
           try {
@@ -51,10 +51,10 @@ export default function SplashScreen() {
         setTimeout(() => {
           if (isLoggedIn) {
             if (userType === 2) {
-              if (isProviderProfileCompleted) {
-                navigation.replace('ProviderTabs');
-              } else {
+              if (isRegistered && !isProviderProfileCompleted) {
                 navigation.replace('ProviderSelectCountry');
+              } else {
+                navigation.replace('ProviderTabs');
               }
             } else {
               navigation.replace('MainTabs');

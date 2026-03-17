@@ -15,6 +15,7 @@ import {
   ImageLibraryOptions,
   CameraOptions,
 } from 'react-native-image-picker';
+import { Loadingcomponent } from '../../../components/LoadingComponent';
 
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -56,7 +57,8 @@ export default function PersonalDetailsScreen() {
   const [avatarFile, setAvatarFile] = useState<any | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const bottomSheetRef = useRef<RBSheet | null>(null);
+  const [loading, setLoading] = useState(false);
+  const bottomSheetRef = useRef<null>(null);
 
   const requestGalleryPermission = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return true;
@@ -182,6 +184,8 @@ export default function PersonalDetailsScreen() {
         formData.append('phone', phone);
       }
       if (avatarFile) {
+        console.log("came");
+
         formData.append('avatar', avatarFile as any);
       }
 
@@ -210,8 +214,8 @@ export default function PersonalDetailsScreen() {
         });
       }
     } catch (err) {
-      if(err.body.message == "Verification is still pending" )
-      console.error('[PersonalDetails Save Error]', err);
+      if (err.body.message == "Verification is still pending")
+        console.error('[PersonalDetails Save Error]', err);
     } finally {
       setSaving(false);
     }
@@ -265,8 +269,8 @@ export default function PersonalDetailsScreen() {
                 if (storedUser?.avatar || storedUser?.photo || storedUser?.image) {
                   setAvatar(
                     (storedUser.avatar as string) ||
-                      (storedUser.photo as string) ||
-                      (storedUser.image as string),
+                    (storedUser.photo as string) ||
+                    (storedUser.image as string),
                   );
                 }
               } catch {
@@ -290,8 +294,8 @@ export default function PersonalDetailsScreen() {
               if (storedUser?.avatar || storedUser?.photo || storedUser?.image) {
                 setAvatar(
                   (storedUser.avatar as string) ||
-                    (storedUser.photo as string) ||
-                    (storedUser.image as string),
+                  (storedUser.photo as string) ||
+                  (storedUser.image as string),
                 );
               }
             } catch {
@@ -311,6 +315,7 @@ export default function PersonalDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+    {saving &&  <Loadingcomponent  />}
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -349,14 +354,12 @@ export default function PersonalDetailsScreen() {
           {/* Profile Picture */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
-              {avatar || profile?.avatar || profile?.photo || profile?.image ? (
+              {avatar || profile?.profilePicture ? (
                 <Image
                   source={{
                     uri:
                       avatar ??
-                      (profile?.avatar as string) ??
-                      (profile?.photo as string) ??
-                      (profile?.image as string),
+                      profile?.profilePicture,
                   }}
                   style={styles.avatar}
                 />
@@ -365,13 +368,13 @@ export default function PersonalDetailsScreen() {
                   <Icon name="person-outline" size={scale(40)} color={PRIMARY_GREEN} />
                 </View>
               )}
-              <TouchableOpacity
+              {isEditing && <TouchableOpacity
                 style={styles.cameraButton}
                 activeOpacity={0.7}
                 onPress={handleOpenBottomSheet}
               >
                 <Icon name="camera" size={scale(16)} color={colors.white} />
-              </TouchableOpacity>
+              </TouchableOpacity>}
             </View>
           </View>
 
@@ -430,7 +433,7 @@ export default function PersonalDetailsScreen() {
           <TouchableOpacity
             style={styles.deleteLink}
             activeOpacity={0.7}
-            onPress={() => {}}
+            onPress={() => { }}
           >
             <Text style={styles.deleteLinkText}>Delete account permanently</Text>
           </TouchableOpacity>

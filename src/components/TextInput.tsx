@@ -1,5 +1,15 @@
 import React from 'react';
-import { View, Text, TextInput as RNTextInput, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput as RNTextInput,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+  ReturnKeyTypeOptions,
+  NativeSyntheticEvent,
+  TextInputSubmitEditingEventData,
+} from 'react-native';
 import { fontSize, padding, margin, borderRadius } from '../utils/responsive';
 
 interface TextInputProps {
@@ -15,6 +25,10 @@ interface TextInputProps {
   error?: string;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
+  returnKeyType?: ReturnKeyTypeOptions;
+  blurOnSubmit?: boolean;
+  onSubmitEditing?: (e: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
+  inputRef?: React.Ref<RNTextInput>;
 }
 
 export default function TextInput({
@@ -30,6 +44,10 @@ export default function TextInput({
   error,
   containerStyle,
   inputStyle,
+  returnKeyType,
+  blurOnSubmit,
+  onSubmitEditing,
+  inputRef,
 }: TextInputProps) {
   return (
     <View style={[styles.container, containerStyle]}>
@@ -45,6 +63,10 @@ export default function TextInput({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
+        returnKeyType={returnKeyType}
+        blurOnSubmit={blurOnSubmit}
+        onSubmitEditing={onSubmitEditing}
+        ref={inputRef}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>

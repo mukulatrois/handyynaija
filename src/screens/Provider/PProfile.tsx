@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate, resetNavigation } from '../../navigation/navigationService';
@@ -89,13 +89,19 @@ export default function PProfile() {
           });
 
           if (!isActive) return;
-
+console.log(res,"res");
           if (res.ok) {
             const data = await res.json();
 
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
             if (isActive) setProfile(user ?? null);
           } else {
+            const errorData = await res.json();   // read error response
+            console.log("API ERROR STATUS:", res.status);
+            console.log("API ERROR BODY:", errorData);
+          
+            Alert.alert("Error", errorData?.message || "Something went wrong");
+          
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {

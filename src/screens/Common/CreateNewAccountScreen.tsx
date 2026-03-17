@@ -76,7 +76,7 @@ export default function CreateNewAccountScreen() {
           Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
           return;
         }
-console.log(data,"register");
+        console.log(data, "register");
 
         const { user, accessToken, token } = data;
         const authToken = accessToken ?? token ?? '';
@@ -91,6 +91,7 @@ console.log(data,"register");
         await AsyncStorage.multiSet([
           [AUTH_TOKEN_KEY, authToken],
           [AUTH_USER_KEY, JSON.stringify(userPayload)],
+          ["isRegistered","true"]
         ]);
 
         if (roleKey === 2) {

@@ -65,6 +65,7 @@ export default function RoleSelectScreen(props: any) {
       await AsyncStorage.multiSet([
         [AUTH_TOKEN_KEY, authToken],
         [AUTH_USER_KEY, JSON.stringify(userPayload)],
+        ["isRegistered","true"]
       ]);
 
       if (roleKey === 2) {
