@@ -67,7 +67,7 @@ export type RootStackParamList = {
   ProviderUploadPhoto: undefined;
   ProviderVerifyPhoto: undefined;
   ListingVerification: undefined;
-  ListingPrice: undefined;
+  ListingPrice: { serviceName: string } | undefined;
   ListingPhone: undefined;
   ListingAboutMe: undefined;
   ProviderEditProfile: undefined;

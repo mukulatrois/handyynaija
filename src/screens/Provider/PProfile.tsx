@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate, resetNavigation } from '../../navigation/navigationService';
@@ -89,13 +89,19 @@ export default function PProfile() {
           });
 
           if (!isActive) return;
-
+          console.log(res, "res");
           if (res.ok) {
             const data = await res.json();
 
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
             if (isActive) setProfile(user ?? null);
           } else {
+            const errorData = await res.json();   // read error response
+            console.log("API ERROR STATUS:", res.status);
+            console.log("API ERROR BODY:", errorData);
+
+            Alert.alert("Error", errorData?.message || "Something went wrong");
+
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {
@@ -136,14 +142,24 @@ export default function PProfile() {
             Authorization: `Bearer ${token}`,
           },
         });
-      
+
       }
-    } catch {
+    } catch (error) {
+      console.log(error, "error");
       // Ignore API errors; we still clear local session
     } finally {
-      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
-      await GoogleSignin.signOut();
+      console.log("lop");
+
+      await AsyncStorage.clear();
+      console.log("lopp");
+      try {
+        await GoogleSignin.signOut();
+      } catch {
+        // Ignore Google sign-out errors
+      }
+      console.log("loppp");
       resetNavigation('Welcome');
+      console.log("loppppp");
     }
   };
 
@@ -185,12 +201,12 @@ export default function PProfile() {
         </View>
 
         {/* SHARE AND EARN MONEY! Section */}
-        <SectionHeader title="SHARE AND EARN MONEY!" />
+        {/* <SectionHeader title="SHARE AND EARN MONEY!" />
         <MenuItem
           icon="gift-outline"
           text="₦ 10 for every friend you bring"
           iconColor="#DC2626"
-        />
+        /> */}
         <View style={styles.separator} />
 
         {/* Your Account Section */}

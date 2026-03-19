@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RBSheet from 'react-native-raw-bottom-sheet';
@@ -13,6 +15,9 @@ import { fontSize, padding, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { HandleBar, CloseButton } from '../../components';
 import { navigate } from '../../navigation/navigationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Loadingcomponent } from '../../components/LoadingComponent';
+import { useFocusEffect } from '@react-navigation/native';
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const MONTHS = [
@@ -20,11 +25,19 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const VERIFICATION_STATUS_URL =
+  'https://jolloyard-be.myfileshosting.com/api/v1/auth/69b8e411af6bc3cb43bb80f7/verification-status';
+
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
+
+
 function getCalendarDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // Convert JS Sunday=0 to Monday=0 system
+  // Convert JS Sunday=0 to Monday=0 system 
+
   const startOffset = (firstDay.getDay() + 6) % 7;
 
   const totalDays = lastDay.getDate();
@@ -62,6 +75,59 @@ export default function PCalendar() {
   );
 
   const [availabilityExpanded, setAvailabilityExpanded] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const [checkingVerification, setCheckingVerification] = useState(true);
+  const [verificationPending, setVerificationPending] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkVerificationStatus = async () => {
+        try {
+          setLoading(true);
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          const userJson = await AsyncStorage.getItem(AUTH_USER_KEY);
+          const user = JSON.parse(userJson ?? '{}');
+          const providerId = user?.id;
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+
+          const res = await fetch(`https://jolloyard-be.myfileshosting.com/api/v1/auth/${providerId}/verification-status`, {
+            method: 'POST',
+            headers,
+          });
+
+          const data = await res.json().catch(() => ({}));
+          console.log(data, "data");
+
+          const isVerified =
+            data?.verificationStatus == '1';
+
+          if (!res.ok || !isVerified) {
+            setVerificationPending(true);
+          } else {
+            setVerificationPending(false);
+          }
+          setLoading(false);
+        } catch (err) {
+          setLoading(false);
+          setVerificationPending(true);
+          const message =
+            err instanceof Error ? err.message : 'Unable to check verification status.';
+          Alert.alert('Verification', message);
+        } finally {
+          setCheckingVerification(false);
+          setLoading(false);
+        }
+      };
+
+      checkVerificationStatus();
+    }, []),
+  );
 
   const calendarDays = useMemo(
     () => getCalendarDays(viewDate.year, viewDate.month),
@@ -96,6 +162,7 @@ export default function PCalendar() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {loading && <Loadingcomponent />}
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Calendar</Text>
@@ -153,61 +220,61 @@ export default function PCalendar() {
             const paddedRow = [...rowDays];
             while (paddedRow.length < 7) paddedRow.push(null);
             return (
-            <View key={`row-${rowIndex}`} style={styles.calendarRow}>
-              {paddedRow.map((day, colIndex) => {
-                const i = rowIndex * 7 + colIndex;
-                if (day === null) {
-                  return <View key={`empty-${i}`} style={styles.cell} />;
-                }
+              <View key={`row-${rowIndex}`} style={styles.calendarRow}>
+                {paddedRow.map((day, colIndex) => {
+                  const i = rowIndex * 7 + colIndex;
+                  if (day === null) {
+                    return <View key={`empty-${i}`} style={styles.cell} />;
+                  }
 
-                const currentDate = new Date(
-                  viewDate.year,
-                  viewDate.month,
-                  day
-                );
+                  const currentDate = new Date(
+                    viewDate.year,
+                    viewDate.month,
+                    day
+                  );
 
-                const weekend = isWeekend(
-                  viewDate.year,
-                  viewDate.month,
-                  day
-                );
+                  const weekend = isWeekend(
+                    viewDate.year,
+                    viewDate.month,
+                    day
+                  );
 
-                const selected =
-                  selectedDate.getFullYear() === currentDate.getFullYear() &&
-                  selectedDate.getMonth() === currentDate.getMonth() &&
-                  selectedDate.getDate() === currentDate.getDate();
+                  const selected =
+                    selectedDate.getFullYear() === currentDate.getFullYear() &&
+                    selectedDate.getMonth() === currentDate.getMonth() &&
+                    selectedDate.getDate() === currentDate.getDate();
 
-                const isToday =
-                  today.getFullYear() === currentDate.getFullYear() &&
-                  today.getMonth() === currentDate.getMonth() &&
-                  today.getDate() === currentDate.getDate();
+                  const isToday =
+                    today.getFullYear() === currentDate.getFullYear() &&
+                    today.getMonth() === currentDate.getMonth() &&
+                    today.getDate() === currentDate.getDate();
 
-                return (
-                  <TouchableOpacity
-                    key={`${viewDate.year}-${viewDate.month}-${day}`}
-                    style={styles.cell}
-                    onPress={() => setSelectedDate(currentDate)}
-                    activeOpacity={0.7}
-                  >
-                    {selected ? (
-                      <View style={styles.selectedCircle}>
-                        <Text style={styles.selectedText}>{day}</Text>
-                      </View>
-                    ) : (
-                      <Text
-                        style={[
-                          styles.dateText,
-                          weekend && styles.weekendDateText,
-                          isToday && styles.todayText,
-                        ]}
-                      >
-                        {day}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                  return (
+                    <TouchableOpacity
+                      key={`${viewDate.year}-${viewDate.month}-${day}`}
+                      style={styles.cell}
+                      onPress={() => setSelectedDate(currentDate)}
+                      activeOpacity={0.7}
+                    >
+                      {selected ? (
+                        <View style={styles.selectedCircle}>
+                          <Text style={styles.selectedText}>{day}</Text>
+                        </View>
+                      ) : (
+                        <Text
+                          style={[
+                            styles.dateText,
+                            weekend && styles.weekendDateText,
+                            isToday && styles.todayText,
+                          ]}
+                        >
+                          {day}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             );
           })}
         </View>
@@ -320,6 +387,33 @@ export default function PCalendar() {
           </TouchableOpacity>
         </View>
       </RBSheet>
+
+      {/* Blocking overlay when verification is pending */}
+      {verificationPending && (
+        <View style={styles.blockOverlay}>
+          <SafeAreaView style={styles.blockModalContainer}>
+            <View style={styles.blockModalContent}>
+              <Icon
+                name="shield-checkmark-outline"
+                size={scale(56)}
+                color={colors.primary}
+              />
+              <Text style={styles.blockModalTitle}>Verification in progress</Text>
+              <Text style={styles.blockModalMessage}>
+                Your account verification is still pending. Please wait while we complete the
+                process. You cannot use any feature in the app before verification is completed.
+              </Text>
+              {checkingVerification && (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.primary}
+                  style={styles.blockModalLoader}
+                />
+              )}
+            </View>
+          </SafeAreaView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -357,11 +451,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.lg,
     paddingBottom: padding.xxl,
   },
+  scroll: {
+    flex: 1,
+  },
   monthNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: padding.lg,
+  },
+  navArrow: {
+    padding: padding.sm,
   },
   monthLabel: {
     fontSize: fontSize(18),
@@ -494,5 +594,43 @@ const styles = StyleSheet.create({
     fontSize: fontSize(16),
     fontWeight: '600',
     color: colors.white,
+  },
+  blockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 10,
+  },
+  blockModalContainer: {
+    flex: 1,
+    backgroundColor: 'transparent', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: padding.xl,
+  },
+  blockModalContent: {
+    alignItems: 'center',
+  },
+  blockModalTitle: {
+    marginTop: padding.lg,
+    fontSize: fontSize(20),
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  blockModalMessage: {
+    marginTop: padding.md,
+    fontSize: fontSize(15),
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  blockModalLoader: {
+    marginTop: padding.lg,
   },
 });

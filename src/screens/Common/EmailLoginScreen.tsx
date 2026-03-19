@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -38,6 +38,7 @@ export type LoginEmailHandle = {
 
 const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
   const refRBSheet = useRef<any>(null);
+  const passwordRef = useRef<RNTextInput | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,9 +125,12 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
         value={values.email}
         onChangeText={(t) => formik.setFieldValue('email', t)}
         onBlur={() => formik.setFieldTouched('email')}
-        keyboardType="email-address"
+        // keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
+        returnKeyType="next"
+        blurOnSubmit={false}
+        onSubmitEditing={() => passwordRef.current?.focus()}
         error={touched.email && errors.email ? errors.email : undefined}
       />
 
@@ -135,22 +139,21 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
         placeholder="********"
         value={values.password}
         onChangeText={(t) => formik.setFieldValue('password', t)}
+        returnKeyType="done"
+        inputRef={passwordRef}
+        onSubmitEditing={() => {
+          setFieldTouched('email');
+          setFieldTouched('password');
+          handleSubmit();
+        }}
         error={touched.password && errors.password ? errors.password : undefined}
       />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <View style={styles.optionsRow}>
-        <Checkbox
-          label="Remember me"
-          checked={rememberMe}
-          onPress={() => setRememberMe(!rememberMe)}
-        />
-
-        <TouchableOpacity onPress={() => navigate('ForgotPassword')}>
+        <TouchableOpacity style={{ marginBottom: margin.xxl ,alignSelf: 'flex-end'}} onPress={() => navigate('ForgotPassword')}>
           <Text style={styles.forgotPassword}>Forgot your password?</Text>
         </TouchableOpacity>
-      </View>
 
       <Button
         title={loading ? 'Logging in...' : 'Log in'}

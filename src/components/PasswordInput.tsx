@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput as RNTextInput, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput as RNTextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+  ReturnKeyTypeOptions,
+} from 'react-native';
 import { fontSize, padding, margin, borderRadius } from '../utils/responsive';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -12,6 +21,9 @@ interface PasswordInputProps {
   error?: string;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
+  returnKeyType?: ReturnKeyTypeOptions;
+  inputRef?: React.Ref<RNTextInput>;
+  onSubmitEditing?: () => void;
 }
 
 export default function PasswordInput({
@@ -22,6 +34,9 @@ export default function PasswordInput({
   error,
   containerStyle,
   inputStyle,
+  returnKeyType,
+  inputRef,
+  onSubmitEditing,
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -36,6 +51,9 @@ export default function PasswordInput({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={!showPassword}
+          returnKeyType={returnKeyType}
+          ref={inputRef as any}
+          onSubmitEditing={onSubmitEditing}
         />
         <TouchableOpacity
           style={styles.eyeIcon}

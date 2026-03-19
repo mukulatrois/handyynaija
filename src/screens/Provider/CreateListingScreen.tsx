@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -22,8 +24,41 @@ import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 
 const PRIMARY_GREEN = '#3FA565';
+const SERVICE_IMAGE_URL = (serviceId: string) =>
+  `https://jolloyard-be.myfileshosting.com/api/v1/services/${encodeURIComponent(serviceId)}/image`;
 
-const mainCategories = [
+type ApiCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  subcategories?: ApiCategory[];
+};
+
+type ApiCategoriesResponse = {
+  categories?: ApiCategory[];
+};
+
+type CategoryItem = {
+  id: string;
+  title: string;
+  image?: any;
+  subcategories?: CategoryItem[];
+};
+
+type ApiService = {
+  id?: string;
+  _id?: string;
+  name?: string;
+  title?: string;
+};
+
+type ApiServicesResponse = {
+  services?: ApiService[];
+  data?: ApiService[];
+  results?: ApiService[];
+};
+
+const fallbackMainCategories: CategoryItem[] = [
   { id: 'home', title: 'Home', image: require('../../Images/serachImg/Home.png') },
   { id: 'tech', title: 'Tech & IT Support', image: require('../../Images/serachImg/Tech.png') },
   { id: 'beauty', title: 'Beauty', image: require('../../Images/serachImg/Beauty.png') },
@@ -33,7 +68,7 @@ const mainCategories = [
   { id: 'others', title: 'Others', image: require('../../Images/serachImg/Others.png') },
 ];
 
-const homeSubCategories = [
+const homeSubCategories: CategoryItem[] = [
   { id: 'cleaning', title: 'Cleaning', image: require('../../Images/serachImg/Cleaning.png') },
   { id: 'ironing', title: 'Ironing', image: require('../../Images/serachImg/ironing.png') },
   { id: 'handyman', title: 'Handyman', image: require('../../Images/serachImg/Handyman.png') },
@@ -43,13 +78,13 @@ const homeSubCategories = [
   { id: 'kitchen', title: 'Kitchen Installation', image: require('../../Images/serachImg/Kitchen.png') },
 ];
 
-const beautySubCategories = [
+const beautySubCategories: CategoryItem[] = [
   { id: 'salon', title: 'Salon at home', image: require('../../Images/serachImg/Salon.png') },
   { id: 'manicure', title: 'Manicure & Pedicure', image: require('../../Images/serachImg/Manicure.png') },
   { id: 'haircut', title: 'Haircut & Styling', image: require('../../Images/serachImg/Haircut.png') },
 ];
 
-const mediaSubCategories = [
+const mediaSubCategories: CategoryItem[] = [
   { id: 'photo', title: 'Photo/Video grapher', image: require('../../Images/serachImg/Photo.png') },
   { id: 'birthday', title: 'Birthday/ Event Planner', image: require('../../Images/serachImg/Birthday.png') },
   { id: 'dj', title: 'DJ & Sounds Setup', image: require('../../Images/serachImg/Sounds.png') },
@@ -57,14 +92,14 @@ const mediaSubCategories = [
   { id: 'comedian', title: 'Comedian', image: require('../../Images/serachImg/Comedian.png') },
 ];
 
-const repairSubCategories = [
+const repairSubCategories: CategoryItem[] = [
   { id: 'electrician', title: 'Electrician', image: require('../../Images/serachImg/Electrician.png') },
   { id: 'plumber', title: 'Plumber', image: require('../../Images/serachImg/Plumber.png') },
   { id: 'appliances', title: 'Appliances', image: require('../../Images/serachImg/Appliances.png') },
   { id: 'ac', title: 'AC Servicing', image: require('../../Images/serachImg/AC.png') },
 ];
 
-const autoSubCategories = [
+const autoSubCategories: CategoryItem[] = [
   { id: 'carwash', title: 'Car Wash', image: require('../../Images/serachImg/Car.png') },
   { id: 'bike', title: 'Bike Services', image: require('../../Images/serachImg/Bike.png') },
   { id: 'carrepair', title: 'Car Repair', image: require('../../Images/serachImg/CarRepair.png') },
@@ -79,6 +114,15 @@ export default function CreateListingScreen() {
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; title: string } | null>(
     null
   );
+  const [apiCategories, setApiCategories] = useState<CategoryItem[] | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [services, setServices] = useState<Array<{ id: string; title: string; imageUrl?: string }>>(
+    []
+  );
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+  const [failedServiceImages, setFailedServiceImages] = useState<Record<string, true>>({});
 
   const subItemsMap: Record<string, typeof homeSubCategories> = {
     home: homeSubCategories,
@@ -87,8 +131,92 @@ export default function CreateListingScreen() {
     repair: repairSubCategories,
     auto: autoSubCategories,
   };
-  const subItems = selectedCategory ? subItemsMap[selectedCategory.id] ?? [] : [];
-  const displayItems = selectedCategory ? subItems : mainCategories;
+
+  const mapApiCategory = (c: ApiCategory): CategoryItem => ({
+    id: c.id,
+    title: c.name,
+    subcategories: (c.subcategories ?? []).map(mapApiCategory),
+  });
+
+  const fetchCategories = useCallback(async () => {
+    setLoadingCategories(true);
+    setCategoriesError(null);
+    try {
+      const res = await fetch('https://jolloyard-be.myfileshosting.com/api/v1/categories/', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data: ApiCategoriesResponse = await res.json().catch(() => ({}));
+      
+      
+      console.log(data, "categories");
+      if (!res.ok) {
+        throw new Error('Failed to load categories');
+      }
+
+      const mapped = (data.categories ?? []).map(mapApiCategory).filter(Boolean);
+      setApiCategories(mapped.length ? mapped : null);
+    } catch (e) {
+      setApiCategories(null);
+      setCategoriesError('Could not load categories. Please try again.');
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, []);
+
+  const fetchServicesByCategory = useCallback(async (categoryId: string) => {
+    setLoadingServices(true);
+    setServicesError(null);
+    try {
+      const url = `https://jolloyard-be.myfileshosting.com/api/v1/services?categoryId=${encodeURIComponent(
+        categoryId
+      )}&page=1&limit=10`;
+      const res = await fetch(url, { method: 'GET' });
+      const data: ApiServicesResponse = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error('Failed to load services');
+
+      const raw = data.services ?? data.data ?? data.results ?? [];
+      const mapped = raw
+        .map((s) => ({
+          id: String(s.id ?? s._id ?? ''),
+          title: String(s.name ?? s.title ?? '').trim(),
+          imageUrl: s.id || s._id ? SERVICE_IMAGE_URL(String(s.id ?? s._id)) : undefined,
+        }))
+        .filter((s) => s.id && s.title);
+
+      setServices(mapped);
+      setFailedServiceImages({});
+    } catch (e) {
+      setServices([]);
+      setServicesError('Could not load services. Tap to retry.');
+    } finally {
+      setLoadingServices(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const mainCategories = useMemo(
+    () => (apiCategories && apiCategories.length ? apiCategories : fallbackMainCategories),
+    [apiCategories]
+  );
+
+  const selectedApiCategory = useMemo(() => {
+    if (!selectedCategory || !apiCategories?.length) return null;
+    return apiCategories.find((c) => c.id === selectedCategory.id) ?? null;
+  }, [apiCategories, selectedCategory]);
+
+  const subItems: CategoryItem[] = useMemo(() => {
+    if (!selectedCategory) return [];
+    const apiSubs = selectedApiCategory?.subcategories ?? [];
+    if (apiSubs.length) return apiSubs;
+    return subItemsMap[selectedCategory.id] ?? [];
+  }, [selectedApiCategory, selectedCategory, subItemsMap]);
+
+  const displayItems: CategoryItem[] = selectedCategory ? subItems : mainCategories;
 
   const filteredItems = search
     ? displayItems.filter((item) =>
@@ -96,14 +224,30 @@ export default function CreateListingScreen() {
       )
     : displayItems;
 
-  const handleCategoryPress = (cat: (typeof mainCategories)[0]) => {
-    if (subItemsMap[cat.id]) {
+  const handleCategoryPress = (cat: CategoryItem) => {
+    const apiHasSubs = (cat.subcategories?.length ?? 0) > 0;
+    const fallbackHasSubs = !!subItemsMap[cat.id];
+
+    if (apiHasSubs || fallbackHasSubs) {
       setSelectedCategory({ id: cat.id, title: cat.title });
+      return;
     }
+
+    // If categories came from API, treat tapping a category as "load services under this category"
+    const isApiCategory = !!apiCategories?.find((c) => c.id === cat.id);
+    if (isApiCategory) {
+      setSelectedCategory({ id: cat.id, title: cat.title });
+      fetchServicesByCategory(cat.id);
+      return;
+    }
+
+    navigate('ListingPrice' as any, { serviceName: cat.title } as any);
   };
 
   const handleBreadcrumbPress = () => {
     setSelectedCategory(null);
+    setServices([]);
+    setServicesError(null);
   };
 
   return (
@@ -130,6 +274,20 @@ export default function CreateListingScreen() {
         <Text style={styles.subtitle}>
           Select or search for the service you want to offer
         </Text>
+
+        {!selectedCategory && loadingCategories && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={PRIMARY_GREEN} />
+            <Text style={styles.loadingText}>Loading categories...</Text>
+          </View>
+        )}
+
+        {!selectedCategory && !!categoriesError && (
+          <TouchableOpacity style={styles.errorRow} onPress={fetchCategories} activeOpacity={0.8}>
+            <Icon name="alert-circle-outline" size={scale(18)} color="#DC2626" />
+            <Text style={styles.errorText}>{categoriesError} Tap to retry.</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
@@ -164,25 +322,84 @@ export default function CreateListingScreen() {
         {/* Categories Grid - 3 columns for sub-categories */}
         <View style={[styles.categoriesGrid, selectedCategory && styles.categoriesGridThreeCol]}>
           {selectedCategory ? (
-            filteredItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
-                activeOpacity={0.7}
-                onPress={() => navigate('ListingPrice', { serviceName: item.title })}
-              >
-                <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
-                  <Image
-                    source={item.image}
-                    style={styles.categoryImageSub}
-                    resizeMode="contain"
-                  />
+            <>
+              {loadingServices && (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color={PRIMARY_GREEN} />
+                  <Text style={styles.loadingText}>Loading services...</Text>
                 </View>
-                <Text style={styles.categoryLabel} numberOfLines={2}>
-                  {item.title}
-                </Text>
-              </TouchableOpacity>
-            ))
+              )}
+
+              {!!servicesError && (
+                <TouchableOpacity
+                  style={styles.errorRow}
+                  onPress={() => selectedCategory?.id && fetchServicesByCategory(selectedCategory.id)}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="alert-circle-outline" size={scale(18)} color="#DC2626" />
+                  <Text style={styles.errorText}>{servicesError}</Text>
+                </TouchableOpacity>
+              )}
+
+              {services.length > 0
+                ? services
+                    .filter((s) =>
+                      search ? s.title.toLowerCase().includes(search.toLowerCase()) : true
+                    )
+                    .map((svc) => (
+                      <TouchableOpacity
+                        key={svc.id}
+                        style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
+                        activeOpacity={0.7}
+                        onPress={() =>
+                          navigate('ListingPrice' as any, { serviceName: svc.title } as any)
+                        }
+                      >
+                        <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
+                          {svc.imageUrl && !failedServiceImages[svc.id] ? (
+                            <Image
+                              source={{ uri: svc.imageUrl }}
+                              style={styles.categoryImageSub}
+                              resizeMode="contain"
+                              onError={() =>
+                                setFailedServiceImages((prev) => ({ ...prev, [svc.id]: true }))
+                              }
+                            />
+                          ) : (
+                            <Icon name="construct-outline" size={scale(24)} color={PRIMARY_GREEN} />
+                          )}
+                        </View>
+                        <Text style={styles.categoryLabel} numberOfLines={2}>
+                          {svc.title}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                : filteredItems.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
+                      activeOpacity={0.7}
+                      onPress={() =>
+                        navigate('ListingPrice' as any, { serviceName: item.title } as any)
+                      }
+                    >
+                      <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
+                        {item.image ? (
+                          <Image
+                            source={item.image}
+                            style={styles.categoryImageSub}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Icon name="construct-outline" size={scale(24)} color={PRIMARY_GREEN} />
+                        )}
+                      </View>
+                      <Text style={styles.categoryLabel} numberOfLines={2}>
+                        {item.title}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+            </>
           ) : (
             filteredItems.map((cat, index) => (
               <TouchableOpacity
@@ -195,11 +412,11 @@ export default function CreateListingScreen() {
                 onPress={() => handleCategoryPress(cat)}
               >
                 <View style={styles.categoryIconWrap}>
-                  <Image
-                    source={cat.image}
-                    style={styles.categoryImage}
-                    resizeMode="contain"
-                  />
+                  {cat.image ? (
+                    <Image source={cat.image} style={styles.categoryImage} resizeMode="contain" />
+                  ) : (
+                    <Icon name="grid-outline" size={scale(26)} color={PRIMARY_GREEN} />
+                  )}
                 </View>
                 <Text style={styles.categoryLabel} numberOfLines={2}>
                   {cat.title}
@@ -254,6 +471,33 @@ const styles = StyleSheet.create({
     fontSize: fontSize(14),
     color: colors.textSecondary,
     marginBottom: margin.xl,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: padding.sm,
+    marginBottom: margin.md,
+  },
+  loadingText: {
+    fontSize: fontSize(13),
+    color: colors.textSecondary,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: padding.sm,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    paddingHorizontal: padding.lg,
+    paddingVertical: padding.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: margin.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: fontSize(13),
+    color: colors.text,
   },
   searchBar: {
     flexDirection: 'row',

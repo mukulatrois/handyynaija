@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,6 +9,7 @@ import { navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput, PasswordInput, Separator, SocialButton, FooterLink } from '../../components';
+import { Loadingcomponent } from '../../components/LoadingComponent';
 
 const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -50,6 +51,11 @@ export default function CreateNewAccountScreen() {
   const roleKey = route.params?.roleKey ?? 3; // 1 = client, 2 = pro
   const [loading, setLoading] = useState(false);
 
+  const fullNameRef = useRef<any>(null);
+  const emailRef = useRef<any>(null);
+  const passwordRef = useRef<any>(null);
+  const confirmPasswordRef = useRef<any>(null);
+
   const formik = useFormik<FormValues>({
     initialValues,
     validationSchema,
@@ -76,7 +82,7 @@ export default function CreateNewAccountScreen() {
           Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
           return;
         }
-console.log(data,"register");
+        console.log(data, "register");
 
         const { user, accessToken, token } = data;
         const authToken = accessToken ?? token ?? '';
@@ -91,6 +97,7 @@ console.log(data,"register");
         await AsyncStorage.multiSet([
           [AUTH_TOKEN_KEY, authToken],
           [AUTH_USER_KEY, JSON.stringify(userPayload)],
+          ["isRegistered","true"]
         ]);
 
         if (roleKey === 2) {
@@ -111,6 +118,8 @@ console.log(data,"register");
 
   return (
     <SafeAreaView style={styles.container}>
+
+      {loading && <Loadingcomponent />}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -131,6 +140,12 @@ console.log(data,"register");
           onChangeText={(text) => formik.setFieldValue('fullName', text)}
           onBlur={() => formik.setFieldTouched('fullName')}
           autoCapitalize="words"
+          inputRef={fullNameRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => {
+            emailRef.current?.focus();
+          }}
           error={touched.fullName && errors.fullName ? errors.fullName : undefined}
         />
 
@@ -140,9 +155,15 @@ console.log(data,"register");
           value={values.email}
           onChangeText={(text) => formik.setFieldValue('email', text)}
           onBlur={() => formik.setFieldTouched('email')}
-          keyboardType="email-address"
+          // keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          inputRef={emailRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => {
+            passwordRef.current?.focus();
+          }}
           error={touched.email && errors.email ? errors.email : undefined}
         />
 
@@ -151,6 +172,11 @@ console.log(data,"register");
           placeholder="Enter your password"
           value={values.password}
           onChangeText={(text) => formik.setFieldValue('password', text)}
+          inputRef={passwordRef}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            confirmPasswordRef.current?.focus();
+          }}
           error={touched.password && errors.password ? errors.password : undefined}
         />
 
@@ -159,6 +185,15 @@ console.log(data,"register");
           placeholder="Confirm your password"
           value={values.confirmPassword}
           onChangeText={(text) => formik.setFieldValue('confirmPassword', text)}
+          inputRef={confirmPasswordRef}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            setFieldTouched('fullName');
+            setFieldTouched('email');
+            setFieldTouched('password');
+            setFieldTouched('confirmPassword');
+            handleSubmit();
+          }}
           error={touched.confirmPassword && errors.confirmPassword ? errors.confirmPassword : undefined}
         />
 
@@ -176,11 +211,11 @@ console.log(data,"register");
           style={{ marginTop: margin.lg }}
         />
 
-        <Separator />
+        {/* <Separator />
 
         <SocialButton provider="facebook" onPress={() => { }} />
         <SocialButton provider="google" onPress={() => { }} />
-        <SocialButton provider="apple" onPress={() => { }} />
+        <SocialButton provider="apple" onPress={() => { }} /> */}
 
         <FooterLink
           text="Already have an account?"

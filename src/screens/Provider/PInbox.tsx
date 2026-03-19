@@ -1,12 +1,14 @@
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Alert as RNAlert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView, TabBar, SceneMap } from 'react-native-tab-view';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { navigate } from '../../navigation/navigationService';
 import { fontSize, padding, margin, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface ChatMessage {
   id: string;
@@ -17,13 +19,16 @@ interface ChatMessage {
   avatar: string;
 }
 
-interface Alert {
+interface AlertItem {
   id: string;
   iconName: string;
   title: string;
   description: string;
   date: string;
 }
+
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const AUTH_USER_KEY = 'auth_user';
 
 // Mock data
 const mockChats: ChatMessage[] = [
@@ -77,7 +82,7 @@ const mockChats: ChatMessage[] = [
   },
 ];
 
-const mockAlerts: Alert[] = [
+const mockAlerts: AlertItem[] = [
   {
     id: '1',
     iconName: 'people',
@@ -196,6 +201,54 @@ export default function PInbox() {
     { key: 'alerts', title: 'Alerts' },
   ]);
 
+  const [checkingVerification, setCheckingVerification] = useState(true);
+  const [verificationPending, setVerificationPending] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkVerificationStatus = async () => {
+        try {
+          const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+          const userJson = await AsyncStorage.getItem(AUTH_USER_KEY);
+          const user = JSON.parse(userJson ?? '{}');
+          const providerId = user?.id;
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+
+          const res = await fetch(
+            `https://jolloyard-be.myfileshosting.com/api/v1/auth/${providerId}/verification-status`,
+            {
+              method: 'POST',
+              headers,
+            },
+          );
+
+          const data = await res.json().catch(() => ({}));
+          const isVerified = data?.verificationStatus == '1';
+
+          if (!res.ok || !isVerified) {
+            setVerificationPending(true);
+          } else {
+            setVerificationPending(false);
+          }
+        } catch (err) {
+          setVerificationPending(true);
+          const message =
+            err instanceof Error ? err.message : 'Unable to check verification status.';
+          RNAlert.alert('Verification', message);
+        } finally {
+          setCheckingVerification(false);
+        }
+      };
+
+      checkVerificationStatus();
+    }, []),
+  );
+
   const renderScene = SceneMap({
     chat: ChatScene,
     alerts: AlertsScene,
@@ -249,6 +302,33 @@ export default function PInbox() {
         <Icon name="headset-outline" size={scale(18)} color="#FFFFFF" />
         <Text style={styles.fabText}>Support</Text>
       </TouchableOpacity>
+
+      {/* Blocking overlay when verification is pending */}
+      {verificationPending && (
+        <View style={styles.blockOverlay}>
+          <SafeAreaView style={styles.blockModalContainer}>
+            <View style={styles.blockModalContent}>
+              <Icon
+                name="shield-checkmark-outline"
+                size={scale(56)}
+                color={colors.primary}
+              />
+              <Text style={styles.blockModalTitle}>Verification in progress</Text>
+              <Text style={styles.blockModalMessage}>
+                Your account verification is still pending. Please wait while we complete the
+                process. You cannot use any feature in the app before verification is completed.
+              </Text>
+              {checkingVerification && (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.primary}
+                  style={styles.blockModalLoader}
+                />
+              )}
+            </View>
+          </SafeAreaView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -428,5 +508,43 @@ const styles = StyleSheet.create({
     fontSize: fontSize(14),
     fontWeight: '600',
     marginLeft: margin.sm,
+  },
+  blockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 10,
+  },
+  blockModalContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: padding.xl,
+  },
+  blockModalContent: {
+    alignItems: 'center',
+  },
+  blockModalTitle: {
+    marginTop: padding.lg,
+    fontSize: fontSize(20),
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  blockModalMessage: {
+    marginTop: padding.md,
+    fontSize: fontSize(15),
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  blockModalLoader: {
+    marginTop: padding.lg,
   },
 });
