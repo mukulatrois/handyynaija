@@ -28,6 +28,8 @@ import ProviderUploadPhotoScreen from '../screens/Provider/ProviderUploadPhotoSc
 import ProviderVerifyPhotoScreen from '../screens/Provider/ProviderVerifyPhotoScreen';
 import ListingVerificationScreen from '../screens/Provider/ListingVerificationScreen';
 import ListingPriceScreen from '../screens/Provider/ListingPriceScreen';
+import ListingInformationInterestScreen from '../screens/Provider/ListingInformationInterestScreen';
+import ListingGalleryScreen from '../screens/Provider/ListingGalleryScreen';
 import ListingPhoneScreen from '../screens/Provider/ListingPhoneScreen';
 import ListingAboutMeScreen from '../screens/Provider/ListingAboutMeScreen';
 import ProviderEditProfileScreen from '../screens/Provider/EditProfileScreen';
@@ -455,6 +457,22 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ListingPrice"
           component={ListingPriceScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingInformationInterest"
+          component={ListingInformationInterestScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingGallery"
+          component={ListingGalleryScreen}
           options={{
             headerShown: false,
             animation: 'slide_from_right',

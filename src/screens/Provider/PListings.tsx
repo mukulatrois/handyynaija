@@ -194,7 +194,7 @@ export default function PListings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundGray,
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',

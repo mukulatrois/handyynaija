@@ -33,7 +33,7 @@ export default function ListingPriceScreen({ route }: Props) {
   const [price, setPrice] = useState('');
 
   const handleSave = () => {
-    navigate('ListingPhone');
+    navigate('ListingInformationInterest');
   };
 
   const handleSaveAndExit = () => {
