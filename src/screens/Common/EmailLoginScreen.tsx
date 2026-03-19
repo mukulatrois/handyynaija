@@ -125,7 +125,7 @@ const EmailLoginScreen = forwardRef<LoginEmailHandle>((_, ref) => {
         value={values.email}
         onChangeText={(t) => formik.setFieldValue('email', t)}
         onBlur={() => formik.setFieldTouched('email')}
-        keyboardType="email-address"
+        // keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="next"

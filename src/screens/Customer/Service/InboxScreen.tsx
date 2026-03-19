@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fontSize } from '../../../utils/responsive';
-import InboxTopTabs from '../../../navigation/TopNavigation';
+import MessageScreen from '../inbox/Message';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '../../../components';
@@ -33,7 +32,7 @@ export default function InboxScreen() {
       <ServiceScreenHeader title="Inbox" titleColor="#3FA565" titleStyle={{ fontSize: 28 }} />
 
       <View style={{ flex: 1 }}>
-        <InboxTopTabs />
+        <MessageScreen />
       </View>
 
       <RBSheet

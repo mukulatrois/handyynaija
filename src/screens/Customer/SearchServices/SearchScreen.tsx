@@ -85,9 +85,9 @@ export default function HandyNaijaScreen() {
           </TouchableOpacity>
         </View>
       </View>
-        <View style={styles.leftBar} />
-        <View style={styles.rightBar} />
-        <View style={styles.diagonal} />
+        {/* <View style={styles.leftBar} /> */}
+        {/* <View style={styles.rightBar} /> */}
+        {/* <View style={styles.diagonal} /> */}
       {/* LEFT COLUMN */}
       <Circle
         image={require('../../../Images/serachImg/Home.png')}

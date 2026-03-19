@@ -185,12 +185,12 @@ function getDisplayName(profile: UserProfile): string {
         </View>
 
         {/* Share */}
-        <Text style={styles.sectionTitle}>SHARE AND EARN MONEY!</Text>
-        <SettingsRow
+        {/* <Text style={styles.sectionTitle}>SHARE AND EARN MONEY!</Text> */}
+        {/* <SettingsRow
           title="₦10 for every friend you bring"
           icon="gift-outline"
           onPress={goToShareAndEarn}
-        />
+        /> */}
 
         {/* Account Settings */}
         <Text style={styles.sectionTitle}>ACCOUNT SETTINGS</Text>

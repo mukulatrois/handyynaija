@@ -32,7 +32,7 @@ export default function TabNavigator() {
         tabBarIcon: ({ color }) => {
           let iconName: string = '';
 
-           if (route.name === 'Search') iconName = 'search-outline';
+           if (route.name === 'Search') iconName = 'home-outline';
           if (route.name === 'Favorites') iconName = 'heart-outline';
           if (route.name === 'Services') iconName = 'calendar-outline';
           if (route.name === 'Inbox') iconName = 'chatbubble-outline';
@@ -41,11 +41,11 @@ export default function TabNavigator() {
           return <Icon name={iconName} size={22} color={color} />;
         },
       })}
-    >
+    >   
       <Tab.Screen
         name="Search"
         component={SearchScreen}
-        options={{ tabBarLabel: 'Search' }}
+        options={{ tabBarLabel: 'Home' }}
       />
 
       <Tab.Screen

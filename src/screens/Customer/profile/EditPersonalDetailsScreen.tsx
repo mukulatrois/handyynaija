@@ -9,6 +9,7 @@ import {
   TextInput as RNTextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -51,18 +52,18 @@ export default function EditPersonalDetailsScreen() {
             Authorization: `Bearer ${token}`,
           },
         });
-console.log(res,"res");
+        console.log(res, "res");
 
         if (res.ok) {
           const data = await res.json();
           const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
-console.log(user,"user");
+          console.log(user, "user");
           if (user) {
             if (user.name || user.full_name || user.fullName) {
               setName(
                 user.name ||
-                  user.full_name ||
-                  user.fullName,
+                user.full_name ||
+                user.fullName,
               );
             }
             if (user.email) {
@@ -138,6 +139,7 @@ console.log(user,"user");
     try {
       const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
       if (!token) {
+        Alert.alert('Error', 'Session expired. Please log in again.');
         goBack();
         return;
       }
@@ -157,12 +159,31 @@ console.log(user,"user");
         },
         body: formData,
       });
+      console.log(res, 'res');
 
       if (res.ok) {
         goBack();
+      } else {
+        let message = 'Something went wrong while saving your details.';
+        try {
+          const errorData = await res.json();
+          message =
+            errorData?.message ||
+            errorData?.error ||
+            errorData?.errors?.[0] ||
+            message;
+        } catch {
+          // keep default message
+        }
+
+        Alert.alert('Error', message);
       }
-    } catch {
-      // ignore errors for now
+    } catch (error) {
+      console.log(error, 'error');
+      Alert.alert(
+        'Error',
+        'Unable to save your details. Please try again.',
+      );
     }
   };
 
@@ -267,7 +288,7 @@ console.log(user,"user");
             </View>
             <View style={styles.inputDivider} />
 
-            <View style={styles.inputRow}>
+            {/* <View style={styles.inputRow}>
               <RNTextInput
                 style={styles.input}
                 placeholder="Phone"
@@ -276,7 +297,7 @@ console.log(user,"user");
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
               />
-            </View>
+            </View> */}
           </View>
 
           {/* Save Button */}
@@ -354,6 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: scale(12),
     borderBottomWidth: 1,
     borderBottomColor: '#E8E8E8',
+    // justifyContent: 'space-between',
   },
   headerLeft: {
     flexDirection: 'row',

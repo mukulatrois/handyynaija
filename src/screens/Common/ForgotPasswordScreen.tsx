@@ -82,7 +82,7 @@ export default function ForgotPasswordScreen() {
           value={values.email}
           onChangeText={(text) => formik.setFieldValue('email', text)}
           onBlur={() => formik.setFieldTouched('email')}
-          keyboardType="email-address"
+          // keyboardType="email-address"
           returnKeyType="done"
           blurOnSubmit={false}
           onSubmitEditing={() => handleSubmit()}

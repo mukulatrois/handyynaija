@@ -201,12 +201,12 @@ export default function PProfile() {
         </View>
 
         {/* SHARE AND EARN MONEY! Section */}
-        <SectionHeader title="SHARE AND EARN MONEY!" />
+        {/* <SectionHeader title="SHARE AND EARN MONEY!" />
         <MenuItem
           icon="gift-outline"
           text="₦ 10 for every friend you bring"
           iconColor="#DC2626"
-        />
+        /> */}
         <View style={styles.separator} />
 
         {/* Your Account Section */}
