@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,16 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  setActiveStep,
+  setExperience,
+  setIndustry,
+  setStatement,
+  setStatus,
+  resetListingDraft,
+} from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
 
 const PRIMARY_GREEN = '#3FA565';
 
@@ -88,10 +98,17 @@ function RadioOption({
 }
 
 export default function ListingInformationInterestScreen() {
-  const [experience, setExperience] = useState<string>('');
-  const [industry, setIndustry] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
-  const [statement, setStatement] = useState<string>('');
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
+
+  const experience = draft.experience ?? '';
+  const industry = draft.industry ?? '';
+  const status = draft.status ?? '';
+  const statement = draft.statement ?? '';
+
+  useEffect(() => {
+    dispatch(setActiveStep('listingInformationInterest'));
+  }, [dispatch]);
 
   const canContinue = useMemo(
     () => !!experience && !!industry && !!status && !!statement,
@@ -112,7 +129,22 @@ export default function ListingInformationInterestScreen() {
           <TouchableOpacity onPress={goBack} style={styles.headerButton}>
             <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={goBack} style={styles.saveExitButton} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={async () => {
+              dispatch(setActiveStep('listingInformationInterest'));
+              // Persist explicit JSON backup for "Save and exit".
+              await saveListingDraftBackupToLocalStorage({
+                ...draft,
+                activeStep: 'listingInformationInterest',
+                updatedAt: Date.now(),
+              });
+              // Clear redux values immediately after saving backup.
+              dispatch(resetListingDraft());
+              navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
+            }}
+            style={styles.saveExitButton}
+            activeOpacity={0.7}
+          >
             <Text style={styles.saveExitText}>Save and exit</Text>
           </TouchableOpacity>
         </View>
@@ -132,7 +164,7 @@ export default function ListingInformationInterestScreen() {
               key={item.id}
               option={item}
               selected={experience === item.id}
-              onPress={setExperience}
+              onPress={(id) => dispatch(setExperience(id))}
             />
           ))}
 
@@ -143,7 +175,7 @@ export default function ListingInformationInterestScreen() {
                 key={item.id}
                 style={styles.twoColOption}
                 activeOpacity={0.75}
-                onPress={() => setIndustry(item.id)}
+                onPress={() => dispatch(setIndustry(item.id))}
               >
                 <View style={[styles.radioOuter, industry === item.id && styles.radioOuterSelected]}>
                   {industry === item.id && <View style={styles.radioInner} />}
@@ -162,7 +194,7 @@ export default function ListingInformationInterestScreen() {
               key={item.id}
               option={item}
               selected={status === item.id}
-              onPress={setStatus}
+              onPress={(id) => dispatch(setStatus(id))}
             />
           ))}
 
@@ -172,7 +204,7 @@ export default function ListingInformationInterestScreen() {
               key={item.id}
               option={item}
               selected={statement === item.id}
-              onPress={setStatement}
+              onPress={(id) => dispatch(setStatement(id))}
             />
           ))}
         </ScrollView>
@@ -180,9 +212,13 @@ export default function ListingInformationInterestScreen() {
         <View style={styles.bottomButtonWrap}>
           <Button
             title="Continue"
-            onPress={() => navigate('ListingGallery')}
+            onPress={() => {
+              if (!canContinue) return;
+              dispatch(setActiveStep('listingGallery'));
+              navigate('ListingGallery');
+            }}
             variant="primary"
-            style={[styles.continueButton, !canContinue && styles.continueButtonDisabled]}
+            style={canContinue ? styles.continueButton : styles.continueButtonDisabled}
             disabled={!canContinue}
           />
         </View>

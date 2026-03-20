@@ -22,6 +22,12 @@ import {
 } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
+import { useAppDispatch } from '../../store/hooks';
+import {
+  resetListingDraft,
+  setActiveStep,
+  setServiceName,
+} from '../../store/listingDraftSlice';
 
 const PRIMARY_GREEN = '#3FA565';
 const SERVICE_IMAGE_URL = (serviceId: string) =>
@@ -50,6 +56,7 @@ type ApiService = {
   _id?: string;
   name?: string;
   title?: string;
+  imagePath?: string;
 };
 
 type ApiServicesResponse = {
@@ -110,6 +117,7 @@ const CIRCLE_SIZE = wp(20);
 const CIRCLE_SIZE_SUB = wp(22);
 
 export default function CreateListingScreen() {
+  const dispatch = useAppDispatch();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; title: string } | null>(
     null
@@ -198,8 +206,17 @@ export default function CreateListingScreen() {
   }, []);
 
   useEffect(() => {
+    // Start a fresh draft when user enters the create listing flow.
+    dispatch(resetListingDraft());
     fetchCategories();
-  }, [fetchCategories]);
+  }, [dispatch, fetchCategories]);
+
+  const goToListingPrice = (serviceTitle: string) => {
+    const title = String(serviceTitle ?? '').trim();
+    dispatch(setServiceName(title || undefined));
+    dispatch(setActiveStep('listingPrice'));
+    navigate('ListingPrice' as any, { serviceName: title } as any);
+  };
 
   const mainCategories = useMemo(
     () => (apiCategories && apiCategories.length ? apiCategories : fallbackMainCategories),
@@ -243,7 +260,7 @@ export default function CreateListingScreen() {
       return;
     }
 
-    navigate('ListingPrice' as any, { serviceName: cat.title } as any);
+    goToListingPrice(cat.title);
   };
 
   const handleBreadcrumbPress = () => {
@@ -354,7 +371,7 @@ export default function CreateListingScreen() {
                       style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
                       activeOpacity={0.7}
                       onPress={() =>
-                        navigate('ListingPrice' as any, { serviceName: svc.title } as any)
+                        goToListingPrice(svc.title)
                       }
                     >
                       <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
@@ -382,7 +399,7 @@ export default function CreateListingScreen() {
                     style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
                     activeOpacity={0.7}
                     onPress={() =>
-                      navigate('ListingPrice' as any, { serviceName: item.title } as any)
+                      goToListingPrice(item.title)
                     }
                   >
                     <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>

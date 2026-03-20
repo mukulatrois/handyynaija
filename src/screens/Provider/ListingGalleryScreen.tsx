@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,17 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {
+  launchCamera,
+  launchImageLibrary,
+  ImageLibraryOptions,
+  CameraOptions,
+} from 'react-native-image-picker';
 import {
   scale,
   fontSize,
@@ -21,6 +29,14 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  setActiveStep,
+  setGalleryImages,
+  type GalleryImage,
+  resetListingDraft,
+} from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
 
 const PRIMARY_GREEN = '#3FA565';
 
@@ -32,6 +48,116 @@ const goodGalleryItems = [
 ];
 
 export default function ListingGalleryScreen() {
+  const MAX_IMAGES = 5;
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
+
+  const galleryImages = draft.galleryImages ?? [];
+
+  useEffect(() => {
+    dispatch(setActiveStep('listingGallery'));
+  }, [dispatch]);
+
+  const canAddMore = useMemo(
+    () => galleryImages.length < MAX_IMAGES,
+    [galleryImages.length]
+  );
+
+  const canContinue = useMemo(() => galleryImages.length > 0, [galleryImages.length]);
+
+  const requestGalleryPermission = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+
+    const apiLevel = (Platform.Version as number) || 0;
+    const permission =
+      apiLevel >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+    try {
+      const result = await PermissionsAndroid.request(permission, {
+        title: 'Photo access',
+        message: 'HandyNaija needs access to your photos to add gallery images.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      });
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const handlePickImagesFromLibrary = useCallback(async () => {
+    if (!canAddMore) return;
+
+    const granted = await requestGalleryPermission();
+    if (!granted) {
+      Alert.alert(
+        'Permission required',
+        'Photo access is needed to choose gallery images. Please enable it in Settings.'
+      );
+      return;
+    }
+
+    const remaining = Math.max(1, MAX_IMAGES - galleryImages.length);
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo',
+      selectionLimit: remaining,
+      quality: 0.8,
+    };
+
+    const result = await launchImageLibrary(options);
+    if (result.didCancel || !result.assets || result.assets.length === 0) return;
+
+    const picked: GalleryImage[] = result.assets
+      .map((a) => ({
+        uri: a.uri ?? '',
+        type: a.type,
+        fileName: a.fileName,
+      }))
+      .filter((img) => !!img.uri);
+
+    if (!picked.length) return;
+    dispatch(setGalleryImages([...galleryImages, ...picked].slice(0, MAX_IMAGES)));
+  }, [
+    MAX_IMAGES,
+    canAddMore,
+    dispatch,
+    galleryImages,
+    requestGalleryPermission,
+  ]);
+
+  const handleOpenCamera = useCallback(async () => {
+    if (!canAddMore) return;
+
+    // Note: permissions are typically handled automatically by the native module,
+    // but we keep this flow simple for now.
+    const remaining = Math.max(1, MAX_IMAGES - galleryImages.length);
+    const options: CameraOptions = {
+      mediaType: 'photo',
+      quality: 0.8,
+      saveToPhotos: false,
+    };
+
+    const result = await launchCamera(options);
+    if (result.didCancel || !result.assets || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    const uri = asset.uri ?? '';
+    if (!uri) return;
+
+    // Camera flow is single image.
+    dispatch(
+      setGalleryImages(
+        [...galleryImages, { uri, type: asset.type, fileName: asset.fileName }].slice(
+          0,
+          MAX_IMAGES
+        )
+      )
+    );
+  }, [MAX_IMAGES, canAddMore, dispatch, galleryImages]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -46,7 +172,21 @@ export default function ListingGalleryScreen() {
           <TouchableOpacity onPress={goBack} style={styles.headerButton}>
             <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={goBack} style={styles.saveExitButton} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={async () => {
+              dispatch(setActiveStep('listingGallery'));
+              await saveListingDraftBackupToLocalStorage({
+                ...draft,
+                activeStep: 'listingGallery',
+                updatedAt: Date.now(),
+              });
+              // Clear redux values immediately after saving backup.
+              dispatch(resetListingDraft());
+              navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
+            }}
+            style={styles.saveExitButton}
+            activeOpacity={0.7}
+          >
             <Text style={styles.saveExitText}>Save and exit</Text>
           </TouchableOpacity>
         </View>
@@ -59,20 +199,31 @@ export default function ListingGalleryScreen() {
         >
           <Text style={styles.title}>Gallery</Text>
           <Text style={styles.helperText}>Add service related photos as portfolio to do your listing</Text>
+          <Text style={styles.limitText}>You can add up to {MAX_IMAGES} images.</Text>
 
-          <View style={styles.galleryRow}>
-            <View style={styles.photoCard}>
-              <Image
-                source={{ uri: 'https://i.pravatar.cc/200?img=12' }}
-                style={styles.photoImage}
-                resizeMode="cover"
-              />
-            </View>
+          <View style={styles.galleryRowWrap}>
+            {galleryImages.map((img, index) => (
+              <View key={`${img.uri}-${index}`} style={styles.photoCard}>
+                <Image source={{ uri: img.uri }} style={styles.photoImage} resizeMode="cover" />
+              </View>
+            ))}
 
-            <TouchableOpacity style={styles.addMoreCard} activeOpacity={0.8}>
-              <Icon name="add" size={scale(22)} color={colors.textSecondary} />
-              <Text style={styles.addMoreText}>Add more</Text>
-            </TouchableOpacity>
+            {canAddMore && (
+              <TouchableOpacity
+                style={styles.addMoreCard}
+                activeOpacity={0.8}
+                onPress={() =>
+                  Alert.alert('Add image', 'Choose source', [
+                    { text: 'Gallery', onPress: handlePickImagesFromLibrary },
+                    { text: 'Camera', onPress: handleOpenCamera },
+                    { text: 'Cancel', style: 'cancel' },
+                  ])
+                }
+              >
+                <Icon name="add" size={scale(22)} color={colors.textSecondary} />
+                <Text style={styles.addMoreText}>Add image</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.guideCard}>
@@ -91,7 +242,16 @@ export default function ListingGalleryScreen() {
         </ScrollView>
 
         <View style={styles.bottomButtonWrap}>
-          <Button title="Continue" onPress={() => navigate('ListingAboutMe')} variant="primary" />
+          <Button
+            title="Continue"
+            onPress={() => {
+              dispatch(setActiveStep('listingAboutMe'));
+              navigate('ListingAboutMe');
+            }}
+            variant="primary"
+            disabled={!canContinue}
+            style={!canContinue ? styles.continueButtonDisabled : undefined}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -155,11 +315,17 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: margin.lg,
   },
-  galleryRow: {
+  limitText: {
+    fontSize: fontSize(12),
+    color: colors.textMuted ?? colors.textSecondary,
+    marginBottom: margin.lg,
+  },
+  galleryRowWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: padding.md,
     marginBottom: margin.xl,
+    flexWrap: 'wrap',
   },
   photoCard: {
     width: scale(92),
@@ -214,5 +380,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.xl,
     paddingVertical: padding.lg,
     backgroundColor: colors.white,
+  },
+  continueButtonDisabled: {
+    opacity: 0.55,
   },
 });
