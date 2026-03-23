@@ -9,6 +9,7 @@ import PRequests from '../screens/Provider/PRequests';
 import PInbox from '../screens/Provider/PInbox';
 import PListings from '../screens/Provider/PListings';
 import PProfile from '../screens/Provider/PProfile';
+import { COLORS } from '../utils/constants';
 
 export type ProviderTabParamList = {
   Calendar: undefined;
@@ -25,7 +26,7 @@ export default function ProviderTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#3FA565',
+        tabBarActiveTintColor: COLORS.SECONDARY,
         tabBarInactiveTintColor: '#666',
         tabBarLabelStyle: styles.label,
 

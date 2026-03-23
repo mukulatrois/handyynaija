@@ -90,7 +90,7 @@ export default function ShareAndEarnScreen() {
         <View style={styles.bulletRow}>
           <Text style={styles.bulletEmoji}>🤑</Text>
           <Text style={styles.bulletText}>
-            Earn ₦10 discount for each friend you bring to Handynaija
+            Earn ₦10 discount for each friend you bring to Jolloyard
           </Text>
         </View>
         <View style={styles.bulletRow}>

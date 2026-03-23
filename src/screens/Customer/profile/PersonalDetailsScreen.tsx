@@ -70,7 +70,7 @@ export default function PersonalDetailsScreen() {
     try {
       const result = await PermissionsAndroid.request(permission, {
         title: 'Photo access',
-        message: 'HandyNaija needs access to your photos to select a profile picture.',
+        message: 'Jolloyard needs access to your photos to select a profile picture.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',
@@ -88,7 +88,7 @@ export default function PersonalDetailsScreen() {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: 'Camera access',
-          message: 'HandyNaija needs camera access to take a profile picture.',
+          message: 'Jolloyard needs camera access to take a profile picture.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',

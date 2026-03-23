@@ -22,11 +22,16 @@ export type RootStackParamList = {
   OfferServicesIntro: undefined;
   ProviderSelectCountry: undefined;
   ProviderChooseCity: undefined;
-  ProviderAddAddress: undefined;
+  ProviderAddAddress:
+    | {
+        photoUri?: string;
+      }
+    | undefined;
   WorkAreas:
     | {
         address?: string;
         coordinates?: { latitude: number; longitude: number };
+        photoUri?: string;
       }
     | undefined;
   ProviderWorkSchedule:
@@ -34,6 +39,7 @@ export type RootStackParamList = {
         address?: string;
         coordinates?: { latitude: number; longitude: number };
         distanceKm?: number;
+        photoUri?: string;
       }
     | undefined;
   SelectCountry: undefined;
@@ -83,6 +89,7 @@ export type RootStackParamList = {
         address?: string;
         coordinates?: { latitude: number; longitude: number };
         distanceKm?: number;
+        photoUri?: string;
       }
     | undefined;
   ProviderUploadPhoto: undefined;

@@ -37,12 +37,12 @@ import { RootStackParamList } from '../../navigation/navigationService';
 import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
 import { Loadingcomponent } from '../../components/LoadingComponent';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
 
 const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
-const PRIMARY_GREEN = '#3FA565';
 const ERROR_RED = '#D32F2F';
 
 const GENDERS = ['Male', 'Female', 'Other'];
@@ -237,8 +237,12 @@ function formatDateForApi(isoDate: string): string {
 
 export default function ProviderProfileInfoScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProviderProfileInfo'>>();
+  console.log('route', route.params);
+  
+  
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadValidationTriggered, setUploadValidationTriggered] = useState(false);
   const [identityDocFrontUri, setIdentityDocFrontUri] = useState<string | null>(null);
   const [identityDocBackUri, setIdentityDocBackUri] = useState<string | null>(null);
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
@@ -258,6 +262,12 @@ export default function ProviderProfileInfoScreen() {
     validateOnChange: true,
     validateOnBlur: true,
     onSubmit: async (values) => {
+      if (!identityDocFrontUri || !identityDocBackUri || !selfieUri) {
+        setUploadValidationTriggered(true);
+        Alert.alert('Required', 'Please upload identity document front, back, and a selfie.');
+        return;
+      }
+
       setSaving(true);
       try {
         const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
@@ -290,30 +300,37 @@ export default function ProviderProfileInfoScreen() {
         formData.append('postal_code', values.zipCode.trim());
         formData.append('work_country', values.country);
         formData.append('work_city', values.city);
-        formData.append('work_area_name', JSON.stringify([values.region]));
+        formData.append('radius', route.params?.distanceKm?.toString() ?? '');
+        formData.append('latitude', route.params.coordinates?.latitude.toString() ?? '');
+        formData.append('longitude', route.params.coordinates?.longitude.toString() ?? '');
         formData.append('document_type', values.docType);
         formData.append('document_number', values.documentNumber.trim());
         formData.append('document_country', values.countryOfDoc);
+        formData.append('profile_picture',{
+          uri: route.params?.photoUri ?? '',
+          type: 'image/jpeg',
+          name: Date.now().toString() + '.jpg',
+        } as any);
 
         if (identityDocFrontUri) {
           formData.append('identity_document_front', {
             uri: identityDocFrontUri,
             type: 'image/jpeg',
-            name: 'identity_document_front.jpg',
+            name: Date.now().toString() + '.jpg',
           } as any);
         }
         if (identityDocBackUri) {
           formData.append('identity_document_back', {
             uri: identityDocBackUri,
             type: 'image/jpeg',
-            name: 'identity_document_back.jpg',
+            name: Date.now().toString() + '.jpg',
           } as any);
         }
         if (selfieUri) {
           formData.append('selfie_image', {
             uri: selfieUri,
             type: 'image/jpeg',
-            name: 'selfie.jpg',
+            name: Date.now().toString() + '.jpg',
           } as any);
         }
 
@@ -350,6 +367,10 @@ export default function ProviderProfileInfoScreen() {
   });
 
   const { values, errors, touched, submitCount, handleSubmit, setFieldValue, setFieldTouched } = formik;
+  const showUploadError = uploadValidationTriggered || submitCount > 0;
+  const isFrontDocMissing = !identityDocFrontUri;
+  const isBackDocMissing = !identityDocBackUri;
+  const isSelfieMissing = !selfieUri;
 
   const workAddressParams = route.params;
   const isWorkAddressReadOnly = Boolean(workAddressParams?.address || workAddressParams?.coordinates);
@@ -427,6 +448,7 @@ export default function ProviderProfileInfoScreen() {
   };
 
   const onSavePress = () => {
+    setUploadValidationTriggered(true);
     handleSubmit();
   };
 
@@ -465,7 +487,7 @@ export default function ProviderProfileInfoScreen() {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: 'Camera access',
-          message: 'HandyNaija needs camera access to take photos for your documents.',
+          message: 'Jolloyard needs camera access to take photos for your documents.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',
@@ -487,7 +509,7 @@ export default function ProviderProfileInfoScreen() {
     try {
       const result = await PermissionsAndroid.request(permission, {
         title: 'Photo access',
-        message: 'HandyNaija needs access to your photos to select images.',
+        message: 'Jolloyard needs access to your photos to select images.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',
@@ -565,7 +587,7 @@ export default function ProviderProfileInfoScreen() {
         {/* Header with back arrow and progress bar */}
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerButton} activeOpacity={0.7}>
-            <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
+            <Icon name="chevron-back" size={scale(24)} color={COLORS.PRIMARY} />
           </TouchableOpacity>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: '100%' }]} />
@@ -770,7 +792,7 @@ export default function ProviderProfileInfoScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.uploadButtonLeft}>
-              <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
               <Text style={styles.uploadButtonText}>
                 {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
               </Text>
@@ -783,6 +805,9 @@ export default function ProviderProfileInfoScreen() {
               />
             ) : null}
           </TouchableOpacity>
+          {showUploadError && isFrontDocMissing ? (
+            <Text style={styles.errorText}>Please upload the front of your ID.</Text>
+          ) : null}
           <Text style={styles.uploadLabel}>Identity document (back)</Text>
           <TouchableOpacity
             style={styles.uploadButton}
@@ -793,7 +818,7 @@ export default function ProviderProfileInfoScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.uploadButtonLeft}>
-              <Icon name="document-attach-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
               <Text style={styles.uploadButtonText}>
                 {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
               </Text>
@@ -806,6 +831,9 @@ export default function ProviderProfileInfoScreen() {
               />
             ) : null}
           </TouchableOpacity>
+          {showUploadError && isBackDocMissing ? (
+            <Text style={styles.errorText}>Please upload the back of your ID.</Text>
+          ) : null}
           <Text style={styles.uploadLabel}>Selfie</Text>
           <TouchableOpacity
             style={styles.uploadButton}
@@ -813,7 +841,7 @@ export default function ProviderProfileInfoScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.uploadButtonLeft}>
-              <Icon name="person-outline" size={scale(20)} color={PRIMARY_GREEN} />
+              <Icon name="person-outline" size={scale(20)} color={COLORS.PRIMARY} />
               <Text style={styles.uploadButtonText}>
                 {selfieUri ? 'Selfie selected' : 'Take selfie'}
               </Text>
@@ -826,6 +854,9 @@ export default function ProviderProfileInfoScreen() {
               />
             ) : null}
           </TouchableOpacity>
+          {showUploadError && isSelfieMissing ? (
+            <Text style={styles.errorText}>Please upload a selfie.</Text>
+          ) : null}
           <Text style={styles.emailPrompt}>
             Don't have any of these document?{' '}
             <Text style={styles.emailLink} onPress={openEmail}>
@@ -918,7 +949,7 @@ export default function ProviderProfileInfoScreen() {
             disabled={saving}
           />
           {saving ? (
-            <ActivityIndicator size="small" color={PRIMARY_GREEN} style={styles.loader} />
+            <ActivityIndicator size="small" color={COLORS.PRIMARY} style={styles.loader} />
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -968,26 +999,26 @@ export default function ProviderProfileInfoScreen() {
               {((activeDocSide === 'back' && !identityDocBackUri) ||
                 (activeDocSide !== 'back' && !identityDocFrontUri)) && (
                   <>
-                    <Icon name="camera-outline" size={scale(40)} color={PRIMARY_GREEN} />
+                    <Icon name="camera-outline" size={scale(40)} color={COLORS.PRIMARY} />
                     <Text style={styles.docModalFrameText}>Position your ID within the frame</Text>
                   </>
                 )}
             </View>
             <View style={styles.docModalChecklist}>
               <View style={styles.docModalChecklistRow}>
-                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Icon name="checkmark-circle" size={scale(16)} color={COLORS.PRIMARY} />
                 <Text style={styles.docModalChecklistText}>Make sure Image is clear</Text>
               </View>
               <View style={styles.docModalChecklistRow}>
-                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Icon name="checkmark-circle" size={scale(16)} color={COLORS.PRIMARY} />
                 <Text style={styles.docModalChecklistText}>Make sure No shadows detected</Text>
               </View>
               <View style={styles.docModalChecklistRow}>
-                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Icon name="checkmark-circle" size={scale(16)} color={COLORS.PRIMARY} />
                 <Text style={styles.docModalChecklistText}>Make sure No glare detected</Text>
               </View>
               <View style={styles.docModalChecklistRow}>
-                <Icon name="checkmark-circle" size={scale(16)} color={PRIMARY_GREEN} />
+                <Icon name="checkmark-circle" size={scale(16)} color={COLORS.PRIMARY} />
                 <Text style={styles.docModalChecklistText}>Make sure Text is readable</Text>
               </View>
             </View>
@@ -1017,7 +1048,7 @@ export default function ProviderProfileInfoScreen() {
                   }
                 }}
               >
-                <Icon name="cloud-upload-outline" size={scale(18)} color={PRIMARY_GREEN} />
+                <Icon name="cloud-upload-outline" size={scale(18)} color={COLORS.PRIMARY} />
                 <Text style={styles.docModalButtonTextOutline}>Upload</Text>
               </TouchableOpacity>
             </View>
@@ -1056,7 +1087,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   scrollView: {
@@ -1070,7 +1101,7 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
     marginBottom: margin.lg,
   },
   noticeBox: {
@@ -1099,7 +1130,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize(18),
     fontWeight: '700',
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
     marginBottom: margin.lg,
     marginTop: margin.md,
   },
@@ -1166,7 +1197,7 @@ const styles = StyleSheet.create({
   iosDatePickerDone: {
     fontSize: fontSize(16),
     fontWeight: '600',
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
   },
   iosDatePicker: {
     height: scale(200),
@@ -1186,7 +1217,7 @@ const styles = StyleSheet.create({
     gap: padding.md,
   },
   docCardSelected: {
-    borderColor: PRIMARY_GREEN,
+    borderColor: COLORS.PRIMARY,
   },
   radioOuter: {
     width: scale(24),
@@ -1198,8 +1229,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: {
-    backgroundColor: PRIMARY_GREEN,
-    borderColor: PRIMARY_GREEN,
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
   },
   docCardText: {
     fontSize: fontSize(16),
@@ -1219,7 +1250,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSize(20),
   },
   emailLink: {
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   uploadButton: {
@@ -1235,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   uploadButtonText: {
     fontSize: fontSize(14),
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
     fontWeight: '500',
   },
   uploadButtonLeft: {
@@ -1306,7 +1337,7 @@ const styles = StyleSheet.create({
   },
   modalItemTextSelected: {
     fontWeight: '700',
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
   },
   docModalOverlay: {
     flex: 1,
@@ -1344,7 +1375,7 @@ const styles = StyleSheet.create({
   },
   docModalFrame: {
     borderWidth: 1,
-    borderColor: PRIMARY_GREEN,
+    borderColor: COLORS.PRIMARY,
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1388,7 +1419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: padding.md,
     borderRadius: borderRadius.lg,
-    backgroundColor: PRIMARY_GREEN,
+    backgroundColor: COLORS.PRIMARY,
     gap: padding.sm,
   },
   docModalButtonOutline: {
@@ -1399,7 +1430,7 @@ const styles = StyleSheet.create({
     paddingVertical: padding.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: PRIMARY_GREEN,
+    borderColor: COLORS.PRIMARY,
     gap: padding.sm,
   },
   docModalButtonText: {
@@ -1409,7 +1440,7 @@ const styles = StyleSheet.create({
   },
   docModalButtonTextOutline: {
     fontSize: fontSize(14),
-    color: PRIMARY_GREEN,
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
 });

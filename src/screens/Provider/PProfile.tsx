@@ -243,7 +243,7 @@ export default function PProfile() {
         <SectionHeader title="Do you like the app?" />
         <MenuItem icon="star-outline" text="Will you give us 5 stars?😊" />
         <View style={styles.separator} />
-        <MenuItem icon="share-social-outline" text="Share the HandyNaija App" />
+        <MenuItem icon="share-social-outline" text="Share the Jolloyard App" />
         <View style={styles.separator} />
 
         {/* SUPPORT CENTRE Section */}
@@ -252,7 +252,7 @@ export default function PProfile() {
         <View style={styles.separator} />
         <MenuItem icon="bulb-outline" text="How can we improve?" />
         <View style={styles.separator} />
-        <MenuItem icon="help-circle-outline" text="About HandyNaija App" />
+        <MenuItem icon="help-circle-outline" text="About Jolloyard App" />
         <View style={styles.separator} />
         <MenuItem icon="shield-checkmark-outline" text="Privacy policy" />
         <View style={styles.separator} />

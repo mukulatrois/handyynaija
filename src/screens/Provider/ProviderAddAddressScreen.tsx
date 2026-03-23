@@ -9,17 +9,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
 import { goBack, navigate } from '../../navigation/navigationService';
+import { RootStackParamList } from '../../navigation/navigationService';
 import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
 // Replace this with your real Google Places API key.
 // Note: AndroidManifest already has a dummy geo API key.
 const GOOGLE_PLACES_API_KEY = 'AIzaSyCLR79mNHhWeVK35PL8qvFR5451f9SmGPc';
 
 export default function ProviderAddAddressScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, 'ProviderAddAddress'>>();
   const [selectedAddress, setSelectedAddress] = useState('');
   const [selectedCoordinates, setSelectedCoordinates] = useState<{
     latitude: number;
@@ -42,6 +46,7 @@ export default function ProviderAddAddressScreen() {
     navigate('WorkAreas', {
       address: selectedAddress,
       coordinates: selectedCoordinates ?? undefined,
+      photoUri: route.params?.photoUri,
     });
   };
 
@@ -57,15 +62,15 @@ export default function ProviderAddAddressScreen() {
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+            <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
           </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Add address</Text>
-
-          <View style={styles.headerRightSpacer} />
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: '60%' }]} />
+          </View>
         </View>
 
         <View style={styles.content}>
+        <Text style={styles.title}>Add Address</Text>
           <Text style={styles.subtitle}>
             Start typing your address and pick one from the suggestions.
           </Text>
@@ -99,14 +104,14 @@ export default function ProviderAddAddressScreen() {
             keyboardShouldPersistTaps="handled"
           />
 
-          {!!selectedAddress.trim() && (
+          {/* {!!selectedAddress.trim() && (
             <View style={styles.selectedBox}>
               <Text style={styles.selectedLabel}>Selected address</Text>
               <Text style={styles.selectedValue} numberOfLines={3}>
                 {selectedAddress}
               </Text>
             </View>
-          )}
+          )} */}
         </View>
 
         <View style={styles.footer}>
@@ -136,20 +141,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: padding.xl,
     paddingVertical: padding.lg,
+    paddingBottom: padding.md,
     gap: padding.md,
   },
   backButton: {
     padding: padding.xs,
   },
-  headerTitle: {
+  progressBar: {
     flex: 1,
-    fontSize: fontSize(18),
-    fontWeight: '700',
-    color: '#000',
+    height: scale(6),
+    backgroundColor: '#E0E0E0',
+    borderRadius: scale(10),
+    overflow: 'hidden',
   },
-  headerRightSpacer: {
-    width: scale(24),
-    height: scale(24),
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: scale(10),
   },
   content: {
     flex: 1,
@@ -160,6 +168,12 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: margin.lg,
     lineHeight: fontSize(20),
+  },
+  title: {
+    fontSize: fontSize(22),
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: margin.xs,
   },
   textInputContainer: {
     borderRadius: scale(12),
@@ -201,6 +215,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.xl,
     paddingBottom: margin.xl,
   },
-  continueButton: {},
+  continueButton: {
+    backgroundColor: COLORS.PRIMARY,
+  },
 });
 

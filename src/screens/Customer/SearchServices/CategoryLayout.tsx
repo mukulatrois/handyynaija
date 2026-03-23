@@ -55,7 +55,7 @@ const CategoryLayout = ({ title, items, layout = 'grid', onItemPress }: Category
         <SafeAreaView style={styles.container}>
             {/* HEADER */}
             <View style={styles.header}>
-                <Text style={styles.brand}>HandyNaija</Text>
+                <Text style={styles.brand}>Jolloyard</Text>
         <View style={{ flexDirection: 'row' }}>
           <TouchableOpacity style={styles.headerBtn}>
             <CustomIcon name={IconNames.search} size={fontSize(18)} color="#000" />

@@ -66,11 +66,11 @@ const statementOptions: Choice[] = [
   },
   {
     id: 'statement_clients',
-    label: 'I already have my own clients and want handynaija to help me fill my free slots.',
+    label: 'I already have my own clients and want Jolloyard to help me fill my free slots.',
   },
   {
     id: 'statement_free_schedule',
-    label: 'I do not have my own clients and want handynaija to help me fill my free schedule.',
+    label: 'I do not have my own clients and want Jolloyard to help me fill my free schedule.',
   },
 ];
 

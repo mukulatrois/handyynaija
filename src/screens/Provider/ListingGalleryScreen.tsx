@@ -77,7 +77,7 @@ export default function ListingGalleryScreen() {
     try {
       const result = await PermissionsAndroid.request(permission, {
         title: 'Photo access',
-        message: 'HandyNaija needs access to your photos to add gallery images.',
+        message: 'Jolloyard needs access to your photos to add gallery images.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',

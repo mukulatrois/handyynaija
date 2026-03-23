@@ -5,6 +5,7 @@ import { navigate } from '../../navigation/navigationService';
 import { fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import LoginSheet, { LoginSheetHandle } from './LoginScreen';
 import { HandleBar, Button } from '../../components';
+import { height, width } from '../../components/common';
 
 export default function WelcomeScreen() {
   const loginRef = useRef<LoginSheetHandle>(null);
@@ -12,23 +13,32 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Image
-        source={require('../../Images/backwithlogo.png')}
+        source={require('../../Images/backimage.png')}
         style={styles.image}
       />
+      <View style={{
+        position: "absolute", backgroundColor: "black", height: "100%",
+        width: '100%', opacity: 0.4
+      }} ></View>
+      <View style={{ position: 'absolute', alignItems: 'center', justifyContent: 'center', alignSelf: "center", marginTop: height / 10 }}>
+        <Image source={require('../../Images/logo2.png')} tintColor="white" style={{ width: width / 3, height: height / 22, marginBottom: 10 }} />
+        <Text style={{ color: 'white', fontSize: fontSize(18), fontWeight: 'bold', textAlign: "center" }}>Doorstep convenience for{'\n'} any services</Text>
+      </View>
 
       <View style={styles.bottom}>
         <HandleBar />
         <Button
           title="Create new account"
-          onPress={() => navigate('RoleSelect',{type:"normal"})}
+          onPress={() => navigate('RoleSelect', { type: "normal" })}
           variant="primary"
-          style={{ marginBottom: margin.md }}
+          style={{ marginBottom: margin.md, backgroundColor: '#49712E' }}
         />
 
         <Button
           title="Log in"
           onPress={() => loginRef.current?.open()}
           variant="secondary"
+          style={{ backgroundColor: "#FC5911" }}
         />
 
         <Text style={styles.guest}>Continue as a guest</Text>

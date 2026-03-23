@@ -109,9 +109,9 @@ function getDisplayName(profile: UserProfile): string {
     setShareModalVisible(false);
     try {
       await Share.share({
-        message: 'Check out HandyNaija App!',
+        message: 'Check out Jolloyard App!',
         url: 'https://handynaija.com',
-        title: 'HandyNaija App',
+        title: 'Jolloyard App',
       });
     } catch {
       // User cancelled or share failed
@@ -235,7 +235,7 @@ function getDisplayName(profile: UserProfile): string {
           onPress={() => setRateModalVisible(true)}
         />
         <SettingsRow
-          title="Share the HandyNaija App"
+          title="Share the Jolloyard App"
           icon="share-social-outline"
           onPress={() => setShareModalVisible(true)}
         />
@@ -253,7 +253,7 @@ function getDisplayName(profile: UserProfile): string {
           onPress={goToHowCanWeImprove}
         />
         <SettingsRow
-          title="About HandyNaija App"
+          title="About Jolloyard App"
           icon="help-circle-outline"
           onPress={goToAboutHandynaija}
         />

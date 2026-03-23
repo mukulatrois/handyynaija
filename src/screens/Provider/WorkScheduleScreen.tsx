@@ -16,6 +16,7 @@ import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 const DAYS = [
   'Monday',
@@ -205,10 +206,10 @@ export default function WorkScheduleScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '83%' }]} />
+          <View style={[styles.progressFill, { width: '88%' }]} />
         </View>
       </View>
 
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   scroll: {
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.sm,
   },
   subtitle: {
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   continueBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: scale(10),
     alignItems: 'center',

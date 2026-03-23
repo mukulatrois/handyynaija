@@ -14,6 +14,7 @@ import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { RootStackParamList } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 export default function WorkAreasScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'WorkAreas'>>();
@@ -22,23 +23,24 @@ export default function WorkAreasScreen() {
 
   const initialRegion = coordinates
     ? {
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      }
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    }
     : {
-        latitude: 13.0059,
-        longitude: 5.2476,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      };
+      latitude: 13.0059,
+      longitude: 5.2476,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
 
   const handleContinue = () => {
     navigate('ProviderWorkSchedule', {
       address: route.params?.address,
       coordinates: route.params?.coordinates,
       distanceKm,
+      photoUri: route.params?.photoUri,
     });
   };
 
@@ -47,18 +49,18 @@ export default function WorkAreasScreen() {
       {/* Header with back arrow and progress bar */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '67%' }]} />
+          <View style={[styles.progressFill, { width: '74%' }]} />
         </View>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Work areas</Text>
+        <Text style={styles.title}>Work Areas</Text>
         <Text style={styles.subtitle}>
-          Select the areas you can travel to in order to offer your services.
-          Remember that you cannot charge an extra fee for travel
+          Select the distance Value you can travel to in order to offer your services. Please
+          remember that you cannot charge an extra fee for travel.
         </Text>
 
         {/* Map only */}
@@ -68,9 +70,9 @@ export default function WorkAreasScreen() {
           initialRegion={initialRegion}
         >
           {coordinates ? (
-            <Marker coordinate={coordinates} />
+            <Marker coordinate={coordinates} pinColor={COLORS.SECONDARY} />
           ) : (
-            <Marker coordinate={{ latitude: 13.0059, longitude: 5.2476 }} />
+            <Marker coordinate={{ latitude: 13.0059, longitude: 5.2476 }} pinColor={COLORS.SECONDARY} />
           )}
         </MapView>
 
@@ -85,13 +87,12 @@ export default function WorkAreasScreen() {
             maximumValue={50}
             step={1}
             value={distanceKm}
-            minimumTrackTintColor="#3FA565"
+            minimumTrackTintColor={COLORS.PRIMARY}
             maximumTrackTintColor="#E5E5E5"
-            thumbTintColor="#3FA565"
+            thumbTintColor={COLORS.PRIMARY}
             onValueChange={(val: number) => setDistanceKm(Math.round(val))}
           />
 
-          <Text style={styles.distanceHint}>Select how far you can travel</Text>
         </View>
 
         {/* Continue Button */}
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   content: {
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.sm,
   },
   subtitle: {
@@ -157,11 +158,12 @@ const styles = StyleSheet.create({
     marginBottom: margin.lg,
   },
   continueBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: scale(10),
     alignItems: 'center',
     marginBottom: margin.xl,
+    marginTop: margin.lg,
   },
   disabledBtn: {
     backgroundColor: '#E0E0E0',
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   },
   distanceValue: {
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   distanceHint: {
     marginTop: margin.xs,

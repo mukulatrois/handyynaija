@@ -69,7 +69,7 @@ export default function HandyNaijaScreen() {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.title}>HandyNaija</Text>
+        <Text style={styles.title}>Jolloyard</Text>
 
         <View style={{ flexDirection: 'row' }}>
           <TouchableOpacity
