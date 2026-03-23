@@ -22,8 +22,20 @@ export type RootStackParamList = {
   OfferServicesIntro: undefined;
   ProviderSelectCountry: undefined;
   ProviderChooseCity: undefined;
-  WorkAreas: undefined;
-  ProviderWorkSchedule: undefined;
+  ProviderAddAddress: undefined;
+  WorkAreas:
+    | {
+        address?: string;
+        coordinates?: { latitude: number; longitude: number };
+      }
+    | undefined;
+  ProviderWorkSchedule:
+    | {
+        address?: string;
+        coordinates?: { latitude: number; longitude: number };
+        distanceKm?: number;
+      }
+    | undefined;
   SelectCountry: undefined;
   MainTabs: undefined;
   ProviderTabs: undefined;
@@ -63,7 +75,16 @@ export type RootStackParamList = {
   UpdateEvent: undefined;
   RequestDetail: { requestId?: string };
   ProviderPersonalDetails: undefined;
-  ProviderProfileInfo: undefined;
+  // ProviderProfileInfo is reached after work schedule.
+  // We forward selected address + coordinates + distance from WorkAreas -> WorkSchedule.
+  // This is optional to avoid breaking existing navigation calls.
+  ProviderProfileInfo:
+    | {
+        address?: string;
+        coordinates?: { latitude: number; longitude: number };
+        distanceKm?: number;
+      }
+    | undefined;
   ProviderUploadPhoto: undefined;
   ProviderVerifyPhoto: undefined;
   ListingVerification: undefined;

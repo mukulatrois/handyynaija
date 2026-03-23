@@ -14,6 +14,8 @@ import Modal from 'react-native-modal';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/navigationService';
 
 const DAYS = [
   'Monday',
@@ -58,6 +60,7 @@ function getInitialSchedule(): Record<string, DaySchedule> {
 }
 
 export default function WorkScheduleScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, 'ProviderWorkSchedule'>>();
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(
     getInitialSchedule(),
   );
@@ -194,7 +197,7 @@ export default function WorkScheduleScreen() {
 
   const handleContinue = () => {
     if (hasActiveDay) {
-      navigate('ProviderProfileInfo');
+      navigate('ProviderProfileInfo', route.params ? { ...route.params } : undefined);
     }
   };
 
@@ -270,26 +273,10 @@ export default function WorkScheduleScreen() {
                           {slot.until || 'Until'}
                         </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.removeBtn}
-                        onPress={() => removeSlot(day, index)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <CustomIcon
-                          name={IconNames.close}
-                          size={scale(18)}
-                          color="#666"
-                        />
-                      </TouchableOpacity>
+                     
                     </View>
                   ))}
-                  <TouchableOpacity
-                    style={styles.addHoursWrap}
-                    onPress={() => addHours(day)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.addHoursText}>Add hours</Text>
-                  </TouchableOpacity>
+              
                 </>
               )}
             </View>

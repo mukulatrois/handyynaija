@@ -48,7 +48,7 @@ export default function HowCanWeImproveScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.description}>
-            Your feedback helps us make HandyNaija better. Share your thoughts,
+            Your feedback helps us make Jolloyard better. Share your thoughts,
             suggestions, or ideas below.
           </Text>
           <TextInput
@@ -88,7 +88,7 @@ export default function HowCanWeImproveScreen() {
           <Text style={styles.modalTitle}>Thank you!</Text>
           <Text style={styles.modalMessage}>
             Thank you for sharing your feedback with us. Your input helps us
-            improve HandyNaija for everyone.
+            improve Jolloyard for everyone.
           </Text>
           <TouchableOpacity
             style={styles.modalButton}

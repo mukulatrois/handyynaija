@@ -80,7 +80,7 @@ const isRegistered = await AsyncStorage.getItem("isRegistered");
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.appName}>HandyNaija</Text>
+        <Text style={styles.appName}>Jolloyard</Text>
       </View>
     </SafeAreaView>
   );

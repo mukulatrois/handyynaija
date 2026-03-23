@@ -1,11 +1,14 @@
 /**
  * HandyNaija brand colors
- * Nigerian-inspired green accent
+ * Main: #49712E | Secondary: #FC5911
  */
 export const colors = {
-  primary: '#008751',
-  primaryDark: '#006B40',
-  primaryLight: '#00A862',
+  primary: '#49712E',
+  primaryDark: '#3A5A24',
+  primaryLight: '#5A8A3A',
+  secondary: '#FC5911',
+  secondaryDark: '#E04D0A',
+  secondaryLight: '#FD7535',
   white: '#FFFFFF',
   black: '#000000',
   text: '#1A1A1A',

@@ -12,7 +12,7 @@ const TOTAL_STEPS = 5;
 const STEPS = [
   {
     id: 0,
-    title: 'Want to offer your services on HandyNaija?',
+    title: 'Want to offer your services on Jolloyard?',
     subtitle: 'Create your professional profile and start earning money',
     titleAlign: 'center' as const,
     subtitleAlign: 'center' as const,

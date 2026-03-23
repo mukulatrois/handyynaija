@@ -42,7 +42,7 @@ export default function HandyNaijaScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ServiceScreenHeader
-        title="HandyNaija"
+        title="Jolloyard"
         titleColor="#000"
         rightElement={
           <View style={{ flexDirection: 'row' }}>

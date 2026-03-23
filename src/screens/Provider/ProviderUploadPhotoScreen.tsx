@@ -138,8 +138,7 @@ export default function ProviderUploadPhotoScreen() {
 
   const handleContinue = () => {
     if (!hasPhoto) return;
-    navigate('WorkAreas');
-    
+    navigate('ProviderAddAddress');
   };
 
   return (

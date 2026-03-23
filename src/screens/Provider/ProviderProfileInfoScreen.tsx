@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -33,8 +33,10 @@ import {
 } from '../../utils/responsive';
 import { TextInput, Button } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
+import { RootStackParamList } from '../../navigation/navigationService';
 import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
 import { Loadingcomponent } from '../../components/LoadingComponent';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
 const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -123,6 +125,7 @@ function DropdownField({
   options,
   onSelect,
   error,
+  disabled,
 }: {
   label?: string;
   placeholder: string;
@@ -130,6 +133,7 @@ function DropdownField({
   options: string[];
   onSelect: (item: string) => void;
   error?: string;
+  disabled?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
@@ -151,9 +155,13 @@ function DropdownField({
     <View style={styles.fieldContainer}>
       {label ? <Text style={styles.dropdownLabel}>{label}</Text> : null}
       <TouchableOpacity
-        style={[styles.dropdownTouch, error && styles.inputError]}
-        onPress={() => setVisible(true)}
+        style={[styles.dropdownTouch, error && styles.inputError, disabled && styles.dropdownDisabledTouch]}
+        onPress={() => {
+          if (disabled) return;
+          setVisible(true);
+        }}
         activeOpacity={0.7}
+        disabled={disabled}
       >
         <Text style={[styles.dropdownText, !value && styles.placeholder]}>
           {value || placeholder}
@@ -228,6 +236,7 @@ function formatDateForApi(isoDate: string): string {
 }
 
 export default function ProviderProfileInfoScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, 'ProviderProfileInfo'>>();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [identityDocFrontUri, setIdentityDocFrontUri] = useState<string | null>(null);
@@ -341,6 +350,70 @@ export default function ProviderProfileInfoScreen() {
   });
 
   const { values, errors, touched, submitCount, handleSubmit, setFieldValue, setFieldTouched } = formik;
+
+  const workAddressParams = route.params;
+  const isWorkAddressReadOnly = Boolean(workAddressParams?.address || workAddressParams?.coordinates);
+
+  const inferredWorkAddress = (address?: string) => {
+    const input = (address ?? '').toLowerCase();
+
+    const matchCity = (token: string) => input.includes(token);
+    const cityByToken: Array<{ token: string; city: string; region: string }> = [
+      { token: 'lagos', city: 'Lagos', region: 'Lagos' },
+      { token: 'abuja', city: 'Abuja', region: 'Abuja' },
+      { token: 'port harcourt', city: 'Port Harcourt', region: 'Rivers' },
+      { token: 'rivers', city: 'Port Harcourt', region: 'Rivers' },
+      { token: 'kano', city: 'Kano', region: 'Kano' },
+      { token: 'ibadan', city: 'Ibadan', region: 'Oyo' },
+      { token: 'oyo', city: 'Ibadan', region: 'Oyo' },
+      { token: 'ilorin', city: 'Ilorin', region: 'Oyo' },
+      { token: 'calabar', city: 'Calabar', region: 'Others' },
+      { token: 'owerri', city: 'Owerri', region: 'Others' },
+      { token: 'abeokuta', city: 'Abeokuta', region: 'Others' },
+      { token: 'akure', city: 'Akure', region: 'Others' },
+      { token: 'kaduna', city: 'Kano', region: 'Kaduna' }, // fallback city (options don't include Kaduna)
+    ];
+
+    const match = cityByToken.find((m) => matchCity(m.token));
+    const inferredCity = match?.city ?? 'Lagos';
+    const inferredRegion = match?.region ?? 'Others';
+
+    const streetNumberMatch = input.match(/\b(\d{1,6})\b/);
+    const streetNumber = streetNumberMatch ? streetNumberMatch[1] : '1';
+
+    const zipMatch = input.match(/\b(\d{4,6})\b/);
+    const zipCode = zipMatch ? zipMatch[1] : '00000';
+
+    return {
+      street: address ?? '',
+      streetNumber,
+      zipCode,
+      country: 'Nigeria',
+      city: inferredCity,
+      region: inferredRegion,
+    };
+  };
+
+  useEffect(() => {
+    if (!workAddressParams?.address) return;
+
+    const next = inferredWorkAddress(workAddressParams.address);
+
+    // Prefill + lock fields so the user can't change the selected work address.
+    setFieldValue('street', next.street);
+    setFieldValue('streetNumber', next.streetNumber);
+    setFieldValue('zipCode', next.zipCode);
+    setFieldValue('country', next.country);
+    setFieldValue('city', next.city);
+    setFieldValue('region', next.region);
+
+    setFieldTouched('street', false);
+    setFieldTouched('streetNumber', false);
+    setFieldTouched('zipCode', false);
+    setFieldTouched('country', false);
+    setFieldTouched('city', false);
+    setFieldTouched('region', false);
+  }, [workAddressParams?.address]);
 
   // Show field error when touched or after submit attempt, but never when the field has a value
   // (avoids showing "Please fill in the field" after user has selected a value)
@@ -762,6 +835,11 @@ export default function ProviderProfileInfoScreen() {
 
           {/* Address */}
           <Text style={styles.sectionTitle}>Address</Text>
+          {workAddressParams?.distanceKm ? (
+            <Text style={styles.noticeText}>
+              Service distance: {workAddressParams.distanceKm} km
+            </Text>
+          ) : null}
           <TextInput
             placeholder="Street"
             value={values.street}
@@ -772,6 +850,7 @@ export default function ProviderProfileInfoScreen() {
             blurOnSubmit={false}
             onSubmitEditing={() => streetNumberRef.current?.focus()}
             error={showError('street')}
+            editable={!isWorkAddressReadOnly}
           />
           <TextInput
             placeholder="Street number"
@@ -783,6 +862,7 @@ export default function ProviderProfileInfoScreen() {
             blurOnSubmit={false}
             onSubmitEditing={() => zipCodeRef.current?.focus()}
             error={showError('streetNumber')}
+            editable={!isWorkAddressReadOnly}
           />
           <TextInput
             placeholder="Zip/Postal Code"
@@ -793,6 +873,7 @@ export default function ProviderProfileInfoScreen() {
             inputRef={zipCodeRef}
             returnKeyType="done"
             error={showError('zipCode')}
+            editable={!isWorkAddressReadOnly}
           />
           <DropdownField
             placeholder="Country"
@@ -803,6 +884,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldTouched('country', true);
             }}
             error={showError('country')}
+            disabled={isWorkAddressReadOnly}
           />
 
           <DropdownField
@@ -814,6 +896,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldTouched('city', true);
             }}
             error={showError('city')}
+            disabled={isWorkAddressReadOnly}
           />
           <DropdownField
             placeholder="Street/Country/Region"
@@ -824,6 +907,7 @@ export default function ProviderProfileInfoScreen() {
               setFieldTouched('region', true);
             }}
             error={showError('region')}
+            disabled={isWorkAddressReadOnly}
           />
 
           <Button
@@ -1031,6 +1115,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: padding.lg,
     backgroundColor: '#fff',
+  },
+  dropdownDisabledTouch: {
+    backgroundColor: '#F5F5F5',
+    opacity: 0.9,
   },
   dropdownText: {
     fontSize: fontSize(16),

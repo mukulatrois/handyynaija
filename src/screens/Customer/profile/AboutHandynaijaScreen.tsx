@@ -25,7 +25,7 @@ export default function AboutHandynaijaScreen() {
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
           <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
-          <Text style={styles.headerTitle}>About Handynaija App</Text>
+          <Text style={styles.headerTitle}>About Jolloyard App</Text>
         </TouchableOpacity>
       </View>
 

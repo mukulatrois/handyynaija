@@ -26,6 +26,7 @@ import ProviderEditPersonalDetailsScreen from '../screens/Provider/EditProfileSc
 import ProviderProfileInfoScreen from '../screens/Provider/ProviderProfileInfoScreen';
 import ProviderUploadPhotoScreen from '../screens/Provider/ProviderUploadPhotoScreen';
 import ProviderVerifyPhotoScreen from '../screens/Provider/ProviderVerifyPhotoScreen';
+import ProviderAddAddressScreen from '../screens/Provider/ProviderAddAddressScreen';
 import ListingVerificationScreen from '../screens/Provider/ListingVerificationScreen';
 import ListingPriceScreen from '../screens/Provider/ListingPriceScreen';
 import ListingInformationInterestScreen from '../screens/Provider/ListingInformationInterestScreen';
@@ -189,6 +190,10 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ProviderUploadPhoto"
           component={ProviderUploadPhotoScreen}
+        />
+        <Stack.Screen
+          name="ProviderAddAddress"
+          component={ProviderAddAddressScreen}
         />
         <Stack.Screen
           name="ProviderVerifyPhoto"
