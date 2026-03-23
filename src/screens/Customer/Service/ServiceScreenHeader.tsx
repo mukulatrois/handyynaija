@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from '
 import { goBack } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
 import CustomIcon, { IconNames } from '../../../components/Icon';
+import { COLORS } from '../../../utils/constants';
 
 export interface ServiceScreenHeaderProps {
   title: string;
@@ -45,7 +46,7 @@ export default function ServiceScreenHeader({
     >
       {leftElement ?? (showBack ? (
         <TouchableOpacity onPress={onBackPress} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
           {backLabel ? <Text style={styles.backLabel}>{backLabel}</Text> : null}
         </TouchableOpacity>
       ) : (

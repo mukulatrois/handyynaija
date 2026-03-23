@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomIcon from '../../../components/Icon';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const MENU_ITEMS = [
   {
@@ -32,7 +33,7 @@ export default function PaymentsAndRefundsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>Payments and Refunds</Text>
         </TouchableOpacity>
       </View>
@@ -56,7 +57,7 @@ export default function PaymentsAndRefundsScreen() {
                 <CustomIcon
                   name={item.icon}
                   size={scale(22)}
-                  color="#3FA565"
+                  color={COLORS.PRIMARY}
                 />
               </View>
               <Text style={styles.menuTitle}>{item.title}</Text>

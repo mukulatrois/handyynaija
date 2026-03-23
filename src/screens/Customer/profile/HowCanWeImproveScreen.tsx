@@ -14,6 +14,7 @@ import Modal from 'react-native-modal';
 import CustomIcon from '../../../components/Icon';
 import { goBack } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 export default function HowCanWeImproveScreen() {
   const [feedback, setFeedback] = useState('');
@@ -33,7 +34,7 @@ export default function HowCanWeImproveScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>How can we improve?</Text>
         </TouchableOpacity>
       </View>
@@ -82,7 +83,7 @@ export default function HowCanWeImproveScreen() {
           <CustomIcon
             name="checkmark-circle"
             size={scale(56)}
-            color="#3FA565"
+            color={COLORS.PRIMARY}
             style={styles.modalIcon}
           />
           <Text style={styles.modalTitle}>Thank you!</Text>

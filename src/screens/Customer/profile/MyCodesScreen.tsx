@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomIcon from '../../../components/Icon';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 export default function MyCodesScreen() {
   const [promoCode, setPromoCode] = useState('');
@@ -29,7 +30,7 @@ export default function MyCodesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>My codes</Text>
         </TouchableOpacity>
       </View>
@@ -94,7 +95,7 @@ export default function MyCodesScreen() {
                 <CustomIcon
                   name="pricetag"
                   size={scale(20)}
-                  color="#3FA565"
+                  color={COLORS.PRIMARY}
                 />
                 <Text style={styles.codeItemText}>{code}</Text>
               </View>

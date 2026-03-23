@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomIcon from '../../../components/Icon';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 type Address = {
   id: string;
@@ -152,11 +153,11 @@ export default function MyAddressesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>My Addresses</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleAddAddress} activeOpacity={0.7}>
-          <CustomIcon name="add" size={scale(28)} color="#3FA565" />
+          <CustomIcon name="add" size={scale(28)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
       </View>
 
@@ -177,7 +178,7 @@ export default function MyAddressesScreen() {
               <CustomIcon
                 name="location-outline"
                 size={scale(40)}
-                color="#3FA565"
+                color={COLORS.PRIMARY}
               />
             </View>
             <Text style={styles.emptyTitle}>No addresses found</Text>
@@ -194,7 +195,7 @@ export default function MyAddressesScreen() {
                 <CustomIcon
                   name="location-outline"
                   size={scale(24)}
-                  color="#3FA565"
+                  color={COLORS.PRIMARY}
                 />
               </View>
               <Text style={styles.addressText}>{item.address}</Text>

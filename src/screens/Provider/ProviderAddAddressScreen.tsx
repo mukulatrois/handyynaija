@@ -74,6 +74,9 @@ export default function ProviderAddAddressScreen() {
           <Text style={styles.subtitle}>
             Start typing your address and pick one from the suggestions.
           </Text>
+          <Text style={styles.disclaimer}>
+            Disclaimer: You can only search for addresses within Nigeria.
+          </Text>
 
           <GooglePlacesAutocomplete
             placeholder="Search address"
@@ -168,6 +171,17 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: margin.lg,
     lineHeight: fontSize(20),
+  },
+  disclaimer: {
+    fontSize: fontSize(12),
+    color: '#8A6D3B',
+    backgroundColor: '#FFF8E1',
+    borderWidth: 1,
+    borderColor: '#F0E0A0',
+    borderRadius: scale(8),
+    paddingVertical: padding.sm,
+    paddingHorizontal: padding.md,
+    marginBottom: margin.md,
   },
   title: {
     fontSize: fontSize(22),

@@ -9,6 +9,8 @@ import { fontSize, padding, margin, borderRadius, scale } from '../../utils/resp
 import { colors } from '../../theme/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
+import { CommonAppHeader } from '../../components';
 
 interface ChatMessage {
   id: string;
@@ -168,7 +170,7 @@ const AlertsScene = () => {
                 <Icon 
                   name={`${alert.iconName}-outline`} 
                   size={scale(24)} 
-                  color="#3FA565" 
+                  color={COLORS.PRIMARY} 
                 />
                 <View style={styles.checkmarkContainer}>
                   <Icon 
@@ -260,7 +262,7 @@ export default function PInbox() {
       indicatorStyle={styles.tabIndicator}
       style={styles.tabBar}
       labelStyle={styles.tabLabel}
-      activeColor="#3FA565"
+      activeColor={COLORS.PRIMARY}
       inactiveColor={colors.textSecondary}
       pressColor="transparent"
       renderLabel={({ route, focused }: { route: { title: string }; focused: boolean }) => (
@@ -283,6 +285,7 @@ export default function PInbox() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+        <CommonAppHeader />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Inbox</Text>
@@ -347,7 +350,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fontSize(28),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   tabBar: {
     backgroundColor: colors.background,
@@ -366,11 +369,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tabTextActive: {
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   tabIndicator: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     height: 2,
   },
   scrollContent: {
@@ -460,7 +463,7 @@ const styles = StyleSheet.create({
     width: scale(16),
     height: scale(16),
     borderRadius: scale(8),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -491,7 +494,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: scale(90), // Above bottom navigation
     right: padding.xl,
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: padding.lg,

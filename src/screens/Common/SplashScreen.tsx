@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { scale, fontSize, margin } from '../../utils/responsive';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { getProviderRegisterState } from '../../providerRegister/providerRegisterStore';
+import { COLORS } from '../../utils/constants';
 
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
@@ -105,6 +106,6 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: fontSize(28),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
 });

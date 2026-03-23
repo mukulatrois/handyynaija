@@ -24,6 +24,7 @@ import {
   ImageLibraryOptions,
   CameraOptions,
 } from 'react-native-image-picker';
+import { COLORS } from '../../../utils/constants';
 
 const MAX_NAME_LENGTH = 50;
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -215,7 +216,7 @@ export default function EditPersonalDetailsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-            <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+            <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
             <Text style={styles.headerTitle}>Edit Details</Text>
           </TouchableOpacity>
         </View>
@@ -238,7 +239,7 @@ export default function EditPersonalDetailsScreen() {
                   <CustomIcon
                     name={IconNames.person}
                     size={scale(40)}
-                    color="#3FA565"
+                    color={COLORS.PRIMARY}
                   />
                 </View>
               )}
@@ -335,7 +336,7 @@ export default function EditPersonalDetailsScreen() {
             onPress={handlePickFromGallery}
             activeOpacity={0.7}
           >
-            <CustomIcon name="image-outline" size={scale(22)} color="#3FA565" />
+            <CustomIcon name="image-outline" size={scale(22)} color={COLORS.PRIMARY} />
             <Text style={styles.sheetRowText}>Select from gallery</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -343,7 +344,7 @@ export default function EditPersonalDetailsScreen() {
             onPress={handleOpenCamera}
             activeOpacity={0.7}
           >
-            <CustomIcon name="camera-outline" size={scale(22)} color="#3FA565" />
+            <CustomIcon name="camera-outline" size={scale(22)} color={COLORS.PRIMARY} />
             <Text style={styles.sheetRowText}>Open camera</Text>
           </TouchableOpacity>
           <TouchableOpacity

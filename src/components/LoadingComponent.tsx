@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from "react-native";
 import Modal from "react-native-modal";
+import { COLORS } from "../utils/constants";
 
 
 export const Loadingcomponent = () => {
@@ -14,7 +15,7 @@ export const Loadingcomponent = () => {
           height: '100%'
         }}
       >
-        <ActivityIndicator size={'large'} color={"#3FA565"} />
+        <ActivityIndicator size={'large'} color={COLORS.PRIMARY} />
       </View>
     </Modal>
 

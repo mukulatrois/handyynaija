@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomIcon from '../../../components/Icon';
 import { goBack } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const LANGUAGES = [
   { id: 'en', name: 'English', flag: '🇬🇧' },
@@ -27,7 +28,7 @@ export default function ChooseLanguageScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>Choose Language</Text>
         </TouchableOpacity>
       </View>

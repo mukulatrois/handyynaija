@@ -27,7 +27,7 @@ export default function AlertMessageScreen() {
             <View style={styles.alertLeft}>
               {alert.icon === '⭐' && <CustomIcon name={IconNames.star} size={fontSize(20)} color="#FFD700" />}
               {alert.icon === '📅' && <CustomIcon name={IconNames.calendar} size={fontSize(20)} color="#666" />}
-              {alert.icon === '✅' && <CustomIcon name={IconNames.checkmark} size={fontSize(20)} color="#3FA565" />}
+              {alert.icon === '✅' && <CustomIcon name={IconNames.checkmark} size={fontSize(20)} color={COLORS.PRIMARY} />}
               <View style={styles.alertInfo}>
                 <Text style={styles.alertTitle}>{alert.title}</Text>
                 <Text style={styles.alertDescription}>{alert.description}</Text>

@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames } from '../../../components';
+import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames, CommonAppHeader } from '../../../components';
 import { navigate, replace, resetNavigation } from '../../../navigation/navigationService';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { COLORS } from '../../../utils/constants';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -68,7 +69,7 @@ function getDisplayName(profile: UserProfile): string {
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {
-                setProfile(JSON.parse(stored));
+                // setProfile(JSON.parse(stored));
               } catch {
                 // ignore invalid stored user
               }
@@ -159,6 +160,7 @@ function getDisplayName(profile: UserProfile): string {
 
   return (
     <SafeAreaView style={styles.container}>
+       <CommonAppHeader />
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* Profile */}
@@ -173,7 +175,7 @@ function getDisplayName(profile: UserProfile): string {
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Icon name={IconNames.person} size={32} color="#3FA565" />
+              <Icon name={IconNames.person} size={32} color={COLORS.PRIMARY} />
             </View>
           )}
           <View>

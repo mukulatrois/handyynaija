@@ -11,8 +11,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
 import CustomIcon, { IconNames } from '../../../components/Icon';
-import { EmptyState } from '../../../components';
+import { CommonAppHeader, EmptyState } from '../../../components';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
+import { Commands } from 'react-native-maps/dist/src/MapViewNativeComponent';
 
 interface FavoriteCategory {
   id: string;
@@ -51,9 +53,10 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <CommonAppHeader />
       <ServiceScreenHeader
         title="Favorites"
-        titleColor="#44AC46"
+        titleColor={COLORS.PRIMARY}
         titleStyle={styles.favoritesTitle}
       />
 
@@ -61,6 +64,7 @@ export default function FavoritesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+
         {isEmpty ? (
           <EmptyState
             title="No favorites"
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     paddingBottom: padding.md,
   },
   favoritesTitle: {
-    fontSize: fontSize(28),
+    fontSize: fontSize(24),
     fontWeight: '700',
   },
   scrollContent: {

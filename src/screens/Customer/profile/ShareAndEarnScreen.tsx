@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomIcon from '../../../components/Icon';
 import { goBack } from '../../../navigation/navigationService';
 import { scale, fontSize, padding } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const socialIcons = [
   { name: 'logo-whatsapp', color: '#25D366', id: 'whatsapp' },
@@ -30,7 +31,7 @@ export default function ShareAndEarnScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>Share and earn money</Text>
         </TouchableOpacity>
       </View>
@@ -44,21 +45,21 @@ export default function ShareAndEarnScreen() {
           <View style={styles.illustrationBg}>
             {/* Person icons with plus - top left */}
             <View style={[styles.personIcon, styles.personTopLeft]}>
-              <CustomIcon name="person-outline" size={scale(36)} color="#3FA565" />
+              <CustomIcon name="person-outline" size={scale(36)} color={COLORS.PRIMARY} />
               <View style={styles.plusBadge}>
                 <Text style={styles.plusText}>+</Text>
               </View>
             </View>
             {/* Person icon - bottom left */}
             <View style={[styles.personIcon, styles.personBottomLeft]}>
-              <CustomIcon name="person-outline" size={scale(32)} color="#3FA565" />
+              <CustomIcon name="person-outline" size={scale(32)} color={COLORS.PRIMARY} />
               <View style={styles.plusBadge}>
                 <Text style={styles.plusText}>+</Text>
               </View>
             </View>
             {/* Person icon - right */}
             <View style={[styles.personIcon, styles.personRight]}>
-              <CustomIcon name="person-outline" size={scale(34)} color="#3FA565" />
+              <CustomIcon name="person-outline" size={scale(34)} color={COLORS.PRIMARY} />
               <View style={styles.plusBadge}>
                 <Text style={styles.plusText}>+</Text>
               </View>

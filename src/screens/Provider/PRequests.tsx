@@ -8,6 +8,8 @@ import { colors } from '../../theme/colors';
 import { navigate } from '../../navigation/navigationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
+import { CommonAppHeader } from '../../components';
 
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
@@ -364,7 +366,7 @@ export default function PRequests() {
       indicatorStyle={styles.tabIndicator}
       style={styles.tabBar}
       labelStyle={styles.tabLabel}
-      activeColor="#3FA565"
+      activeColor={COLORS.PRIMARY}
       inactiveColor={colors.textSecondary}
       pressColor="transparent"
       renderLabel={({ route, focused }: { route: { title: string }; focused: boolean }) => (
@@ -382,6 +384,7 @@ export default function PRequests() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <CommonAppHeader />
       <View style={styles.header}>
         <Text style={styles.title}>Requests History</Text>
       </View>
@@ -438,7 +441,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: padding.lg,
   },
   tabBar: {
@@ -458,11 +461,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tabTextActive: {
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   tabIndicator: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     height: 2,
   },
   blockOverlay: {
@@ -608,7 +611,7 @@ const styles = StyleSheet.create({
     color: '#FF4444',
   },
   viewDetailsButton: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: borderRadius.md,
     paddingVertical: padding.md,
     paddingHorizontal: padding.lg,

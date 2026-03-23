@@ -7,8 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { fontSize, padding, margin, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
-import { LogoutModal } from '../../components';
+import { CommonAppHeader, LogoutModal } from '../../components';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { COLORS } from '../../utils/constants';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -170,6 +171,7 @@ export default function PProfile() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+          <CommonAppHeader />
         {/* User Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
@@ -185,7 +187,7 @@ export default function PProfile() {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Icon name="person-outline" size={scale(28)} color="#3FA565" />
+                <Icon name="person-outline" size={scale(28)} color={COLORS.PRIMARY} />
               </View>
             )}
           </View>

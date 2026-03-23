@@ -28,6 +28,7 @@ import {
   loadListingDraftBackupsFromLocalStorage,
   type ListingDraftBackup,
 } from '../../utils/listingDraftStorage';
+import { CommonAppHeader } from '../../components';
 
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
@@ -273,11 +274,12 @@ export default function PListings() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+        <CommonAppHeader />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Listing</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
+          {/* <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
             <Icon
               name="search-outline"
               size={scale(22)}
@@ -290,7 +292,7 @@ export default function PListings() {
               size={scale(22)}
               color={colors.text}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 

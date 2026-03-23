@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   BackHandler,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,33 +15,86 @@ import { wp, hp, scale, fontSize, padding, margin, borderRadius } from '../../..
 import Button from '../../../components/Button';
 import { navigate } from '../../../navigation/navigationService';
 import CustomIcon, { IconNames } from '../../../components/Icon';
+import { height, width } from '../../../components/common';
 
-const CIRCLE = wp(28);
+const CARD_WIDTH = wp(28);
 
-interface CircleProps {
+interface CategoryCardProps {
   label: string;
-  image: any;
-  style?: any;
+  image: number;
   imageStyle?: any;
-  onPress?: () => void;
+  onPress: () => void;
 }
 
-const Circle = ({ label, image, style, imageStyle, onPress }: CircleProps) => {
-  const finalImageStyle = imageStyle && Object.keys(imageStyle).length > 0 
-    ? [styles.iconImage, imageStyle] 
-    : styles.iconImage;
+const CategoryCard = ({ label, image, imageStyle, onPress }: CategoryCardProps) => {
+  const finalImageStyle = imageStyle ? [styles.cardImage, imageStyle] : styles.cardImage;
 
   return (
-    <TouchableOpacity style={[styles.circle, style]} onPress={onPress}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <Image
         source={image}
         style={finalImageStyle}
         resizeMode="contain"
       />
-      <Text style={styles.text}>{label}</Text>
+      <Text style={styles.cardText}>{label}</Text>
     </TouchableOpacity>
   );
 };
+
+const categories = [
+  {
+    label: 'Home',
+    image: require('../../../Images/serachImg/Home.png'),
+    onPress: () => navigate('Home' as any),
+    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.4 },
+  },
+  {
+    label: 'Tech & IT',
+    image: require('../../../Images/serachImg/Tech.png'),
+    onPress: () => navigate('TechIT' as any),
+  },
+  {
+    label: 'Beauty',
+    image: require('../../../Images/serachImg/Beauty.png'),
+    onPress: () => navigate('Beauty' as any),
+  },
+  {
+    label: 'Repair &\nMaintainance',
+    image: require('../../../Images/serachImg/repair.png'),
+    onPress: () => navigate('RepairMaintenance' as any),
+    imageStyle: { width: CARD_WIDTH * 0.56, height: CARD_WIDTH * 0.36 },
+  },
+  {
+    label: 'Automobile',
+    image: require('../../../Images/serachImg/Automobile.png'),
+    onPress: () => navigate('Automobile' as any),
+    imageStyle: { width: CARD_WIDTH * 0.6, height: CARD_WIDTH * 0.42 },
+  },
+  {
+    label: 'Media & Events',
+    image: require('../../../Images/serachImg/media.png'),
+    onPress: () => navigate('MediaEvent' as any),
+    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.38 },
+  },
+  {
+    label: 'Kitchen',
+    image: require('../../../Images/serachImg/Kitchen.png'),
+    onPress: () => navigate('Home' as any),
+    imageStyle: { width: CARD_WIDTH * 0.52, height: CARD_WIDTH * 0.38 },
+  },
+  {
+    label: 'Furniture',
+    image: require('../../../Images/serachImg/interior.png'),
+    onPress: () => navigate('Home' as any),
+    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.38 },
+  },
+  {
+    label: 'Others',
+    image: require('../../../Images/serachImg/Others.png'),
+    onPress: () => navigate('Others' as any),
+    imageStyle: { width: CARD_WIDTH * 0.56, height: CARD_WIDTH * 0.4 },
+  },
+];
 
 export default function HandyNaijaScreen() {
   useFocusEffect(
@@ -50,7 +104,7 @@ export default function HandyNaijaScreen() {
           'Exit App',
           'Do you want to exit the app?',
           [
-            { text: 'No', onPress: () => {}, style: 'cancel' },
+            { text: 'No', onPress: () => { }, style: 'cancel' },
             { text: 'Yes', onPress: () => BackHandler.exitApp() },
           ]
         );
@@ -68,93 +122,53 @@ export default function HandyNaijaScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Jolloyard</Text>
+      <ImageBackground source={require("../../../Images/homebg.png")} style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Image source={require('../../../Images/logo2.png')} tintColor="white" style={{ width: width / 4, height: height / 30, marginBottom: 10 }} />
 
-        <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigate('SearchService')}
-          >
-            <CustomIcon name={IconNames.search} size={fontSize(18)} color="#000" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-          onPress={() => navigate('Notification')}
-          style={styles.headerBtn}>
-            <CustomIcon name={IconNames.notifications} size={fontSize(18)} color="#000" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity
+              style={styles.headerBtn}
+              onPress={() => navigate('SearchService')}
+            >
+              <CustomIcon name={IconNames.search} size={fontSize(22)} color={"white"} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigate('Notification')}
+              style={styles.headerBtn}>
+              <CustomIcon name={IconNames.notifications} size={fontSize(22)} color={"white"} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-        {/* <View style={styles.leftBar} /> */}
-        {/* <View style={styles.rightBar} /> */}
-        {/* <View style={styles.diagonal} /> */}
-      {/* LEFT COLUMN */}
-      <Circle
-        image={require('../../../Images/serachImg/Home.png')}
-        imageStyle={{ width: CIRCLE * 0.65, height: CIRCLE * 0.45 }}
-        label="Home"
-        style={{ top: '22%', left: '6%' }}
-        onPress={() => navigate('Home' as any)}
-      />
 
-      <Circle
-        image={require('../../../Images/serachImg/Beauty.png')}
-        label="Beauty"
-        style={{ top: '43%', left: '6%' }}
-        onPress={() => navigate('Beauty' as any)}
-      />
+        <View style={styles.content}>
+          <Text style={styles.sectionTitle}>All Categories</Text>
+          <Text style={styles.sectionSubtitle}>Need a helping hand today ?</Text>
 
-      <Circle
-        image={require('../../../Images/serachImg/media.png')}
-        imageStyle={{ width: CIRCLE * 0.65, height: CIRCLE * 0.45 }}
-        label="Media & Events"
-        style={{ top: '64%', left: '6%' }}
-        onPress={() => navigate('MediaEvent' as any)}
-      />
+          <View style={styles.grid}>
+            {categories.map((item) => (
+              <CategoryCard
+                key={item.label}
+                label={item.label}
+                image={item.image}
+                imageStyle={item.imageStyle}
+                onPress={item.onPress}
+              />
+            ))}
+          </View>
+        </View>
 
-      {/* RIGHT COLUMN */}
-      <Circle
-        image={require('../../../Images/serachImg/Tech.png')}
-        label="Tech & IT Support"
-        style={{ top: '22%', right: '6%' }}
-        onPress={() => navigate('TechIT' as any)}
-      />
-
-      <Circle
-        image={require('../../../Images/serachImg/Automobile.png')}
-        imageStyle={{ width: CIRCLE * 0.65, height: CIRCLE * 0.45 }}
-        label="Automobile"
-        style={{ top: '43%', right: '6%' }}
-        onPress={() => navigate('Automobile' as any)}
-      />
-
-      <Circle
-        image={require('../../../Images/serachImg/Others.png')}
-        imageStyle={{ width: CIRCLE * 0.65, height: CIRCLE * 0.45 }}
-        label="Others"
-        style={{ top: '64%', right: '6%' }}
-        onPress={() => navigate('Others' as any)}
-      />
-
-      {/* CENTER */}
-      <Circle
-        image={require('../../../Images/serachImg/repair.png')}
-        imageStyle={{ width: CIRCLE * 0.65, height: CIRCLE * 0.30 }}
-        label="Repair & Maintenance"
-        style={{ top: '44%', alignSelf: 'center' }}
-        onPress={() => navigate('RepairMaintenance' as any)}
-      />
-
-      {/* ADD ADDRESS BUTTON */}
-      <View style={styles.addBtnWrapper}>
-        <Button
-          title="＋ Add address"
-          onPress={() => { }}
-          variant="primary"
-          style={styles.addBtn}
-          textStyle={styles.addBtnText}
-        />
-      </View>
+        {/* ADD ADDRESS BUTTON */}
+        <View style={styles.addBtnWrapper}>
+          <Button
+            title="＋ Add address"
+            onPress={() => { }}
+            variant="primary"
+            style={styles.addBtn}
+            textStyle={styles.addBtnText}
+          />
+        </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -170,85 +184,73 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: padding.xl,
-    marginTop: margin.md,
-  },
-
-  title: {
-    fontSize: fontSize(28),
-    color: '#fff',
-    fontWeight: '600',
+    marginTop: margin.sm,
   },
 
   headerBtn: {
-    width: scale(46),
-    height: scale(46),
-    borderRadius: scale(23),
-    backgroundColor: '#eee',
+    width: scale(42),
+    height: scale(42),
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: margin.md,
   },
 
-
-  /* N SHAPE */
-  leftBar: {
-    position: 'absolute',
-    left: '15%',
-    top: '28%',
-    width: scale(45),
-    height: '45%',
-    backgroundColor: '#D9D9D9',
-    borderRadius: borderRadius.xl,
+  content: {
+    flex: 1,
+    paddingHorizontal: padding.xl,
+    paddingTop: hp(0.8),
+    paddingBottom: hp(12),
   },
 
-  rightBar: {
-    position: 'absolute',
-    right: '15%',
-    top: '28%',
-    width: scale(45),
-    height: '45%',
-    backgroundColor: '#D9D9D9',
-    borderRadius: borderRadius.xl,
+  sectionTitle: {
+    fontSize: fontSize(25),
+    color: '#fff',
+    fontWeight: '600',
+    marginBottom: margin.xs,
+    marginTop: margin.lg,
   },
 
-  diagonal: {
-    position: 'absolute',
-    left: '45%',
-    top: '25%',
-    width: scale(45),
-    height: '52%',
-    backgroundColor: '#D9D9D9',
-    borderRadius: borderRadius.xl,
-    transform: [{ rotate: '150deg' }],
+  sectionSubtitle: {
+    fontSize: fontSize(14),
+    color: 'rgba(255,255,255,0.72)',
+    fontWeight: '400',
+    marginBottom: margin.lg,
+
   },
 
-  circle: {
-    position: 'absolute',
-    width: CIRCLE,
-    height: CIRCLE,
-    borderRadius: CIRCLE / 2,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: hp(1.3),
+    marginTop: margin.lg,
+  },
+
+  card: {
+    width: CARD_WIDTH,
+   height:110,
+    borderRadius: borderRadius.lg,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: padding.md,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: padding.sm,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: scale(8),
-    elevation: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: scale(6),
+    elevation: 5,
   },
 
-  iconImage: {
-    width: CIRCLE * 0.38,
-    height: CIRCLE * 0.38,
-    marginBottom: margin.sm,
-    minWidth: scale(20),
-    minHeight: scale(20),
+  cardImage: {
+    width: CARD_WIDTH * 0.48,
+    height: CARD_WIDTH * 0.43,
+    marginBottom: margin.xs,
   },
 
-  text: {
+  cardText: {
     textAlign: 'center',
-    fontSize: fontSize(14),
+    fontSize: fontSize(12),
     fontWeight: '600',
+    color: '#1D1D1D',
   },
 
   addBtnWrapper: {
@@ -268,7 +270,8 @@ const styles = StyleSheet.create({
 
   addBtnText: {
     color: '#fff',
-    fontSize: fontSize(18),
+    fontSize: fontSize(14),
     fontWeight: '500',
+    textTransform: 'uppercase',
   },
 });

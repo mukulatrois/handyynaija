@@ -17,6 +17,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
 
 const FEEDBACK_TAGS = [
   'Polite Professional',
@@ -111,12 +112,12 @@ export default function ServiceBookingDetailScreen() {
             />
             <Marker
               coordinate={ROUTE_COORDS[ROUTE_COORDS.length - 1]}
-              pinColor="#3FA565"
+              pinColor={COLORS.PRIMARY}
               title="B"
             />
             <Polyline
               coordinates={ROUTE_COORDS}
-              strokeColor="#3FA565"
+              strokeColor={COLORS.PRIMARY}
               strokeWidth={4}
             />
           </MapView>
@@ -147,7 +148,7 @@ export default function ServiceBookingDetailScreen() {
 
         {/* View payment details */}
         <TouchableOpacity style={styles.paymentRow} onPress={handleViewPayment} activeOpacity={0.7}>
-          <Ionicons name="wallet" size={scale(20)} color="#3FA565" />
+          <Ionicons name="wallet" size={scale(20)} color={COLORS.PRIMARY} />
           <Text style={styles.paymentLabel}>View payment details</Text>
           <Ionicons name="chevron-forward" size={scale(20)} color="#000" />
         </TouchableOpacity>
