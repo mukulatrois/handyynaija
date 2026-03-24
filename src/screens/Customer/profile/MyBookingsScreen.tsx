@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: scale(28),
     height: scale(28),
     borderRadius: scale(14),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -223,6 +223,6 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: fontSize(16),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
 });

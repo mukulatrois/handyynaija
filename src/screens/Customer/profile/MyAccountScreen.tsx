@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
 
   profileLink: {
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginTop: 4,
   },
 

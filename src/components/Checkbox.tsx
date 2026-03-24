@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { scale, fontSize, padding, borderRadius } from '../utils/responsive';
 import CustomIcon, { IconNames } from './Icon';
+import { COLORS } from '../utils/constants';
 
 interface CheckboxProps {
   label: string;
@@ -48,8 +49,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#3FA565',
-    borderColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
   },
   label: {
     fontSize: fontSize(14),

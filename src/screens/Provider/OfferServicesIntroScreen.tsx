@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button } from '../../components';
+import { COLORS } from '../../utils/constants';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   exitText: {
     fontSize: fontSize(16),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   sliderContainer: {
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   dotActive: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   ctaButton: {
     marginTop: margin.sm,

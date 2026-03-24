@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: fontSize(16),
     fontWeight: '500',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   scrollContent: {
     paddingHorizontal: padding.lg,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   commentsHeader: {
     fontSize: fontSize(18),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: scale(12),
   },
   commentsList: {

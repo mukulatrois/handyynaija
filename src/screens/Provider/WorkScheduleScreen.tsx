@@ -236,7 +236,7 @@ export default function WorkScheduleScreen() {
                   <Switch
                     value={available}
                     onValueChange={(v) => toggleDay(day, v)}
-                    trackColor={{ false: '#E0E0E0', true: '#3FA565' }}
+                    trackColor={{ false: '#E0E0E0', true: COLORS.PRIMARY }}
                     thumbColor="#fff"
                   />
                 </View>
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   addHoursText: {
     fontSize: fontSize(15),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: padding.md,
     borderRadius: scale(10),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
   },
   timePickerDoneText: {

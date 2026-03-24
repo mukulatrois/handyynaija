@@ -3,6 +3,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import ServicesUpcomingScreen from '../screens/Customer/Service/ServicesUpcomingScreen';
 import ServicesPastScreen from '../screens/Customer/Service/ServicesPastScreen';
 import ServicesCanceledScreen from '../screens/Customer/Service/ServicesCanceledScreen';
+import { COLORS } from '../utils/constants';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -12,7 +13,7 @@ export default function TopServiceTab() {
       screenOptions={{
         tabBarActiveTintColor: '#000',
         tabBarInactiveTintColor: '#999',
-        tabBarIndicatorStyle: { backgroundColor: '#3FA565' },
+        tabBarIndicatorStyle: { backgroundColor: COLORS.PRIMARY },
         tabBarStyle: { backgroundColor: '#fff' },
         tabBarLabelStyle: { fontSize: 14, fontWeight: '600' },
       }}

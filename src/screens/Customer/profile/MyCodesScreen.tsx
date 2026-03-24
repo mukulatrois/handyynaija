@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     marginBottom: scale(24),
   },
   addButtonActive: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   addButtonText: {
     fontSize: fontSize(16),

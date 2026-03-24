@@ -28,8 +28,9 @@ import {
   setActiveStep,
   setServiceName,
 } from '../../store/listingDraftSlice';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 const SERVICE_IMAGE_URL = (serviceId: string) =>
   `https://jolloyard-be.myfileshosting.com/api/v1/services/${encodeURIComponent(serviceId)}/image`;
 

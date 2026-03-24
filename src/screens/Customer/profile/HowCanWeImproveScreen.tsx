@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: scale(24),
   },
   submitButton: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(12),
     paddingVertical: scale(16),
     alignItems: 'center',
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     width: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(12),
     paddingVertical: scale(14),
     alignItems: 'center',

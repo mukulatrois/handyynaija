@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { scale, fontSize, padding, margin, borderRadius } from '../../../utils/responsive';
 import CustomIcon, { IconNames } from '../../../components/Icon';
 import { navigate } from '../../../navigation/navigationService';
+import { COLORS } from '../../../utils/constants';
 
 interface ChatMessage {
   id: string;
@@ -68,6 +69,6 @@ const styles = StyleSheet.create({
   chatMessage: { fontSize: fontSize(14), color: '#999' },
   chatRight: { alignItems: 'flex-end' },
   chatTime: { fontSize: fontSize(12), color: '#999', marginBottom: margin.xs },
-  supportButton: { backgroundColor: '#3FA565', paddingHorizontal: padding.md, paddingVertical: padding.xs, borderRadius: borderRadius.md, marginTop: margin.xs },
+  supportButton: { backgroundColor: COLORS.PRIMARY, paddingHorizontal: padding.md, paddingVertical: padding.xs, borderRadius: borderRadius.md, marginTop: margin.xs },
   supportButtonText: { fontSize: fontSize(12), color: '#fff', fontWeight: '600' },
 });

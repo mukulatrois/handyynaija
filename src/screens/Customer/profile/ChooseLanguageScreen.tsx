@@ -119,11 +119,11 @@ const styles = StyleSheet.create({
     height: scale(24),
     borderRadius: scale(12),
     borderWidth: 2,
-    borderColor: '#3FA565',
+    borderColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkCircleSelected: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
 });

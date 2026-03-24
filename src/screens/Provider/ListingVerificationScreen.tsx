@@ -25,8 +25,9 @@ import { useAppDispatch } from '../../store/hooks';
 import { resetListingDraft, setActiveStep } from '../../store/listingDraftSlice';
 import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
 import { useAppSelector } from '../../store/hooks';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ListingVerificationScreen() {
   const dispatch = useAppDispatch();

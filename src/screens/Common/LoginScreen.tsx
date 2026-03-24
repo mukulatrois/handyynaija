@@ -7,6 +7,7 @@ import { HandleBar, CloseButton, Separator, SocialButton, Button } from '../../c
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { googleLogin } from '../../GFALogins/googleLogin';
 import { facebookLogin } from '../../GFALogins/facebookLogin';
+import { COLORS } from '../../utils/constants';
 export type LoginSheetHandle = {
   open: () => void;
   close: () => void;
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: margin.xl,
   },
   link: {
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     textDecorationLine: 'underline',
   },
 });

@@ -150,7 +150,7 @@ export default function EditPersonalDetailsScreen() {
       formData.append('email', email);
       formData.append('phone', phone);
       if (avatarFile) {
-        formData.append('avatar', avatarFile as any);
+        formData.append('profile_picture', avatarFile as any);
       }
 
       const res = await fetch(PROFILE_API_URL, {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
   },
   sheetContainer: {

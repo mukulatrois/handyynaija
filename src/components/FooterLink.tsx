@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { fontSize, margin } from '../utils/responsive';
+import { COLORS } from '../utils/constants';
 
 interface FooterLinkProps {
   text: string;
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   link: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
 });

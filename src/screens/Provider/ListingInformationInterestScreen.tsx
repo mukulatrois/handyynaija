@@ -30,8 +30,9 @@ import {
   resetListingDraft,
 } from '../../store/listingDraftSlice';
 import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 type Choice = { id: string; label: string };
 

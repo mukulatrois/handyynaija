@@ -16,6 +16,7 @@ import Button from '../../../components/Button';
 import { navigate } from '../../../navigation/navigationService';
 import CustomIcon, { IconNames } from '../../../components/Icon';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
 
 const CIRCLE = wp(28);
 
@@ -134,7 +135,7 @@ export default function HandyNaijaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
 
   header: {

@@ -12,6 +12,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import { navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const SPECS = [
   { icon: 'business-outline', text: 'Business Profile' },
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize(20),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.lg,
   },
   card: {
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   name: { fontSize: fontSize(16), fontWeight: '700', color: '#222' },
   serviceType: { fontSize: fontSize(14), color: '#333', marginTop: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  price: { fontSize: fontSize(15), fontWeight: '700', color: '#3FA565' },
+  price: { fontSize: fontSize(15), fontWeight: '700', color: COLORS.PRIMARY },
   perHour: { fontSize: fontSize(12), color: '#666' },
   serviceCount: { fontSize: fontSize(12), color: '#666' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   },
   chipText: { fontSize: fontSize(11), color: '#555', marginLeft: 4 },
   viewDetailsBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     alignItems: 'center',

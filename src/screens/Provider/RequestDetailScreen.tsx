@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#87CEEB', // Light blue
   },
   endMarker: {
-    backgroundColor: '#3FA565', // Green
+    backgroundColor: COLORS.PRIMARY, // Green
   },
   markerText: {
     fontSize: fontSize(14),
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
   },
   greenBullet: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   addressText: {
     fontSize: fontSize(14),
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: borderRadius.md,
     gap: margin.sm,

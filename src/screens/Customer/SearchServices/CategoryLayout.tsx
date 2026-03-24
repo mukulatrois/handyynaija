@@ -13,6 +13,7 @@ import { goBack, navigate } from '../../../navigation/navigationService';
 import CustomIcon, { IconNames } from '../../../components/Icon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { height, width } from '../../../components/common';
+import { COLORS } from '../../../utils/constants';
 
 const CARD_WIDTH = wp(27.5);
 
@@ -151,7 +152,7 @@ const CategoryLayout = ({ title, items, layout = 'grid', onItemPress }: Category
 export default CategoryLayout;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#3FA565' },
+  container: { flex: 1, backgroundColor: COLORS.PRIMARY },
   background: { flex: 1 },
   header: {
     flexDirection: 'row',

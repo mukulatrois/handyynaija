@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     width: scale(18),
     height: scale(18),
     borderRadius: scale(9),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: fontSize(22),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     textAlign: 'center',
     marginBottom: scale(20),
     lineHeight: scale(28),
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   codeText: {
     fontSize: fontSize(18),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     letterSpacing: 2,
   },
   socialRow: {

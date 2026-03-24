@@ -6,6 +6,7 @@ import { scale, fontSize, padding, margin, borderRadius } from '../../utils/resp
 import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
 
 export default function BecomeProfessionalIntroScreen() {
 
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   },
   profileLabel: {
     fontSize: fontSize(16),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
     marginLeft: scale(4),
   },

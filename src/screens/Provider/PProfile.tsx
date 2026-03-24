@@ -50,7 +50,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   icon,
   text,
   onPress,
-  iconColor = '#3FA565',
+  iconColor = COLORS.PRIMARY,
 }) => {
   return (
     <TouchableOpacity
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   viewProfileLink: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
   },
   sectionHeader: {

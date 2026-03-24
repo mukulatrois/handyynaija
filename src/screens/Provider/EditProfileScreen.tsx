@@ -10,8 +10,9 @@ import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { launchCamera, launchImageLibrary, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 const NAME_MAX_LENGTH = 50;
 const ABOUT_MAX_LENGTH = 200;
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -160,7 +161,7 @@ export default function EditProfileScreen() {
       formData.append('email', email);
       formData.append('phone', phone);
       if (avatarFile) {
-        formData.append('avatar', avatarFile as any);
+        formData.append('profile_picture', avatarFile as any);
       }
 
       const res = await fetch(PROFILE_API_URL, {

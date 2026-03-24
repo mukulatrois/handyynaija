@@ -6,6 +6,7 @@ import { goBack } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { COLORS } from '../../utils/constants';
 
 type ChatConversationRouteProp = RouteProp<{ params: { chatId?: string } }, 'params'>;
 
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   serviceBannerTime: {
     fontSize: fontSize(16),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.md,
   },
   serviceButtons: {
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
   serviceButtonPrimary: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: padding.md,
     paddingVertical: padding.sm,
     borderRadius: borderRadius.md,
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: margin.sm,

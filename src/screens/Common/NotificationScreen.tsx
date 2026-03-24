@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { ScreenHeader, EmptyState } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { COLORS } from '../../utils/constants';
 
 export default function NotificationScreen() {
   const notifications = [
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   },
   markAllRead: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   scrollContent: {
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   unreadCard: {
     backgroundColor: '#F0F9FF',
     borderLeftWidth: 4,
-    borderLeftColor: '#3FA565',
+    borderLeftColor: COLORS.PRIMARY,
   },
   notificationContent: {
     flex: 1,
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     width: scale(12),
     height: scale(12),
     borderRadius: scale(6),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     marginLeft: margin.md,
     alignSelf: 'center',
   },

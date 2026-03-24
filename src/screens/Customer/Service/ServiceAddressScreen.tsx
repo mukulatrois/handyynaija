@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     paddingBottom: margin.xl,
   },
   confirmBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(16),
     alignItems: 'center',

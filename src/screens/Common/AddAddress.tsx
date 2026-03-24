@@ -6,6 +6,7 @@ import CustomIcon from '../../components/Icon';
 import { SearchInput } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 type AddAddressRouteProp = RouteProp<RootStackParamList, 'AddAddress'>;
 
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
 
   nextBtn: {
     marginTop: 24,
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 14,
     height: 56,
     alignItems: 'center',

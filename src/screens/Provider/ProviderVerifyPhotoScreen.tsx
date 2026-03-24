@@ -10,8 +10,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ProviderVerifyPhotoScreen() {
   const [isVerifying, setIsVerifying] = useState(false);

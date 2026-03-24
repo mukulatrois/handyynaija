@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { fontSize, padding } from '../utils/responsive';
 import CustomIcon, { IconNames } from './Icon';
+import { COLORS } from '../utils/constants';
 
 interface ScreenHeaderProps {
   title: string;
@@ -18,7 +19,7 @@ interface ScreenHeaderProps {
 
 export default function ScreenHeader({
   title,
-  titleColor = '#3FA565',
+  titleColor = COLORS.PRIMARY,
   titleStyle,
   showBack = false,
   onBackPress,
