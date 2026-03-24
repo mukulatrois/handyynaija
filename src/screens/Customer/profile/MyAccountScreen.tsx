@@ -7,6 +7,7 @@ import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames,
 import { navigate, replace, resetNavigation } from '../../../navigation/navigationService';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { COLORS } from '../../../utils/constants';
+import { width } from '../../../components/common';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -36,7 +37,7 @@ function getDisplayName(profile: UserProfile): string {
   return (n && n.trim()) || 'Guest';
 }
 
- const  MyAccountScreen=(props) =>{
+const MyAccountScreen = (props) => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -160,7 +161,7 @@ function getDisplayName(profile: UserProfile): string {
 
   return (
     <SafeAreaView style={styles.container}>
-       <CommonAppHeader />
+      <CommonAppHeader />
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* Profile */}
@@ -322,6 +323,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '600',
+    width: width / 1.5
   },
 
   profileLink: {

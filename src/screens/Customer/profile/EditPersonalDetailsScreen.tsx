@@ -33,6 +33,19 @@ const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
+const createAvatarPayload = (fileUri: string) => {
+  const normalizedUri =
+    Platform.OS === 'ios' && fileUri.startsWith('file://')
+      ? fileUri.replace('file://', '')
+      : fileUri;
+
+  return {
+    uri: normalizedUri,
+    type: 'image/jpeg',
+    name: `avatar-${Date.now()}.jpg`,
+  };
+};
+
 export default function EditPersonalDetailsScreen() {
   const [name, setName] = useState('Paschaloliver');
   const [email, setEmail] = useState('Paschaloliver@example.com');
@@ -73,8 +86,8 @@ export default function EditPersonalDetailsScreen() {
             if (user.phone || user.phone_number) {
               setPhone(user.phone || user.phone_number);
             }
-            if (user.avatar || user.photo || user.image) {
-              setAvatar(user.avatar || user.photo || user.image);
+            if (user.profilePicture || user.photo || user.image) {
+              setAvatar(user.profilePicture || user.photo || user.image);
             }
           }
         }
@@ -149,8 +162,17 @@ export default function EditPersonalDetailsScreen() {
       formData.append('name', name);
       formData.append('email', email);
       formData.append('phone', phone);
-      if (avatarFile) {
-        formData.append('profile_picture', avatarFile as any);
+      const fileToUpload =
+        avatarFile ||
+        (avatar &&
+        (avatar.startsWith('file://') || avatar.startsWith('content://'))
+          ? createAvatarPayload(avatar)
+          : null);
+
+      if (fileToUpload) {
+        // Keep both keys to support whichever field name backend expects.
+        formData.append('avatar', fileToUpload as any);
+        formData.append('profile_picture', fileToUpload as any);
       }
 
       const res = await fetch(PROFILE_API_URL, {
@@ -285,6 +307,7 @@ export default function EditPersonalDetailsScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={false}
               />
             </View>
             <View style={styles.inputDivider} />

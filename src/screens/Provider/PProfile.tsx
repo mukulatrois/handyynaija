@@ -91,10 +91,13 @@ export default function PProfile() {
 
           if (!isActive) return;
           console.log(res, "res");
+    
+          
           if (res.ok) {
             const data = await res.json();
 
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+            console.log(user, "user");
             if (isActive) setProfile(user ?? null);
           } else {
             const errorData = await res.json();   // read error response
@@ -175,13 +178,12 @@ export default function PProfile() {
         {/* User Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {profile?.avatar || profile?.photo || profile?.image ? (
+            {profile?.avatar || profile?.profilePicture || profile?.image ? (
               <Image
                 source={{
                   uri:
-                    (profile?.avatar as string) ??
-                    (profile?.photo as string) ??
-                    (profile?.image as string),
+                    
+                    profile?.profilePicture as string,
                 }}
                 style={styles.avatar}
               />
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   profileHeader: {
     flexDirection: 'row',

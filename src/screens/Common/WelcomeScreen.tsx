@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
         width: '100%', opacity: 0.4
       }} ></View>
       <View style={{ position: 'absolute', alignItems: 'center', justifyContent: 'center', alignSelf: "center", marginTop: height / 10 }}>
-        <Image source={require('../../Images/logo2.png')} tintColor="white" style={{ width: width / 3, height: height / 22, marginBottom: 10 }} />
+        <Image source={require('../../Images/logo2.png')} tintColor="white" resizeMode="contain" style={{ width: width / 2.5, height: height / 20, marginBottom: 10 }} />
         <Text style={{ color: 'white', fontSize: fontSize(18), fontWeight: 'bold', textAlign: "center" }}>Doorstep convenience for{'\n'} any services</Text>
       </View>
 
@@ -41,7 +41,6 @@ export default function WelcomeScreen() {
           style={{ backgroundColor: "#FC5911" }}
         />
 
-        <Text style={styles.guest}>Continue as a guest</Text>
         <LoginSheet ref={loginRef} />
       </View>
     </SafeAreaView>

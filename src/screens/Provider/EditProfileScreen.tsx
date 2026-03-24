@@ -20,6 +20,19 @@ const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
+const createAvatarPayload = (fileUri: string) => {
+  const normalizedUri =
+    Platform.OS === 'ios' && fileUri.startsWith('file://')
+      ? fileUri.replace('file://', '')
+      : fileUri;
+
+  return {
+    uri: normalizedUri,
+    type: 'image/jpeg',
+    name: `avatar-${Date.now()}.jpg`,
+  };
+};
+
 type UserProfile = {
   name?: string;
   full_name?: string;
@@ -53,6 +66,8 @@ export default function EditProfileScreen() {
   const [about, setAbout] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<any | null>(null);
+  const avatarRef = useRef<string | null>(null);
+  const avatarFileRef = useRef<any | null>(null);
   const bottomSheetRef = useRef<RBSheet | null>(null);
 
   useEffect(() => {
@@ -86,7 +101,9 @@ export default function EditProfileScreen() {
               setPhone(user.phone || user.phone_number);
             }
             if (user.avatar || user.photo || user.image) {
-              setAvatar(user.avatar || user.photo || user.image);
+              const remoteAvatar = user.avatar || user.photo || user.image;
+              setAvatar(remoteAvatar);
+              avatarRef.current = remoteAvatar;
             }
           }
         }
@@ -118,12 +135,16 @@ export default function EditProfileScreen() {
       return;
     }
     const asset = result.assets[0];
-    setAvatar(asset.uri || null);
-    setAvatarFile({
+    const nextAvatar = asset.uri || null;
+    const nextAvatarFile = {
       uri: asset.uri,
       type: asset.type || 'image/jpeg',
       name: asset.fileName || 'avatar.jpg',
-    });
+    };
+    avatarRef.current = nextAvatar;
+    avatarFileRef.current = nextAvatarFile;
+    setAvatar(nextAvatar);
+    setAvatarFile(nextAvatarFile);
     handleCloseBottomSheet();
   };
 
@@ -139,12 +160,16 @@ export default function EditProfileScreen() {
       return;
     }
     const asset = result.assets[0];
-    setAvatar(asset.uri || null);
-    setAvatarFile({
+    const nextAvatar = asset.uri || null;
+    const nextAvatarFile = {
       uri: asset.uri,
       type: asset.type || 'image/jpeg',
       name: asset.fileName || 'avatar.jpg',
-    });
+    };
+    avatarRef.current = nextAvatar;
+    avatarFileRef.current = nextAvatarFile;
+    setAvatar(nextAvatar);
+    setAvatarFile(nextAvatarFile);
     handleCloseBottomSheet();
   };
 
@@ -160,8 +185,18 @@ export default function EditProfileScreen() {
       formData.append('name', name);
       formData.append('email', email);
       formData.append('phone', phone);
-      if (avatarFile) {
-        formData.append('profile_picture', avatarFile as any);
+      const currentAvatar = avatarRef.current ?? avatar;
+      const fileToUpload =
+        avatarFileRef.current ||
+        avatarFile ||
+        (currentAvatar &&
+        (currentAvatar.startsWith('file://') || currentAvatar.startsWith('content://'))
+          ? createAvatarPayload(currentAvatar)
+          : null);
+
+      if (fileToUpload) {
+        // Keep both keys to support whichever field name backend expects.
+        formData.append('profile_picture', fileToUpload as any);
       }
 
       const res = await fetch(PROFILE_API_URL, {

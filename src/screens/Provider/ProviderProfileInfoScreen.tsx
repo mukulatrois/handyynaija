@@ -858,9 +858,9 @@ export default function ProviderProfileInfoScreen() {
             <Text style={styles.errorText}>Please upload a selfie.</Text>
           ) : null}
           <Text style={styles.emailPrompt}>
-            Don't have any of these document?{' '}
+            Don't have any of these document? Send us an email to{' '}
             <Text style={styles.emailLink} onPress={openEmail}>
-              Send us an email to contact@apphandynaija.com
+              contact@apphandynaija.com
             </Text>
           </Text>
 

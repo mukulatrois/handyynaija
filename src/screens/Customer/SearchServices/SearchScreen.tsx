@@ -32,11 +32,13 @@ const CategoryCard = ({ label, image, imageStyle, onPress }: CategoryCardProps) 
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
-      <Image
-        source={image}
-        style={finalImageStyle}
-        resizeMode="contain"
-      />
+      <View style={styles.cardIconWrap}>
+        <Image
+          source={image}
+          style={finalImageStyle}
+          resizeMode="contain"
+        />
+      </View>
       <Text style={styles.cardText}>{label}</Text>
     </TouchableOpacity>
   );
@@ -47,53 +49,55 @@ const categories = [
     label: 'Home',
     image: require('../../../Images/serachImg/Home.png'),
     onPress: () => navigate('Home' as any),
-    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.4 },
+    imageStyle: { width: width / 3.5, height: width / 3.5 },
   },
   {
     label: 'Tech & IT',
     image: require('../../../Images/serachImg/Tech.png'),
     onPress: () => navigate('TechIT' as any),
+    imageStyle: { width: width / 5, height: width / 5 },
   },
   {
     label: 'Beauty',
     image: require('../../../Images/serachImg/Beauty.png'),
     onPress: () => navigate('Beauty' as any),
+    imageStyle: { width: width / 3.5, height: width / 3.5 },
   },
   {
     label: 'Repair &\nMaintainance',
     image: require('../../../Images/serachImg/repair.png'),
     onPress: () => navigate('RepairMaintenance' as any),
-    imageStyle: { width: CARD_WIDTH * 0.56, height: CARD_WIDTH * 0.36 },
+    imageStyle: { width: width / 5.5, height: width / 5.5 },
   },
   {
     label: 'Automobile',
     image: require('../../../Images/serachImg/Automobile.png'),
     onPress: () => navigate('Automobile' as any),
-    imageStyle: { width: CARD_WIDTH * 0.6, height: CARD_WIDTH * 0.42 },
+    imageStyle: { width: width / 3.5, height: width / 3.5 },
   },
   {
     label: 'Media & Events',
     image: require('../../../Images/serachImg/media.png'),
     onPress: () => navigate('MediaEvent' as any),
-    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.38 },
+    imageStyle: { width: width / 3.5, height: width / 3.5 },
   },
   {
     label: 'Kitchen',
     image: require('../../../Images/serachImg/Kitchen.png'),
     onPress: () => navigate('Home' as any),
-    imageStyle: { width: CARD_WIDTH * 0.52, height: CARD_WIDTH * 0.38 },
+    imageStyle: { width: width / 4.5, height: width / 4.5 },
   },
   {
     label: 'Furniture',
     image: require('../../../Images/serachImg/interior.png'),
     onPress: () => navigate('Home' as any),
-    imageStyle: { width: CARD_WIDTH * 0.54, height: CARD_WIDTH * 0.38 },
+    imageStyle: { width: width / 3.5, height: width / 3.5 },
   },
   {
     label: 'Others',
     image: require('../../../Images/serachImg/Others.png'),
     onPress: () => navigate('Others' as any),
-    imageStyle: { width: CARD_WIDTH * 0.56, height: CARD_WIDTH * 0.4 },
+    imageStyle: { width: width / 5.5, height: width / 5.5 },
   },
 ];
 
@@ -228,12 +232,12 @@ const styles = StyleSheet.create({
 
   card: {
     width: CARD_WIDTH,
-   height:110,
+    height: scale(115),
     borderRadius: borderRadius.lg,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: hp(1.2),
+    paddingVertical: hp(1),
     paddingHorizontal: padding.sm,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -241,10 +245,16 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  cardIconWrap: {
+    width: '100%',
+    height: scale(55),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   cardImage: {
-    width: CARD_WIDTH * 0.48,
-    height: CARD_WIDTH * 0.43,
-    marginBottom: margin.xs,
+    width: CARD_WIDTH * 0.56,
+    height: CARD_WIDTH * 0.42,
   },
 
   cardText: {
@@ -252,6 +262,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize(12),
     fontWeight: '600',
     color: '#1D1D1D',
+    marginTop: margin.xs,
   },
 
   addBtnWrapper: {

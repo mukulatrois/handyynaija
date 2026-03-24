@@ -179,10 +179,10 @@ export default function PersonalDetailsScreen() {
       >
         {/* Profile Summary */}
         <View style={styles.profileSummary}>
-          {profile?.avatar || profile?.photo || profile?.image ? (
+          {profile?.avatar || profile?.profilePicture || profile?.image ? (
             <Image
               source={{
-                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+                uri: profile?.profilePicture as string
               }}
               style={styles.avatar}
             />

@@ -102,7 +102,7 @@ export default function RoleSelectScreen(props: any) {
         onPress={() => setSelected('client')}>
 
         <Image
-          source={require('../../Images/logo.png')}
+          source={require('../../Images/rs1.png')}
           style={styles.img}
         />
 
@@ -118,7 +118,7 @@ export default function RoleSelectScreen(props: any) {
         onPress={() => setSelected('pro')}>
 
         <Image
-          source={require('../../Images/logo.png')}
+          source={require('../../Images/rs2.png')}
           style={styles.img}
         />
 
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: padding.lg,
+    padding: padding.md,
     borderRadius: borderRadius.xl,
     marginBottom: margin.lg,
     borderWidth: 1.5,

@@ -199,7 +199,7 @@ export default function ProviderUploadPhotoScreen() {
           <View style={styles.examplesRow}>
             <View style={styles.exampleItem}>
               <View style={styles.exampleAvatarGood}>
-                <Ionicons name="person-outline" size={scale(32)} color="#fff" />
+                <Image source={require('../../Images/uimg1.png')} style={styles.exampleAvatarImage} />
               </View>
               <Ionicons
                 name="checkmark-circle"
@@ -211,7 +211,7 @@ export default function ProviderUploadPhotoScreen() {
 
             <View style={styles.exampleItem}>
               <View style={styles.exampleAvatarBad}>
-                <Ionicons name="person-outline" size={scale(32)} color="#fff" />
+              <Image source={require('../../Images/uimg2.png')} style={styles.exampleAvatarImage} />
               </View>
               <Ionicons
                 name="close-circle"
@@ -390,6 +390,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  exampleAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: scale(36),
   },
   exampleAvatarBad: {
     width: scale(72),
