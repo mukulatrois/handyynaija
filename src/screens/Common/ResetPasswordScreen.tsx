@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import { Text, StyleSheet, Image, Alert } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
@@ -81,10 +82,12 @@ export default function ResetPasswordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={scale(24)}
       >
         <Image
           source={require('../../Images/logo.png')}
@@ -116,7 +119,7 @@ export default function ResetPasswordScreen() {
           disabled={loading}
           style={{ marginTop: padding.sm, marginBottom: scale(40) }}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

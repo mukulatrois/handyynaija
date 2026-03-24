@@ -81,7 +81,7 @@ const isRegistered = await AsyncStorage.getItem("isRegistered");
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.appName}>Jolloyard</Text>
+        <Text style={styles.appName}>Jollo<Text style={{color:COLORS.PRIMARY}}>yard</Text></Text>
       </View>
     </SafeAreaView>
   );
@@ -106,6 +106,6 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: fontSize(28),
     fontWeight: 'bold',
-    color: COLORS.PRIMARY,
+    color: COLORS.SECONDARY,
   },
 });

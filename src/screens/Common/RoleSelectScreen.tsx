@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize(28),
     fontWeight: '700',
     marginBottom: margin.md,
-    color: '#1B3556', // navy blue
+    color: COLORS.PRIMARY,
   },
 
   subtitle: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   big: {
     fontWeight: '700',
     fontSize: fontSize(18),
-    color: '#1B3556',
+    color: COLORS.PRIMARY,
     marginBottom: scale(4),
   },
 

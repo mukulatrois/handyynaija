@@ -266,7 +266,7 @@ const MyAccountScreen = (props) => {
           onPress={() => setLogoutModalVisible(true)}
         />
 
-        <View style={{ height: 40 }} />
+        {/* <View style={{ height: 40 }} /> */}
       </ScrollView>
 
       <ShareAppModal

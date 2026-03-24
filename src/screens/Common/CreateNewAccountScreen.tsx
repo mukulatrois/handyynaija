@@ -1,15 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput, PasswordInput, Separator, SocialButton, FooterLink } from '../../components';
 import { Loadingcomponent } from '../../components/LoadingComponent';
+import { COLORS } from '../../utils/constants';
 
 const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -120,10 +122,12 @@ export default function CreateNewAccountScreen() {
     <SafeAreaView style={styles.container}>
 
       {loading && <Loadingcomponent />}
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={20}
       >
         <Image
           source={require('../../Images/logo.png')}
@@ -222,7 +226,7 @@ export default function CreateNewAccountScreen() {
           linkText="Sign In"
           onPress={() => navigate('Welcome')}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -243,7 +247,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(28),
     fontWeight: 'bold',
-    color: '#18375F',
+    color: COLORS.PRIMARY,
     textAlign: 'center',
     marginBottom: padding.sm,
   },

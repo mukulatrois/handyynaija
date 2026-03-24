@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput as RNTextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput as RNTextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
-import { goBack } from '../../navigation/navigationService';
+import { goBack, resetNavigation } from '../../navigation/navigationService';
 import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import RBSheet from 'react-native-raw-bottom-sheet';
@@ -16,6 +16,7 @@ const PRIMARY_GREEN = COLORS.PRIMARY;
 const NAME_MAX_LENGTH = 50;
 const ABOUT_MAX_LENGTH = 200;
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
+const DELETE_ACCOUNT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/account';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
@@ -215,6 +216,40 @@ export default function EditProfileScreen() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        await fetch(DELETE_ACCOUNT_API_URL, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch {
+      // ignore errors for now
+    } finally {
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      resetNavigation('Welcome');
+    }
+  };
+
+  const handleConfirmDeleteAccount = () => {
+    Alert.alert(
+      'Delete account permanently?',
+      'This action cannot be undone. Your account and data will be removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: handleDeleteAccount,
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -321,6 +356,14 @@ export default function EditProfileScreen() {
             variant="primary"
             style={styles.saveButton}
           />
+
+          <TouchableOpacity
+            onPress={handleConfirmDeleteAccount}
+            style={styles.deleteButton}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.deleteText}>Delete account permanently</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -473,7 +516,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize(14),
     color: colors.textMuted,
   },
-  saveButton: {},
+  saveButton: {
+    marginBottom: margin.lg,
+  },
+  deleteButton: {
+    alignSelf: 'center',
+  },
+  deleteText: {
+    fontSize: fontSize(14),
+    color: PRIMARY_GREEN,
+    fontWeight: '500',
+  },
   sheetContainer: {
     borderTopLeftRadius: scale(16),
     borderTopRightRadius: scale(16),

@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(22),
     fontWeight: '700',
-    color: '#000',
+    color:COLORS.PRIMARY,
     marginBottom: margin.xs,
   },
   textInputContainer: {

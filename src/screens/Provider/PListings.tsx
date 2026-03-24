@@ -29,6 +29,7 @@ import {
   type ListingDraftBackup,
 } from '../../utils/listingDraftStorage';
 import { CommonAppHeader } from '../../components';
+import { COLORS } from '../../utils/constants';
 
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fontSize(20),
     fontWeight: '700',
-    color: colors.text,
+    color: COLORS.PRIMARY,
   },
   headerActions: {
     flexDirection: 'row',

@@ -18,6 +18,7 @@ import { navigate } from '../../navigation/navigationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Loadingcomponent } from '../../components/LoadingComponent';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const MONTHS = [
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: '700',
-    color: colors.text,
+    color: COLORS.PRIMARY,
   },
   syncButton: {
     flexDirection: 'row',
