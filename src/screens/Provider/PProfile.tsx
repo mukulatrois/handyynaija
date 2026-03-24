@@ -211,13 +211,13 @@ export default function PProfile() {
           text="₦ 10 for every friend you bring"
           iconColor="#DC2626"
         /> */}
-        <View style={styles.separator} />
+        {/* <View style={styles.separator} /> */}
 
         {/* Your Account Section */}
         <SectionHeader title="Your Account" />
         <MenuItem
           icon="person-outline"
-          text="Personal detailss"
+          text="Personal details"
           onPress={() => navigate('ProviderPersonalDetails')}
         />
         <View style={styles.separator} />

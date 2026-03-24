@@ -229,6 +229,21 @@ export default function EditPersonalDetailsScreen() {
     }
   };
 
+  const handleConfirmDeleteAccount = () => {
+    Alert.alert(
+      'Delete account permanently?',
+      'This action cannot be undone. Your account and data will be removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: handleDeleteAccount,
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -331,7 +346,7 @@ export default function EditPersonalDetailsScreen() {
 
           {/* Delete Account Link */}
           <TouchableOpacity
-            onPress={handleDeleteAccount}
+            onPress={handleConfirmDeleteAccount}
             style={styles.deleteButton}
             activeOpacity={0.7}
           >

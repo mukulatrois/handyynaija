@@ -3,11 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Modal,
   FlatList,
-  KeyboardAvoidingView,
   Platform,
   Linking,
   Alert,
@@ -38,6 +36,7 @@ import { setProviderProfileInfo } from '../../providerRegister/providerRegisterS
 import { Loadingcomponent } from '../../components/LoadingComponent';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { COLORS } from '../../utils/constants';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -238,8 +237,8 @@ function formatDateForApi(isoDate: string): string {
 export default function ProviderProfileInfoScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProviderProfileInfo'>>();
   console.log('route', route.params);
-  
-  
+
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadValidationTriggered, setUploadValidationTriggered] = useState(false);
@@ -301,12 +300,12 @@ export default function ProviderProfileInfoScreen() {
         formData.append('work_country', values.country);
         formData.append('work_city', values.city);
         formData.append('radius', route.params?.distanceKm?.toString() ?? '');
-        formData.append('latitude', route.params.coordinates?.latitude.toString() ?? '');
-        formData.append('longitude', route.params.coordinates?.longitude.toString() ?? '');
+        formData.append('latitude', route.params?.coordinates?.latitude.toString() ?? '');
+        formData.append('longitude', route.params?.coordinates?.longitude.toString() ?? '');
         formData.append('document_type', values.docType);
         formData.append('document_number', values.documentNumber.trim());
         formData.append('document_country', values.countryOfDoc);
-        formData.append('profile_picture',{
+        formData.append('profile_picture', {
           uri: route.params?.photoUri ?? '',
           type: 'image/jpeg',
           name: Date.now().toString() + '.jpg',
@@ -578,381 +577,381 @@ export default function ProviderProfileInfoScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {saving && <Loadingcomponent />}
+      {/* Header with back arrow and progress bar */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={goBack} style={styles.headerButton} activeOpacity={0.7}>
+          <Icon name="chevron-back" size={scale(24)} color={COLORS.PRIMARY} />
+        </TouchableOpacity>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: '100%' }]} />
+        </View>
+      </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={scale(24)}
+        extraHeight={scale(24)}
       >
-      { saving && <Loadingcomponent />}
-        {/* Header with back arrow and progress bar */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={goBack} style={styles.headerButton} activeOpacity={0.7}>
-            <Icon name="chevron-back" size={scale(24)} color={COLORS.PRIMARY} />
-          </TouchableOpacity>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: '100%' }]} />
+        <Text style={styles.screenTitle}>Information about your profile</Text>
+        {/* Important notice */}
+        <View style={styles.noticeBox}>
+          <Icon name="bulb-outline" size={scale(24)} color="#E6A800" />
+          <View style={styles.noticeTextWrap}>
+            <Text style={styles.noticeBold}>Important</Text>
+            <Text style={styles.noticeText}>
+              Check that the information is correct so that you can charge for the services
+              correctly.
+            </Text>
           </View>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.screenTitle}>Information about your profile</Text>
-          {/* Important notice */}
-          <View style={styles.noticeBox}>
-            <Icon name="bulb-outline" size={scale(24)} color="#E6A800" />
-            <View style={styles.noticeTextWrap}>
-              <Text style={styles.noticeBold}>Important</Text>
-              <Text style={styles.noticeText}>
-                Check that the information is correct so that you can charge for the services
-                correctly.
-              </Text>
-            </View>
-          </View>
-
-          {/* Personal details */}
-          <Text style={styles.sectionTitle}>Personal details</Text>
-          <TextInput
-            placeholder="Name"
-            value={values.name}
-            onChangeText={(text) => setFieldValue('name', text)}
-            onBlur={() => setFieldTouched('name')}
-            inputRef={nameRef}
-            returnKeyType="next"
-            blurOnSubmit={false}
-            onSubmitEditing={() => surnameRef.current?.focus()}
-            error={showError('name')}
-          />
-          <TextInput
-            placeholder="Surname"
-            value={values.surname}
-            onChangeText={(text) => setFieldValue('surname', text)}
-            onBlur={() => setFieldTouched('surname')}
-            inputRef={surnameRef}
-            returnKeyType="next"
-            blurOnSubmit={false}
-            error={showError('surname')}
-          />
-          <DropdownField
-            placeholder="Gender"
-            value={values.gender}
-            options={GENDERS}
-            onSelect={(item) => {
-              setFieldValue('gender', item);
-              setFieldTouched('gender', true);
-            }}
-            error={showError('gender')}
-          />
-          <View style={styles.fieldContainer}>
-            <TouchableOpacity
+        {/* Personal details */}
+        <Text style={styles.sectionTitle}>Personal details</Text>
+        <TextInput
+          placeholder="Name"
+          value={values.name}
+          onChangeText={(text) => setFieldValue('name', text)}
+          onBlur={() => setFieldTouched('name')}
+          inputRef={nameRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => surnameRef.current?.focus()}
+          error={showError('name')}
+        />
+        <TextInput
+          placeholder="Surname"
+          value={values.surname}
+          onChangeText={(text) => setFieldValue('surname', text)}
+          onBlur={() => setFieldTouched('surname')}
+          inputRef={surnameRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          error={showError('surname')}
+        />
+        <DropdownField
+          placeholder="Gender"
+          value={values.gender}
+          options={GENDERS}
+          onSelect={(item) => {
+            setFieldValue('gender', item);
+            setFieldTouched('gender', true);
+          }}
+          error={showError('gender')}
+        />
+        <View style={styles.fieldContainer}>
+          <TouchableOpacity
+            style={[
+              styles.dropdownTouch,
+              showError('dateOfBirth') && styles.inputError,
+            ]}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.7}
+          >
+            <Text
               style={[
-                styles.dropdownTouch,
-                showError('dateOfBirth') && styles.inputError,
+                styles.dropdownText,
+                !values.dateOfBirth && styles.placeholder,
               ]}
-              onPress={() => setShowDatePicker(true)}
-              activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.dropdownText,
-                  !values.dateOfBirth && styles.placeholder,
-                ]}
-              >
-                {dateOfBirthDate ? formatDate(dateOfBirthDate) : 'Date of birth'}
-              </Text>
-              <Icon name="chevron-down" size={scale(20)} color="#333" />
-            </TouchableOpacity>
-            {showError('dateOfBirth') ? (
-              <Text style={styles.errorText}>{errors.dateOfBirth}</Text>
-            ) : null}
-            {showDatePicker && Platform.OS === 'android' && (
-              <DateTimePicker
-                value={dateOfBirthDate || new Date(2000, 0, 1)}
-                mode="date"
-                display="default"
-                onChange={onDateChange}
-                maximumDate={new Date()}
+              {dateOfBirthDate ? formatDate(dateOfBirthDate) : 'Date of birth'}
+            </Text>
+            <Icon name="chevron-down" size={scale(20)} color="#333" />
+          </TouchableOpacity>
+          {showError('dateOfBirth') ? (
+            <Text style={styles.errorText}>{errors.dateOfBirth}</Text>
+          ) : null}
+          {showDatePicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={dateOfBirthDate || new Date(2000, 0, 1)}
+              mode="date"
+              display="default"
+              onChange={onDateChange}
+              maximumDate={new Date()}
+            />
+          )}
+          {showDatePicker && Platform.OS === 'ios' && (
+            <Modal visible transparent animationType="slide">
+              <TouchableOpacity
+                style={styles.datePickerOverlay}
+                activeOpacity={1}
+                onPress={() => setShowDatePicker(false)}
               />
-            )}
-            {showDatePicker && Platform.OS === 'ios' && (
-              <Modal visible transparent animationType="slide">
-                <TouchableOpacity
-                  style={styles.datePickerOverlay}
-                  activeOpacity={1}
-                  onPress={() => setShowDatePicker(false)}
-                />
-                <View style={styles.iosDatePickerContainer}>
-                  <View style={styles.iosDatePickerActions}>
-                    <TouchableOpacity
-                      onPress={() => setShowDatePicker(false)}
-                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    >
-                      <Text style={styles.iosDatePickerCancel}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setShowDatePicker(false)}
-                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    >
-                      <Text style={styles.iosDatePickerDone}>Done</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <DateTimePicker
-                    value={dateOfBirthDate || new Date(2000, 0, 1)}
-                    mode="date"
-                    display="spinner"
-                    onChange={onDateChange}
-                    maximumDate={new Date()}
-                    style={styles.iosDatePicker}
-                  />
+              <View style={styles.iosDatePickerContainer}>
+                <View style={styles.iosDatePickerActions}>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(false)}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
+                    <Text style={styles.iosDatePickerCancel}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(false)}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
+                    <Text style={styles.iosDatePickerDone}>Done</Text>
+                  </TouchableOpacity>
                 </View>
-              </Modal>
-            )}
-          </View>
-          <DropdownField
-            placeholder="Country of birth"
-            value={values.countryOfBirth}
-            options={COUNTRIES}
-            onSelect={(item) => {
-              setFieldValue('countryOfBirth', item);
-              setFieldTouched('countryOfBirth', true);
-            }}
-            error={showError('countryOfBirth')}
-          />
-          <DropdownField
-            placeholder="City of birth"
-            value={values.cityOfBirth}
-            options={NIGERIAN_CITIES}
-            onSelect={(item) => {
-              setFieldValue('cityOfBirth', item);
-              setFieldTouched('cityOfBirth', true);
-            }}
-            error={showError('cityOfBirth')}
-          />
+                <DateTimePicker
+                  value={dateOfBirthDate || new Date(2000, 0, 1)}
+                  mode="date"
+                  display="spinner"
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  style={styles.iosDatePicker}
+                />
+              </View>
+            </Modal>
+          )}
+        </View>
+        <DropdownField
+          placeholder="Country of birth"
+          value={values.countryOfBirth}
+          options={COUNTRIES}
+          onSelect={(item) => {
+            setFieldValue('countryOfBirth', item);
+            setFieldTouched('countryOfBirth', true);
+          }}
+          error={showError('countryOfBirth')}
+        />
+        <DropdownField
+          placeholder="City of birth"
+          value={values.cityOfBirth}
+          options={NIGERIAN_CITIES}
+          onSelect={(item) => {
+            setFieldValue('cityOfBirth', item);
+            setFieldTouched('cityOfBirth', true);
+          }}
+          error={showError('cityOfBirth')}
+        />
 
-          {/* Identify Documents */}
-          <Text style={styles.sectionTitle}>Identify Documents</Text>
-          <View style={styles.docOptions}>
-            <TouchableOpacity
-              style={[styles.docCard, values.docType === 'government_id' && styles.docCardSelected]}
-              onPress={() => setFieldValue('docType', 'government_id')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.radioOuter, values.docType === 'government_id' && styles.radioSelected]}>
-                {values.docType === 'government_id' && (
-                  <Icon name="checkmark" size={scale(16)} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.docCardText}>Government ID</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.docCard, values.docType === 'passport' && styles.docCardSelected]}
-              onPress={() => setFieldValue('docType', 'passport')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.radioOuter, values.docType === 'passport' && styles.radioSelected]}>
-                {values.docType === 'passport' && (
-                  <Icon name="checkmark" size={scale(16)} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.docCardText}>Passport</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.uploadLabel}>Upload the documents</Text>
-          <DropdownField
-            placeholder="Country of the document"
-            value={values.countryOfDoc}
-            options={COUNTRIES}
-            onSelect={(item) => {
-              setFieldValue('countryOfDoc', item);
-              setFieldTouched('countryOfDoc', true);
-            }}
-            error={showError('countryOfDoc')}
-          />
-          <TextInput
-            placeholder="Document number"
-            value={values.documentNumber}
-            onChangeText={(text) => setFieldValue('documentNumber', text)}
-            onBlur={() => setFieldTouched('documentNumber')}
-            inputRef={documentNumberRef}
-            returnKeyType="next"
-            blurOnSubmit={false}
-            onSubmitEditing={() => streetRef.current?.focus()}
-            error={showError('documentNumber')}
-          />
-          <Text style={styles.uploadLabel}>Identity document (front)</Text>
+        {/* Identify Documents */}
+        <Text style={styles.sectionTitle}>Identify Documents</Text>
+        <View style={styles.docOptions}>
           <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={() => {
-              setActiveDocSide('front');
-              setDocModalVisible(true);
-            }}
+            style={[styles.docCard, values.docType === 'government_id' && styles.docCardSelected]}
+            onPress={() => setFieldValue('docType', 'government_id')}
             activeOpacity={0.7}
           >
-            <View style={styles.uploadButtonLeft}>
-              <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
-              <Text style={styles.uploadButtonText}>
-                {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
-              </Text>
+            <View style={[styles.radioOuter, values.docType === 'government_id' && styles.radioSelected]}>
+              {values.docType === 'government_id' && (
+                <Icon name="checkmark" size={scale(16)} color="#fff" />
+              )}
             </View>
-            {identityDocFrontUri ? (
-              <Image
-                source={{ uri: identityDocFrontUri }}
-                style={styles.imagePreview}
-                resizeMode="cover"
-              />
-            ) : null}
+            <Text style={styles.docCardText}>Government ID</Text>
           </TouchableOpacity>
-          {showUploadError && isFrontDocMissing ? (
-            <Text style={styles.errorText}>Please upload the front of your ID.</Text>
-          ) : null}
-          <Text style={styles.uploadLabel}>Identity document (back)</Text>
           <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={() => {
-              setActiveDocSide('back');
-              setDocModalVisible(true);
-            }}
+            style={[styles.docCard, values.docType === 'passport' && styles.docCardSelected]}
+            onPress={() => setFieldValue('docType', 'passport')}
             activeOpacity={0.7}
           >
-            <View style={styles.uploadButtonLeft}>
-              <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
-              <Text style={styles.uploadButtonText}>
-                {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
-              </Text>
+            <View style={[styles.radioOuter, values.docType === 'passport' && styles.radioSelected]}>
+              {values.docType === 'passport' && (
+                <Icon name="checkmark" size={scale(16)} color="#fff" />
+              )}
             </View>
-            {identityDocBackUri ? (
-              <Image
-                source={{ uri: identityDocBackUri }}
-                style={styles.imagePreview}
-                resizeMode="cover"
-              />
-            ) : null}
+            <Text style={styles.docCardText}>Passport</Text>
           </TouchableOpacity>
-          {showUploadError && isBackDocMissing ? (
-            <Text style={styles.errorText}>Please upload the back of your ID.</Text>
-          ) : null}
-          <Text style={styles.uploadLabel}>Selfie</Text>
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={() => takePhotoWithCamera(setSelfieUri, true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.uploadButtonLeft}>
-              <Icon name="person-outline" size={scale(20)} color={COLORS.PRIMARY} />
-              <Text style={styles.uploadButtonText}>
-                {selfieUri ? 'Selfie selected' : 'Take selfie'}
-              </Text>
-            </View>
-            {selfieUri ? (
-              <Image
-                source={{ uri: selfieUri }}
-                style={styles.imagePreview}
-                resizeMode="cover"
-              />
-            ) : null}
-          </TouchableOpacity>
-          {showUploadError && isSelfieMissing ? (
-            <Text style={styles.errorText}>Please upload a selfie.</Text>
-          ) : null}
-          <Text style={styles.emailPrompt}>
-            Don't have any of these document? Send us an email to{' '}
-            <Text style={styles.emailLink} onPress={openEmail}>
-              contact@apphandynaija.com
+        </View>
+        <Text style={styles.uploadLabel}>Upload the documents</Text>
+        <DropdownField
+          placeholder="Country of the document"
+          value={values.countryOfDoc}
+          options={COUNTRIES}
+          onSelect={(item) => {
+            setFieldValue('countryOfDoc', item);
+            setFieldTouched('countryOfDoc', true);
+          }}
+          error={showError('countryOfDoc')}
+        />
+        <TextInput
+          placeholder="Document number"
+          value={values.documentNumber}
+          onChangeText={(text) => setFieldValue('documentNumber', text)}
+          onBlur={() => setFieldTouched('documentNumber')}
+          inputRef={documentNumberRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => streetRef.current?.focus()}
+          error={showError('documentNumber')}
+        />
+        <Text style={styles.uploadLabel}>Identity document (front)</Text>
+        <TouchableOpacity
+          style={styles.uploadButton}
+          onPress={() => {
+            setActiveDocSide('front');
+            setDocModalVisible(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.uploadButtonLeft}>
+            <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
+            <Text style={styles.uploadButtonText}>
+              {identityDocFrontUri ? 'Document front selected' : 'Take photo or choose file'}
             </Text>
+          </View>
+          {identityDocFrontUri ? (
+            <Image
+              source={{ uri: identityDocFrontUri }}
+              style={styles.imagePreview}
+              resizeMode="cover"
+            />
+          ) : null}
+        </TouchableOpacity>
+        {showUploadError && isFrontDocMissing ? (
+          <Text style={styles.errorText}>Please upload the front of your ID.</Text>
+        ) : null}
+        <Text style={styles.uploadLabel}>Identity document (back)</Text>
+        <TouchableOpacity
+          style={styles.uploadButton}
+          onPress={() => {
+            setActiveDocSide('back');
+            setDocModalVisible(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.uploadButtonLeft}>
+            <Icon name="document-attach-outline" size={scale(20)} color={COLORS.PRIMARY} />
+            <Text style={styles.uploadButtonText}>
+              {identityDocBackUri ? 'Document back selected' : 'Take photo or choose file'}
+            </Text>
+          </View>
+          {identityDocBackUri ? (
+            <Image
+              source={{ uri: identityDocBackUri }}
+              style={styles.imagePreview}
+              resizeMode="cover"
+            />
+          ) : null}
+        </TouchableOpacity>
+        {showUploadError && isBackDocMissing ? (
+          <Text style={styles.errorText}>Please upload the back of your ID.</Text>
+        ) : null}
+        <Text style={styles.uploadLabel}>Selfie</Text>
+        <TouchableOpacity
+          style={styles.uploadButton}
+          onPress={() => takePhotoWithCamera(setSelfieUri, true)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.uploadButtonLeft}>
+            <Icon name="person-outline" size={scale(20)} color={COLORS.PRIMARY} />
+            <Text style={styles.uploadButtonText}>
+              {selfieUri ? 'Selfie selected' : 'Take selfie'}
+            </Text>
+          </View>
+          {selfieUri ? (
+            <Image
+              source={{ uri: selfieUri }}
+              style={styles.imagePreview}
+              resizeMode="cover"
+            />
+          ) : null}
+        </TouchableOpacity>
+        {showUploadError && isSelfieMissing ? (
+          <Text style={styles.errorText}>Please upload a selfie.</Text>
+        ) : null}
+        <Text style={styles.emailPrompt}>
+          Don't have any of these document? Send us an email to{' '}
+          <Text style={styles.emailLink} onPress={openEmail}>
+            contact@apphandynaija.com
           </Text>
+        </Text>
 
-          {/* Address */}
-          <Text style={styles.sectionTitle}>Address</Text>
-          {workAddressParams?.distanceKm ? (
-            <Text style={styles.noticeText}>
-              Service distance: {workAddressParams.distanceKm} km
-            </Text>
-          ) : null}
-          <TextInput
-            placeholder="Street"
-            value={values.street}
-            onChangeText={(text) => setFieldValue('street', text)}
-            onBlur={() => setFieldTouched('street')}
-            inputRef={streetRef}
-            returnKeyType="next"
-            blurOnSubmit={false}
-            onSubmitEditing={() => streetNumberRef.current?.focus()}
-            error={showError('street')}
-            editable={!isWorkAddressReadOnly}
-          />
-          <TextInput
-            placeholder="Street number"
-            value={values.streetNumber}
-            onChangeText={(text) => setFieldValue('streetNumber', text)}
-            onBlur={() => setFieldTouched('streetNumber')}
-            inputRef={streetNumberRef}
-            returnKeyType="next"
-            blurOnSubmit={false}
-            onSubmitEditing={() => zipCodeRef.current?.focus()}
-            error={showError('streetNumber')}
-            editable={!isWorkAddressReadOnly}
-          />
-          <TextInput
-            placeholder="Zip/Postal Code"
-            value={values.zipCode}
-            onChangeText={(text) => setFieldValue('zipCode', text)}
-            onBlur={() => setFieldTouched('zipCode')}
-            keyboardType="numeric"
-            inputRef={zipCodeRef}
-            returnKeyType="done"
-            error={showError('zipCode')}
-            editable={!isWorkAddressReadOnly}
-          />
-          <DropdownField
-            placeholder="Country"
-            value={values.country}
-            options={COUNTRIES}
-            onSelect={(item) => {
-              setFieldValue('country', item);
-              setFieldTouched('country', true);
-            }}
-            error={showError('country')}
-            disabled={isWorkAddressReadOnly}
-          />
+        {/* Address */}
+        <Text style={styles.sectionTitle}>Address</Text>
+        {workAddressParams?.distanceKm ? (
+          <Text style={styles.noticeText}>
+            Service distance: {workAddressParams.distanceKm} km
+          </Text>
+        ) : null}
+        <TextInput
+          label="Street"
+          placeholder="Street"
+          value={values.street}
+          onChangeText={(text) => setFieldValue('street', text)}
+          onBlur={() => setFieldTouched('street')}
+          inputRef={streetRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => streetNumberRef.current?.focus()}
+          error={showError('street')}
+          editable={!isWorkAddressReadOnly}
+        />
+        <TextInput
+          label="Street number"
+          placeholder="Street number"
+          value={values.streetNumber}
+          onChangeText={(text) => setFieldValue('streetNumber', text)}
+          onBlur={() => setFieldTouched('streetNumber')}
+          inputRef={streetNumberRef}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => zipCodeRef.current?.focus()}
+          error={showError('streetNumber')}
+          editable={!isWorkAddressReadOnly}
+        />
+        <TextInput
+          label="Zip/Postal Code"
+          placeholder="Zip/Postal Code"
+          value={values.zipCode}
+          onChangeText={(text) => setFieldValue('zipCode', text)}
+          onBlur={() => setFieldTouched('zipCode')}
+          keyboardType="numeric"
+          inputRef={zipCodeRef}
+          returnKeyType="done"
+          error={showError('zipCode')}
+          editable={!isWorkAddressReadOnly}
+        />
+        <DropdownField
+          label="Country"
+          placeholder="Country"
+          value={values.country}
+          options={COUNTRIES}
+          onSelect={(item) => {
+            setFieldValue('country', item);
+            setFieldTouched('country', true);
+          }}
+          error={showError('country')}
+          disabled={isWorkAddressReadOnly}
+        />
 
-          <DropdownField
-            placeholder="City"
-            value={values.city}
-            options={NIGERIAN_CITIES}
-            onSelect={(item) => {
-              setFieldValue('city', item);
-              setFieldTouched('city', true);
-            }}
-            error={showError('city')}
-            disabled={isWorkAddressReadOnly}
-          />
-          <DropdownField
-            placeholder="Street/Country/Region"
-            value={values.region}
-            options={REGIONS}
-            onSelect={(item) => {
-              setFieldValue('region', item);
-              setFieldTouched('region', true);
-            }}
-            error={showError('region')}
-            disabled={isWorkAddressReadOnly}
-          />
+        <DropdownField
+          label="City"
+          placeholder="City"
+          value={values.city}
+          options={NIGERIAN_CITIES}
+          onSelect={(item) => {
+            setFieldValue('city', item);
+            setFieldTouched('city', true);
+          }}
+          error={showError('city')}
+          disabled={isWorkAddressReadOnly}
+        />
+        <DropdownField
+          label="Region"
+          placeholder="Street/Country/Region"
+          value={values.region}
+          options={REGIONS}
+          onSelect={(item) => {
+            setFieldValue('region', item);
+            setFieldTouched('region', true);
+          }}
+          error={showError('region')}
+          disabled={isWorkAddressReadOnly}
+        />
 
-          <Button
-            title={saving ? 'Saving…' : 'Save'}
-            onPress={onSavePress}
-            variant="primary"
-            style={styles.saveButton}
-            disabled={saving}
-          />
-          {saving ? (
-            <ActivityIndicator size="small" color={COLORS.PRIMARY} style={styles.loader} />
-          ) : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <Button
+          title={saving ? 'Saving…' : 'Save'}
+          onPress={onSavePress}
+          variant="primary"
+          style={styles.saveButton}
+          disabled={saving}
+        />
+      </KeyboardAwareScrollView>
       {/* Identity document full-screen modal */}
       <Modal
         visible={docModalVisible}
