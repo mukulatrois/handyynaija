@@ -1,12 +1,38 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, BackHandler, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
 
 export default function BecomeProfessionalIntroScreen() {
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          'Exit App',
+          'Do you want to exit the app?',
+          [
+            { text: 'No', onPress: () => {}, style: 'cancel' },
+            { text: 'Yes', onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        subscription.remove();
+      };
+    }, [])
+  );
+
   const handleBecomeProfessional = () => {
     navigate('OfferServicesIntro');
   };
@@ -15,16 +41,8 @@ export default function BecomeProfessionalIntroScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header: Green back arrow + Profile on left, title centered */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={goBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
-          <Text style={styles.profileLabel}>Profile</Text>
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Become a professional</Text>
-        <View style={styles.headerSpacer} />
+
       </View>
 
       <ScrollView
@@ -32,7 +50,7 @@ export default function BecomeProfessionalIntroScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Heading */}
-        <Text style={styles.title}>Want to offer your services on HandyNaija?</Text>
+        <Text style={styles.title}>Want to offer your services on Jolloyard?</Text>
         <Text style={styles.subtitle}>
           Create your professional profile and start earning money
         </Text>
@@ -77,7 +95,7 @@ const styles = StyleSheet.create({
   },
   profileLabel: {
     fontSize: fontSize(16),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
     marginLeft: scale(4),
   },

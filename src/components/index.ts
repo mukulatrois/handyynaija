@@ -14,6 +14,7 @@ export { default as EmptyState } from './EmptyState';
 export { default as SettingsRow } from './SettingsRow';
 export { default as Card } from './Card';
 export { default as SearchInput } from './SearchInput';
+export { default as CommonAppHeader } from './CommonAppHeader';
 export { ShareAppModal, RateAppModal, LogoutModal } from './modals';
 
 export type { ButtonVariant } from './Button';

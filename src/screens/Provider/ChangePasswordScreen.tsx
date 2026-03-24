@@ -20,8 +20,9 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack } from '../../navigation/navigationService';
 import { TextInput, Button } from '../../components';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ChangePasswordScreen() {
   const [currentPassword, setCurrentPassword] = useState('');

@@ -6,13 +6,14 @@ import { scale, fontSize, padding, margin, borderRadius } from '../../../utils/r
 import { Button } from '../../../components';
 import CustomIcon, { IconNames } from '../../../components/Icon';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
 
 const TOTAL_STEPS = 5;
 
 const STEPS = [
   {
     id: 0,
-    title: 'Want to offer your services on HandyNaija?',
+    title: 'Want to offer your services on Jolloyard?',
     subtitle: 'Create your professional profile and start earning money',
     titleAlign: 'center' as const,
     subtitleAlign: 'center' as const,
@@ -158,12 +159,12 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: fontSize(20),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginRight: padding.sm,
   },
   profileLink: {
     fontSize: fontSize(16),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   headerTitle: {
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   headerSpacer: { flex: 1 },
   exitText: {
     fontSize: fontSize(16),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '600',
   },
   scrollContent: {
@@ -231,6 +232,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   dotActive: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
 });

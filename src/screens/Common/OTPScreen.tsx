@@ -10,6 +10,7 @@ import { scale, fontSize, padding, margin, borderRadius } from '../../utils/resp
 import { Button } from '../../components';
 
 const VERIFY_OTP_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/verify-otp';
+const FORGOT_PASSWORD_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/forgot-password';
 
 const OTP_LENGTH = 6;
 
@@ -28,9 +29,13 @@ type OTPScreenRouteProp = RouteProp<RootStackParamList, 'OTP'>;
 
 export default function OTPScreen() {
   const route = useRoute<OTPScreenRouteProp>();
+
+  console.log('route.params', route.params);
+  
   const { type = 'email', phoneNumber, email } = route.params || {};
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const formik = useFormik<FormValues>({
     initialValues,
@@ -112,6 +117,42 @@ export default function OTPScreen() {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (type === 'phone') {
+      Alert.alert('Info', 'Phone OTP resend is not available yet.');
+      return;
+    }
+
+    if (!email) {
+      Alert.alert('Error', 'Email is required to resend OTP.');
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      const res = await fetch(FORGOT_PASSWORD_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = data?.message ?? data?.error ?? `Request failed (${res.status})`;
+        Alert.alert('Error', typeof message === 'string' ? message : JSON.stringify(message));
+        return;
+      }
+      Alert.alert(
+        'Check your email',
+        'If an account exists for this email, you will receive a link to reset your password.'
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+      Alert.alert('Error', message);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -135,7 +176,9 @@ export default function OTPScreen() {
           {otpDigits.map((digit, index) => (
             <TextInput
               key={index}
-              ref={(ref) => (inputRefs.current[index] = ref)}
+              ref={(ref) => {
+                inputRefs.current[index] = ref;
+              }}
               style={[styles.otpInput, errors.otp && touched.otp && styles.otpInputError]}
               value={digit}
               onChangeText={(value) => handleOtpChange(value, index)}
@@ -153,8 +196,8 @@ export default function OTPScreen() {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't get the code? </Text>
-          <TouchableOpacity>
-            <Text style={styles.resendLink}>Resend it</Text>
+          <TouchableOpacity onPress={handleResendOtp} disabled={resendLoading || loading}>
+            <Text style={styles.resendLink}>{resendLoading ? 'Sending...' : 'Resend it'}</Text>
           </TouchableOpacity>
         </View>
 

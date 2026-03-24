@@ -17,6 +17,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
 
 const FEEDBACK_TAGS = [
   'Polite Professional',
@@ -111,12 +112,12 @@ export default function ServiceBookingDetailScreen() {
             />
             <Marker
               coordinate={ROUTE_COORDS[ROUTE_COORDS.length - 1]}
-              pinColor="#3FA565"
+              pinColor={COLORS.PRIMARY}
               title="B"
             />
             <Polyline
               coordinates={ROUTE_COORDS}
-              strokeColor="#3FA565"
+              strokeColor={COLORS.PRIMARY}
               strokeWidth={4}
             />
           </MapView>
@@ -147,7 +148,7 @@ export default function ServiceBookingDetailScreen() {
 
         {/* View payment details */}
         <TouchableOpacity style={styles.paymentRow} onPress={handleViewPayment} activeOpacity={0.7}>
-          <Ionicons name="wallet" size={scale(20)} color="#3FA565" />
+          <Ionicons name="wallet" size={scale(20)} color={COLORS.PRIMARY} />
           <Text style={styles.paymentLabel}>View payment details</Text>
           <Ionicons name="chevron-forward" size={scale(20)} color="#000" />
         </TouchableOpacity>
@@ -159,7 +160,7 @@ export default function ServiceBookingDetailScreen() {
             <Text style={styles.infoLabelPlain}>Road No. 6 Avenue - 05</Text>
           </View>
           <View style={styles.infoRow}>
-            <View style={[styles.infoIcon, { backgroundColor: '#3FA565' }]} />
+            <View style={[styles.infoIcon, { backgroundColor: COLORS.PRIMARY }]} />
             <Text style={styles.infoLabelPlain}>Moroccan university road</Text>
           </View>
           <View style={styles.infoRow}>
@@ -516,7 +517,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   statusBadgeDone: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   statusText: { fontSize: fontSize(13), color: '#555', fontWeight: '500' },
   statusTextDone: { color: '#fff' },
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     marginHorizontal: padding.lg,
@@ -646,7 +647,7 @@ const sheetStyles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize(22),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     textAlign: 'center',
   },
   closeBtn: {
@@ -681,16 +682,16 @@ const sheetStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#3FA565',
+    borderColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  exitBtnText: { fontSize: fontSize(16), fontWeight: '600', color: '#3FA565' },
+  exitBtnText: { fontSize: fontSize(16), fontWeight: '600', color: COLORS.PRIMARY },
   remainBtn: {
     flex: 1,
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     alignItems: 'center',
@@ -766,8 +767,8 @@ const feedbackSheetStyles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   tagSelected: {
-    borderColor: '#3FA565',
-    backgroundColor: '#3FA565',
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.PRIMARY,
   },
   tagText: { fontSize: fontSize(13), color: '#666' },
   tagTextSelected: { fontSize: fontSize(13), color: '#fff', fontWeight: '500' },
@@ -792,7 +793,7 @@ const feedbackSheetStyles = StyleSheet.create({
     flex: 1,
   },
   submitBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     alignItems: 'center',
@@ -839,7 +840,7 @@ const addCommentModalStyles = StyleSheet.create({
     marginBottom: margin.lg,
   },
   submitBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     alignItems: 'center',

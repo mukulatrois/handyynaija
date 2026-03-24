@@ -9,6 +9,7 @@ import FavoritesScreen from '../screens/Customer/Service/FavoritesScreen';
 import ServicesScreen from '../screens/Customer/Service/ServicesScreen';
 import InboxScreen from '../screens/Customer/Service/InboxScreen';
 import MyAccountScreen from '../screens/Customer/profile/MyAccountScreen';
+import { COLORS } from '../utils/constants';
 
 export type TabParamList = {
   Search: undefined;
@@ -25,7 +26,7 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#3FA565',
+        tabBarActiveTintColor: COLORS.SECONDARY,
         tabBarInactiveTintColor: '#666',
         tabBarLabelStyle: styles.label,
 

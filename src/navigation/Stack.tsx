@@ -26,8 +26,11 @@ import ProviderEditPersonalDetailsScreen from '../screens/Provider/EditProfileSc
 import ProviderProfileInfoScreen from '../screens/Provider/ProviderProfileInfoScreen';
 import ProviderUploadPhotoScreen from '../screens/Provider/ProviderUploadPhotoScreen';
 import ProviderVerifyPhotoScreen from '../screens/Provider/ProviderVerifyPhotoScreen';
+import ProviderAddAddressScreen from '../screens/Provider/ProviderAddAddressScreen';
 import ListingVerificationScreen from '../screens/Provider/ListingVerificationScreen';
 import ListingPriceScreen from '../screens/Provider/ListingPriceScreen';
+import ListingInformationInterestScreen from '../screens/Provider/ListingInformationInterestScreen';
+import ListingGalleryScreen from '../screens/Provider/ListingGalleryScreen';
 import ListingPhoneScreen from '../screens/Provider/ListingPhoneScreen';
 import ListingAboutMeScreen from '../screens/Provider/ListingAboutMeScreen';
 import ProviderEditProfileScreen from '../screens/Provider/EditProfileScreen';
@@ -78,7 +81,7 @@ export default function StackNavigator() {
           headerShown: false,
           animation: 'slide_from_right',
         }}
-        // initialRouteName='ProviderProfileInfo'
+        // initialRouteName='ProviderUploadPhoto'
         initialRouteName='Splash'
       >
         <Stack.Screen name="Home" component={Home} />
@@ -187,6 +190,10 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ProviderUploadPhoto"
           component={ProviderUploadPhotoScreen}
+        />
+        <Stack.Screen
+          name="ProviderAddAddress"
+          component={ProviderAddAddressScreen}
         />
         <Stack.Screen
           name="ProviderVerifyPhoto"
@@ -455,6 +462,22 @@ export default function StackNavigator() {
         <Stack.Screen
           name="ListingPrice"
           component={ListingPriceScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingInformationInterest"
+          component={ListingInformationInterestScreen}
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingGallery"
+          component={ListingGalleryScreen}
           options={{
             headerShown: false,
             animation: 'slide_from_right',

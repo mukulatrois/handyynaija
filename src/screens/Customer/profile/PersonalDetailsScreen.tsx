@@ -16,6 +16,7 @@ import {
   CameraOptions,
 } from 'react-native-image-picker';
 import { Loadingcomponent } from '../../../components/LoadingComponent';
+import { COLORS } from '../../../utils/constants';
 
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -45,7 +46,7 @@ function getDisplayName(profile: UserProfile): string {
   return (n && n.trim()) || 'Guest';
 }
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 const NAME_MAX_LENGTH = 50;
 
 export default function PersonalDetailsScreen() {
@@ -70,7 +71,7 @@ export default function PersonalDetailsScreen() {
     try {
       const result = await PermissionsAndroid.request(permission, {
         title: 'Photo access',
-        message: 'HandyNaija needs access to your photos to select a profile picture.',
+        message: 'Jolloyard needs access to your photos to select a profile picture.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',
@@ -88,7 +89,7 @@ export default function PersonalDetailsScreen() {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: 'Camera access',
-          message: 'HandyNaija needs camera access to take a profile picture.',
+          message: 'Jolloyard needs camera access to take a profile picture.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',

@@ -13,6 +13,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { goBack, navigate } from '../../../navigation/navigationService';
 import { RootStackParamList } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const DEFAULT_REGION = {
   latitude: 9.0765,
@@ -49,7 +50,7 @@ export default function ServiceAddressScreen() {
 
       {/* Address field */}
       <View style={styles.addressField}>
-        <Ionicons name="location" size={scale(22)} color="#3FA565" style={styles.addressIcon} />
+        <Ionicons name="location" size={scale(22)} color={COLORS.PRIMARY} style={styles.addressIcon} />
         <View style={styles.addressTextWrap}>
           <Text style={styles.addressLabel}>Street name and number</Text>
           <TextInput
@@ -72,7 +73,7 @@ export default function ServiceAddressScreen() {
         >
           <Marker
             coordinate={DEFAULT_LOCATION}
-            pinColor="#3FA565"
+            pinColor={COLORS.PRIMARY}
             title="Service location"
           />
         </MapView>
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     paddingBottom: margin.xl,
   },
   confirmBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(16),
     alignItems: 'center',

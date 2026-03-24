@@ -5,6 +5,7 @@ import { navigate, goBack } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { Button, TextInput as CustomTextInput } from '../../components';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { COLORS } from '../../utils/constants';
 
 type ProfileStep = 'name' | 'location' | 'contact';
 
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   progressBarActive: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   title: {
     fontSize: fontSize(28),

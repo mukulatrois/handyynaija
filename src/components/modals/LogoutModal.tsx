@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import CustomIcon from '../Icon';
 import { scale, fontSize, padding } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
 interface LogoutModalProps {
   visible: boolean;
@@ -35,7 +36,7 @@ export default function LogoutModal({
           <CustomIcon
           name="log-out-outline"
           size={scale(48)}
-          color="#3FA565"
+          color={COLORS.PRIMARY}
           style={styles.icon}
         />
         <Text style={styles.title}>Are you sure want to Log out</Text>

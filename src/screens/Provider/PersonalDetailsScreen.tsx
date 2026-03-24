@@ -18,6 +18,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, wp, hp, padding } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -161,7 +162,7 @@ export default function PersonalDetailsScreen() {
       {/* Header - back arrow GREEN, title black bold */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-          <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
           <Text style={styles.headerTitle}>Personal Details</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -178,16 +179,16 @@ export default function PersonalDetailsScreen() {
       >
         {/* Profile Summary */}
         <View style={styles.profileSummary}>
-          {profile?.avatar || profile?.photo || profile?.image ? (
+          {profile?.avatar || profile?.profilePicture || profile?.image ? (
             <Image
               source={{
-                uri: (profile?.avatar as string) ?? (profile?.photo as string) ?? (profile?.image as string),
+                uri: profile?.profilePicture as string
               }}
               style={styles.avatar}
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <CustomIcon name={IconNames.person} size={scale(32)} color="#3FA565" />
+              <CustomIcon name={IconNames.person} size={scale(32)} color={COLORS.PRIMARY} />
             </View>
           )}
           <Text style={styles.name}>{getDisplayName(profile)}</Text>
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: fontSize(16),
     fontWeight: '500',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   scrollContent: {
     paddingHorizontal: padding.lg,
@@ -420,7 +421,7 @@ const styles = StyleSheet.create({
   commentsHeader: {
     fontSize: fontSize(18),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: scale(12),
   },
   commentsList: {

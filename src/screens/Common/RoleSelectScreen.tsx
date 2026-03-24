@@ -6,6 +6,7 @@ import { navigate, goBack } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
 import { Button } from '../../components';
+import { COLORS } from '../../utils/constants';
 
 const REGISTER_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/register';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
@@ -88,7 +89,7 @@ export default function RoleSelectScreen(props: any) {
       </TouchableOpacity>
 
       <Text style={styles.title}>
-        What will you do on HandyNaija?
+        What will you do on{'\n'}JolloYard?
       </Text>
 
       <Text style={styles.subtitle}>
@@ -101,7 +102,7 @@ export default function RoleSelectScreen(props: any) {
         onPress={() => setSelected('client')}>
 
         <Image
-          source={require('../../Images/logo.png')}
+          source={require('../../Images/rs1.png')}
           style={styles.img}
         />
 
@@ -117,7 +118,7 @@ export default function RoleSelectScreen(props: any) {
         onPress={() => setSelected('pro')}>
 
         <Image
-          source={require('../../Images/logo.png')}
+          source={require('../../Images/rs2.png')}
           style={styles.img}
         />
 
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: padding.lg,
+    padding: padding.md,
     borderRadius: borderRadius.xl,
     marginBottom: margin.lg,
     borderWidth: 1.5,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
 
   activeCard: {
     borderWidth: 1.5,
-    borderColor: '#1B3556', // highlighted card
+    borderColor: COLORS.SECONDARY, // highlighted card
   },
 
   img: {

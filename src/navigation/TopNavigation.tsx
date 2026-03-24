@@ -2,6 +2,7 @@ import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import MessageScreen from '../screens/Customer/inbox/Message';
 import AlertMessageScreen from '../screens/Customer/inbox/AlertMessage';
+import { COLORS } from '../utils/constants';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -9,9 +10,9 @@ export default function InboxTopTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#3FA565',
+        tabBarActiveTintColor: COLORS.PRIMARY,
         tabBarInactiveTintColor: '#999',
-        tabBarIndicatorStyle: { backgroundColor: '#3FA565' },
+        tabBarIndicatorStyle: { backgroundColor: COLORS.PRIMARY },
         tabBarStyle: { backgroundColor: '#fff' },
       }}
     >

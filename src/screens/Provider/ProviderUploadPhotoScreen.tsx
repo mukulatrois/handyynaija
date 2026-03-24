@@ -18,8 +18,8 @@ import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { setProviderPhotoSelected } from '../../providerRegister/providerRegisterStore';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
 const CROP_SIZE = 400;
 
 export default function ProviderUploadPhotoScreen() {
@@ -42,7 +42,7 @@ export default function ProviderUploadPhotoScreen() {
     try {
       const result = await PermissionsAndroid.request(permission, {
         title: 'Photo access',
-        message: 'HandyNaija needs access to your photos to set a profile picture.',
+        message: 'Jolloyard needs access to your photos to set a profile picture.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',
@@ -60,7 +60,7 @@ export default function ProviderUploadPhotoScreen() {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: 'Camera access',
-          message: 'HandyNaija needs camera access to take a profile picture.',
+          message: 'Jolloyard needs camera access to take a profile picture.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',
@@ -137,9 +137,8 @@ export default function ProviderUploadPhotoScreen() {
   const handleSelectPhoto = () => openPhotoSheet();
 
   const handleContinue = () => {
-    if (!hasPhoto) return;
-    navigate('WorkAreas');
-    
+    if (!hasPhoto || !photoUri) return;
+    navigate('ProviderAddAddress', { photoUri });
   };
 
   return (
@@ -152,10 +151,10 @@ export default function ProviderUploadPhotoScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={scale(22)} color={PRIMARY_GREEN} />
+          <Ionicons name="chevron-back" size={scale(22)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '51%' }]} />
+          <View style={[styles.progressFill, { width: '45%' }]} />
         </View>
       </View>
 
@@ -183,7 +182,7 @@ export default function ProviderUploadPhotoScreen() {
               resizeMode="cover"
             />
           ) : (
-            <Ionicons name="add" size={scale(28)} color={PRIMARY_GREEN} />
+            <Ionicons name="add" size={scale(28)} color={COLORS.PRIMARY} />
           )}
         </TouchableOpacity>
       </View>
@@ -200,19 +199,19 @@ export default function ProviderUploadPhotoScreen() {
           <View style={styles.examplesRow}>
             <View style={styles.exampleItem}>
               <View style={styles.exampleAvatarGood}>
-                <Ionicons name="person-outline" size={scale(32)} color="#fff" />
+                <Image source={require('../../Images/uimg1.png')} style={styles.exampleAvatarImage} />
               </View>
               <Ionicons
                 name="checkmark-circle"
                 size={scale(20)}
-                color={PRIMARY_GREEN}
+                color={COLORS.PRIMARY}
                 style={styles.exampleBadge}
               />
             </View>
 
             <View style={styles.exampleItem}>
               <View style={styles.exampleAvatarBad}>
-                <Ionicons name="person-outline" size={scale(32)} color="#fff" />
+              <Image source={require('../../Images/uimg2.png')} style={styles.exampleAvatarImage} />
               </View>
               <Ionicons
                 name="close-circle"
@@ -224,15 +223,15 @@ export default function ProviderUploadPhotoScreen() {
           </View>
 
           <View style={styles.tipRow}>
-            <Ionicons name="checkmark-circle" size={scale(18)} color={PRIMARY_GREEN} />
+            <Ionicons name="checkmark-circle" size={scale(18)} color={COLORS.PRIMARY} />
             <Text style={styles.tipText}>Good lighting</Text>
           </View>
           <View style={styles.tipRow}>
-            <Ionicons name="checkmark-circle" size={scale(18)} color={PRIMARY_GREEN} />
+            <Ionicons name="checkmark-circle" size={scale(18)} color={COLORS.PRIMARY} />
             <Text style={styles.tipText}>Good resolution</Text>
           </View>
           <View style={styles.tipRow}>
-            <Ionicons name="checkmark-circle" size={scale(18)} color={PRIMARY_GREEN} />
+            <Ionicons name="checkmark-circle" size={scale(18)} color={COLORS.PRIMARY} />
             <Text style={styles.tipText}>Visible face</Text>
           </View>
         </View>
@@ -244,8 +243,8 @@ export default function ProviderUploadPhotoScreen() {
           title="Continue"
           onPress={handleContinue}
           variant="primary"
-          style={styles.continueButton}
           disabled={!hasPhoto}
+          style={{ backgroundColor: COLORS.PRIMARY }}
         />
       </View>
 
@@ -265,7 +264,7 @@ export default function ProviderUploadPhotoScreen() {
           onPress={handleSelectImage}
           activeOpacity={0.7}
         >
-          <Ionicons name="images-outline" size={scale(22)} color={PRIMARY_GREEN} />
+          <Ionicons name="images-outline" size={scale(22)} color={COLORS.PRIMARY} />
           <Text style={styles.photoSheetOptionText}>Select image</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -273,7 +272,7 @@ export default function ProviderUploadPhotoScreen() {
           onPress={handleOpenCamera}
           activeOpacity={0.7}
         >
-          <Ionicons name="camera-outline" size={scale(22)} color={PRIMARY_GREEN} />
+          <Ionicons name="camera-outline" size={scale(22)} color={COLORS.PRIMARY} />
           <Text style={styles.photoSheetOptionText}>Open camera</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -313,7 +312,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   photoSection: {
@@ -352,7 +351,7 @@ const styles = StyleSheet.create({
   },
   photoCircleSelected: {
     backgroundColor: '#E5F5EC',
-    borderColor: PRIMARY_GREEN,
+    borderColor: COLORS.PRIMARY,
   },
   photoImage: {
     width: '80%',
@@ -388,9 +387,14 @@ const styles = StyleSheet.create({
     width: scale(72),
     height: scale(72),
     borderRadius: scale(36),
-    backgroundColor: PRIMARY_GREEN,
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  exampleAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: scale(36),
   },
   exampleAvatarBad: {
     width: scale(72),

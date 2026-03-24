@@ -14,6 +14,9 @@ import Modal from 'react-native-modal';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 const DAYS = [
   'Monday',
@@ -58,6 +61,7 @@ function getInitialSchedule(): Record<string, DaySchedule> {
 }
 
 export default function WorkScheduleScreen() {
+  const route = useRoute<RouteProp<RootStackParamList, 'ProviderWorkSchedule'>>();
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(
     getInitialSchedule(),
   );
@@ -194,7 +198,7 @@ export default function WorkScheduleScreen() {
 
   const handleContinue = () => {
     if (hasActiveDay) {
-      navigate('ProviderProfileInfo');
+      navigate('ProviderProfileInfo', route.params ? { ...route.params } : undefined);
     }
   };
 
@@ -202,10 +206,10 @@ export default function WorkScheduleScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '83%' }]} />
+          <View style={[styles.progressFill, { width: '88%' }]} />
         </View>
       </View>
 
@@ -232,7 +236,7 @@ export default function WorkScheduleScreen() {
                   <Switch
                     value={available}
                     onValueChange={(v) => toggleDay(day, v)}
-                    trackColor={{ false: '#E0E0E0', true: '#3FA565' }}
+                    trackColor={{ false: '#E0E0E0', true: COLORS.PRIMARY }}
                     thumbColor="#fff"
                   />
                 </View>
@@ -270,26 +274,10 @@ export default function WorkScheduleScreen() {
                           {slot.until || 'Until'}
                         </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.removeBtn}
-                        onPress={() => removeSlot(day, index)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <CustomIcon
-                          name={IconNames.close}
-                          size={scale(18)}
-                          color="#666"
-                        />
-                      </TouchableOpacity>
+                     
                     </View>
                   ))}
-                  <TouchableOpacity
-                    style={styles.addHoursWrap}
-                    onPress={() => addHours(day)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.addHoursText}>Add hours</Text>
-                  </TouchableOpacity>
+              
                 </>
               )}
             </View>
@@ -376,7 +364,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   scroll: {
@@ -389,7 +377,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.sm,
   },
   subtitle: {
@@ -464,12 +452,12 @@ const styles = StyleSheet.create({
   },
   addHoursText: {
     fontSize: fontSize(15),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
   continueBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: scale(10),
     alignItems: 'center',
@@ -558,7 +546,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: padding.md,
     borderRadius: scale(10),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
   },
   timePickerDoneText: {

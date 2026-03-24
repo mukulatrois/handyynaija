@@ -4,8 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MessageScreen from '../inbox/Message';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button } from '../../../components';
+import { Button, CommonAppHeader } from '../../../components';
 import ServiceScreenHeader from './ServiceScreenHeader';
+import { COLORS } from '../../../utils/constants';
 
 export default function InboxScreen() {
   const refRBSheet = useRef<any>(null);
@@ -29,7 +30,8 @@ export default function InboxScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ServiceScreenHeader title="Inbox" titleColor="#3FA565" titleStyle={{ fontSize: 28 }} />
+       <CommonAppHeader />
+      <ServiceScreenHeader title="Inbox" titleColor={COLORS.PRIMARY} titleStyle={{ fontSize: 28 }} />
 
       <View style={{ flex: 1 }}>
         <MessageScreen />
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 28,
     fontWeight: '600',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     textAlign: 'center',
     marginBottom: 15,
   },

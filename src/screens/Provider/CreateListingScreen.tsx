@@ -22,8 +22,15 @@ import {
 } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
+import { useAppDispatch } from '../../store/hooks';
+import {
+  resetListingDraft,
+  setActiveStep,
+  setServiceName,
+} from '../../store/listingDraftSlice';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 const SERVICE_IMAGE_URL = (serviceId: string) =>
   `https://jolloyard-be.myfileshosting.com/api/v1/services/${encodeURIComponent(serviceId)}/image`;
 
@@ -50,6 +57,7 @@ type ApiService = {
   _id?: string;
   name?: string;
   title?: string;
+  imagePath?: string;
 };
 
 type ApiServicesResponse = {
@@ -110,6 +118,7 @@ const CIRCLE_SIZE = wp(20);
 const CIRCLE_SIZE_SUB = wp(22);
 
 export default function CreateListingScreen() {
+  const dispatch = useAppDispatch();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; title: string } | null>(
     null
@@ -148,8 +157,8 @@ export default function CreateListingScreen() {
       });
 
       const data: ApiCategoriesResponse = await res.json().catch(() => ({}));
-      
-      
+
+
       console.log(data, "categories");
       if (!res.ok) {
         throw new Error('Failed to load categories');
@@ -174,6 +183,8 @@ export default function CreateListingScreen() {
       )}&page=1&limit=10`;
       const res = await fetch(url, { method: 'GET' });
       const data: ApiServicesResponse = await res.json().catch(() => ({}));
+
+      console.log(data, "services");
       if (!res.ok) throw new Error('Failed to load services');
 
       const raw = data.services ?? data.data ?? data.results ?? [];
@@ -181,7 +192,7 @@ export default function CreateListingScreen() {
         .map((s) => ({
           id: String(s.id ?? s._id ?? ''),
           title: String(s.name ?? s.title ?? '').trim(),
-          imageUrl: s.id || s._id ? SERVICE_IMAGE_URL(String(s.id ?? s._id)) : undefined,
+          imageUrl: `https://jolloyard-be.myfileshosting.com/${s.imagePath}`,
         }))
         .filter((s) => s.id && s.title);
 
@@ -196,8 +207,17 @@ export default function CreateListingScreen() {
   }, []);
 
   useEffect(() => {
+    // Start a fresh draft when user enters the create listing flow.
+    dispatch(resetListingDraft());
     fetchCategories();
-  }, [fetchCategories]);
+  }, [dispatch, fetchCategories]);
+
+  const goToListingPrice = (serviceTitle: string) => {
+    const title = String(serviceTitle ?? '').trim();
+    dispatch(setServiceName(title || undefined));
+    dispatch(setActiveStep('listingPrice'));
+    navigate('ListingPrice' as any, { serviceName: title } as any);
+  };
 
   const mainCategories = useMemo(
     () => (apiCategories && apiCategories.length ? apiCategories : fallbackMainCategories),
@@ -220,8 +240,8 @@ export default function CreateListingScreen() {
 
   const filteredItems = search
     ? displayItems.filter((item) =>
-        item.title.toLowerCase().includes(search.toLowerCase())
-      )
+      item.title.toLowerCase().includes(search.toLowerCase())
+    )
     : displayItems;
 
   const handleCategoryPress = (cat: CategoryItem) => {
@@ -241,7 +261,7 @@ export default function CreateListingScreen() {
       return;
     }
 
-    navigate('ListingPrice' as any, { serviceName: cat.title } as any);
+    goToListingPrice(cat.title);
   };
 
   const handleBreadcrumbPress = () => {
@@ -343,62 +363,62 @@ export default function CreateListingScreen() {
 
               {services.length > 0
                 ? services
-                    .filter((s) =>
-                      search ? s.title.toLowerCase().includes(search.toLowerCase()) : true
-                    )
-                    .map((svc) => (
-                      <TouchableOpacity
-                        key={svc.id}
-                        style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
-                        activeOpacity={0.7}
-                        onPress={() =>
-                          navigate('ListingPrice' as any, { serviceName: svc.title } as any)
-                        }
-                      >
-                        <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
-                          {svc.imageUrl && !failedServiceImages[svc.id] ? (
-                            <Image
-                              source={{ uri: svc.imageUrl }}
-                              style={styles.categoryImageSub}
-                              resizeMode="contain"
-                              onError={() =>
-                                setFailedServiceImages((prev) => ({ ...prev, [svc.id]: true }))
-                              }
-                            />
-                          ) : (
-                            <Icon name="construct-outline" size={scale(24)} color={PRIMARY_GREEN} />
-                          )}
-                        </View>
-                        <Text style={styles.categoryLabel} numberOfLines={2}>
-                          {svc.title}
-                        </Text>
-                      </TouchableOpacity>
-                    ))
-                : filteredItems.map((item) => (
+                  .filter((s) =>
+                    search ? s.title.toLowerCase().includes(search.toLowerCase()) : true
+                  )
+                  .map((svc) => (
                     <TouchableOpacity
-                      key={item.id}
+                      key={svc.id}
                       style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
                       activeOpacity={0.7}
                       onPress={() =>
-                        navigate('ListingPrice' as any, { serviceName: item.title } as any)
+                        goToListingPrice(svc.title)
                       }
                     >
                       <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
-                        {item.image ? (
+                        {svc.imageUrl && !failedServiceImages[svc.id] ? (
                           <Image
-                            source={item.image}
+                            source={{ uri: svc.imageUrl }}
                             style={styles.categoryImageSub}
                             resizeMode="contain"
+                            onError={() =>
+                              setFailedServiceImages((prev) => ({ ...prev, [svc.id]: true }))
+                            }
                           />
                         ) : (
                           <Icon name="construct-outline" size={scale(24)} color={PRIMARY_GREEN} />
                         )}
                       </View>
                       <Text style={styles.categoryLabel} numberOfLines={2}>
-                        {item.title}
+                        {svc.title}
                       </Text>
                     </TouchableOpacity>
-                  ))}
+                  ))
+                : filteredItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.categoryCircle, styles.categoryCircleThreeCol]}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      goToListingPrice(item.title)
+                    }
+                  >
+                    <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
+                      {item.image ? (
+                        <Image
+                          source={item.image}
+                          style={styles.categoryImageSub}
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <Icon name="construct-outline" size={scale(24)} color={PRIMARY_GREEN} />
+                      )}
+                    </View>
+                    <Text style={styles.categoryLabel} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
             </>
           ) : (
             filteredItems.map((cat, index) => (
@@ -555,7 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: CIRCLE_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.borderLight,
+    backgroundColor: colors.white,
     marginBottom: padding.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

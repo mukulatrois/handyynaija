@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { fontSize, padding, margin, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 interface RequestDetailParams {
   requestId: string;
@@ -82,7 +83,7 @@ export default function RequestDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
-          <Icon name="arrow-back" size={scale(24)} color="#3FA565" />
+          <Icon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.headerSpacer} />
       </View>
@@ -129,7 +130,7 @@ export default function RequestDetailScreen() {
             {/* Route Polyline */}
             <Polyline
               coordinates={routeCoordinates}
-              strokeColor="#3FA565"
+              strokeColor={COLORS.PRIMARY}
               strokeWidth={4}
             />
           </MapView>
@@ -161,7 +162,7 @@ export default function RequestDetailScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.paymentLeft}>
-              <Icon name="receipt-outline" size={scale(20)} color="#3FA565" />
+              <Icon name="receipt-outline" size={scale(20)} color={COLORS.PRIMARY} />
               <Text style={styles.paymentText}>View payment details</Text>
             </View>
             <Icon name="chevron-forward" size={scale(20)} color={colors.textSecondary} />
@@ -211,7 +212,7 @@ export default function RequestDetailScreen() {
         {/* Duration and Distance Pills */}
         <View style={styles.pillsContainer}>
           <View style={styles.pill}>
-            <Icon name="time-outline" size={scale(20)} color="#3FA565" />
+            <Icon name="time-outline" size={scale(20)} color={COLORS.PRIMARY} />
             <View style={styles.pillContent}>
               <Text style={styles.pillLabel}>Duration</Text>
               <Text style={styles.pillValue}>{requestData.duration}</Text>
@@ -219,7 +220,7 @@ export default function RequestDetailScreen() {
           </View>
 
           <View style={styles.pill}>
-            <Icon name="location-outline" size={scale(20)} color="#3FA565" />
+            <Icon name="location-outline" size={scale(20)} color={COLORS.PRIMARY} />
             <View style={styles.pillContent}>
               <Text style={styles.pillLabel}>Distance</Text>
               <Text style={styles.pillValue}>{requestData.distance}</Text>
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#87CEEB', // Light blue
   },
   endMarker: {
-    backgroundColor: '#3FA565', // Green
+    backgroundColor: COLORS.PRIMARY, // Green
   },
   markerText: {
     fontSize: fontSize(14),
@@ -422,7 +423,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
   },
   greenBullet: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
   },
   addressText: {
     fontSize: fontSize(14),
@@ -527,7 +528,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: borderRadius.md,
     gap: margin.sm,

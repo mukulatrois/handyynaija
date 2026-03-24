@@ -10,8 +10,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Slider from '@react-native-community/slider';
 import { goBack, navigate } from '../../../navigation/navigationService';
+import { COLORS } from '../../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 const DURATION_STEPS = [
   '30min','45min','1h','1h 15min','1h 30min','1h 45min',

@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames } from '../../../components';
+import { SettingsRow, ShareAppModal, RateAppModal, LogoutModal, Icon, IconNames, CommonAppHeader } from '../../../components';
 import { navigate, replace, resetNavigation } from '../../../navigation/navigationService';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { COLORS } from '../../../utils/constants';
+import { width } from '../../../components/common';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -35,7 +37,7 @@ function getDisplayName(profile: UserProfile): string {
   return (n && n.trim()) || 'Guest';
 }
 
- const  MyAccountScreen=(props) =>{
+const MyAccountScreen = (props) => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [rateModalVisible, setRateModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -68,7 +70,7 @@ function getDisplayName(profile: UserProfile): string {
             const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
             if (stored && isActive) {
               try {
-                setProfile(JSON.parse(stored));
+                // setProfile(JSON.parse(stored));
               } catch {
                 // ignore invalid stored user
               }
@@ -109,9 +111,9 @@ function getDisplayName(profile: UserProfile): string {
     setShareModalVisible(false);
     try {
       await Share.share({
-        message: 'Check out HandyNaija App!',
+        message: 'Check out Jolloyard App!',
         url: 'https://handynaija.com',
-        title: 'HandyNaija App',
+        title: 'Jolloyard App',
       });
     } catch {
       // User cancelled or share failed
@@ -159,6 +161,7 @@ function getDisplayName(profile: UserProfile): string {
 
   return (
     <SafeAreaView style={styles.container}>
+      <CommonAppHeader />
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* Profile */}
@@ -173,7 +176,7 @@ function getDisplayName(profile: UserProfile): string {
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Icon name={IconNames.person} size={32} color="#3FA565" />
+              <Icon name={IconNames.person} size={32} color={COLORS.PRIMARY} />
             </View>
           )}
           <View>
@@ -235,7 +238,7 @@ function getDisplayName(profile: UserProfile): string {
           onPress={() => setRateModalVisible(true)}
         />
         <SettingsRow
-          title="Share the HandyNaija App"
+          title="Share the Jolloyard App"
           icon="share-social-outline"
           onPress={() => setShareModalVisible(true)}
         />
@@ -253,7 +256,7 @@ function getDisplayName(profile: UserProfile): string {
           onPress={goToHowCanWeImprove}
         />
         <SettingsRow
-          title="About HandyNaija App"
+          title="About Jolloyard App"
           icon="help-circle-outline"
           onPress={goToAboutHandynaija}
         />
@@ -320,10 +323,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '600',
+    width: width / 1.5
   },
 
   profileLink: {
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginTop: 4,
   },
 

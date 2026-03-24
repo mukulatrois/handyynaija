@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,18 @@ import {
   borderRadius,
 } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
-import { goBack } from '../../navigation/navigationService';
+import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  resetListingDraft,
+  setActiveStep,
+  setAboutMeDescription,
+} from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 const guidelines = [
   { text: 'Brief your personal description', good: true },
@@ -32,10 +40,20 @@ const guidelines = [
 ];
 
 export default function ListingAboutMeScreen() {
-  const [description, setDescription] = useState('');
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
+  const description = draft.aboutMeDescription ?? '';
+
+  useEffect(() => {
+    dispatch(setActiveStep('listingAboutMe'));
+  }, [dispatch]);
+
+  const canContinue = description.trim().length > 0;
 
   const handleContinue = () => {
-    // TODO: Save and proceed
+    if (!description.trim()) return;
+    dispatch(setActiveStep('listingPhone'));
+    navigate('ListingPhone');
   };
 
   return (
@@ -55,7 +73,17 @@ export default function ListingAboutMeScreen() {
             <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={goBack}
+            onPress={async () => {
+              dispatch(setActiveStep('listingAboutMe'));
+              await saveListingDraftBackupToLocalStorage({
+                ...draft,
+                activeStep: 'listingAboutMe',
+                updatedAt: Date.now(),
+              });
+              // Clear redux values immediately after saving backup.
+              dispatch(resetListingDraft());
+              navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
+            }}
             style={styles.saveExitButton}
             activeOpacity={0.7}
           >
@@ -81,7 +109,7 @@ export default function ListingAboutMeScreen() {
             placeholder="Write a description about you....."
             placeholderTextColor={colors.textMuted}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(text) => dispatch(setAboutMeDescription(text))}
             multiline
             textAlignVertical="top"
           />
@@ -113,6 +141,7 @@ export default function ListingAboutMeScreen() {
             onPress={handleContinue}
             variant="primary"
             style={styles.continueButton}
+            disabled={!canContinue}
           />
         </ScrollView>
       </KeyboardAvoidingView>

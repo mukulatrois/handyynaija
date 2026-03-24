@@ -10,8 +10,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ProviderVerifyPhotoScreen() {
   const [isVerifying, setIsVerifying] = useState(false);
@@ -51,7 +52,7 @@ export default function ProviderVerifyPhotoScreen() {
         <Text style={styles.title}>Private photo verification</Text>
         <Text style={styles.subtitle}>
           We just need to confirm that it&apos;s really you in the photo you uploaded.
-          This helps us keep your account and the HandyNaija community safe.
+          This helps us keep your account and the Jolloyard community safe.
         </Text>
 
         {/* Preview placeholder */}

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
+import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../utils/constants';
+import Button from '../../components/Button';
 
 type CountryItem = {
   code: string;
@@ -16,30 +19,62 @@ const COUNTRY_LIST: CountryItem[] = [
 ];
 
 export default function SelectCountryScreen() {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          'Exit App',
+          'Do you want to exit the app?',
+          [
+            { text: 'No', onPress: () => {}, style: 'cancel' },
+            { text: 'Yes', onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        subscription.remove();
+      };
+    }, [])
+  );
   const [selectedCountry, setSelectedCountry] = useState<CountryItem | null>(null);
 
   const handleSelectCountry = (item: CountryItem) => {
     setSelectedCountry(item);
+  };
+
+  const handleContinue = () => {
+    if (!selectedCountry) {
+      return;
+    }
     navigate('ProviderChooseCity');
   };
 
-  const renderItem = ({ item }: { item: CountryItem }) => (
-    <TouchableOpacity
-      style={[styles.item, selectedCountry?.code === item.code && styles.activeItem]}
-      onPress={() => handleSelectCountry(item)}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.flag}>{item.flag}</Text>
-      <Text style={styles.itemText}>{item.name}</Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: CountryItem }) => {
+    const isSelected = selectedCountry?.code === item.code;
+
+    return (
+      <TouchableOpacity
+        style={[styles.item, isSelected && styles.itemSelected]}
+        onPress={() => handleSelectCountry(item)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.flag}>{item.flag}</Text>
+        <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>{item.name}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with back arrow and progress bar */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
           <View style={styles.progressFill} />
@@ -72,6 +107,14 @@ export default function SelectCountryScreen() {
             </Text>
             {' '}and we will do our best to reach you as soon as possible.
           </Text>
+
+          {selectedCountry && (
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              style={styles.continueButton}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -102,9 +145,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressFill: {
-    width: '17%',
+    width: '15%',
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   content: {
@@ -114,7 +157,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.md,
   },
   subtitle: {
@@ -132,9 +175,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.md,
     borderBottomWidth: 1,
     borderColor: '#eee',
+    borderRadius: scale(10),
   },
-  activeItem: {
-    backgroundColor: '#E8F5EE',
+  itemSelected: {
+    backgroundColor: '#FC591126',
+    borderColor: COLORS.PRIMARY,
+    borderWidth: 1,
   },
   flag: {
     fontSize: fontSize(24),
@@ -143,6 +189,10 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: fontSize(16),
     color: '#000',
+  },
+  itemTextSelected: {
+    color: COLORS.PRIMARY,
+    fontWeight: '600',
   },
   footer: {
     paddingVertical: margin.xl,
@@ -163,8 +213,11 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     textDecorationLine: 'underline',
     fontWeight: '600',
+  },
+  continueButton: {
+    marginTop: margin.md,
   },
 });

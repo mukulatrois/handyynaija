@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modal';
 import CustomIcon from '../Icon';
 import { scale, fontSize, padding } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
 interface ShareAppModalProps {
   visible: boolean;
@@ -95,20 +96,20 @@ const styles = StyleSheet.create({
     paddingVertical: scale(14),
     borderRadius: scale(12),
     borderWidth: 2,
-    borderColor: '#3FA565',
+    borderColor: COLORS.PRIMARY,
     alignItems: 'center',
   },
   cancelText: {
     fontSize: fontSize(16),
     fontWeight: '600',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   shareButton: {
     flex: 1,
     flexDirection: 'row',
     paddingVertical: scale(14),
     borderRadius: scale(12),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
     gap: scale(8),

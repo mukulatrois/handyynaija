@@ -4,41 +4,44 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
+  Platform,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import Slider from '@react-native-community/slider';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
-
-const AREAS = [
-  'Ajeromi-Ifelodun',
-  'Alimosho',
-  'Kosofe',
-  'Mushin',
-  'Oshodi-Isolo',
-  'Ojo',
-  'Ikorodu',
-  'Surulere',
-];
+import { RootStackParamList } from '../../navigation/navigationService';
+import { COLORS } from '../../utils/constants';
 
 export default function WorkAreasScreen() {
-  const [mode, setMode] = useState<'map' | 'list'>('map');
-  const [selected, setSelected] = useState<string[]>([]);
+  const route = useRoute<RouteProp<RootStackParamList, 'WorkAreas'>>();
+  const coordinates = route.params?.coordinates;
+  const [distanceKm, setDistanceKm] = useState<number>(10);
 
-  const toggleArea = (area: string) => {
-    if (selected.includes(area)) {
-      setSelected(selected.filter((a) => a !== area));
-    } else {
-      setSelected([...selected, area]);
+  const initialRegion = coordinates
+    ? {
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
     }
-  };
+    : {
+      latitude: 13.0059,
+      longitude: 5.2476,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
 
   const handleContinue = () => {
-    if (selected.length > 0 || mode === 'map') {
-      navigate('ProviderWorkSchedule');
-    }
+    navigate('ProviderWorkSchedule', {
+      address: route.params?.address,
+      coordinates: route.params?.coordinates,
+      distanceKm,
+      photoUri: route.params?.photoUri,
+    });
   };
 
   return (
@@ -46,97 +49,59 @@ export default function WorkAreasScreen() {
       {/* Header with back arrow and progress bar */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color="#3FA565" />
+          <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '67%' }]} />
+          <View style={[styles.progressFill, { width: '74%' }]} />
         </View>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Work areas</Text>
+        <Text style={styles.title}>Work Areas</Text>
         <Text style={styles.subtitle}>
-          Select the areas you can travel to in order to offer your services.
-          Remember that you cannot charge an extra fee for travel
+          Select the distance Value you can travel to in order to offer your services. Please
+          remember that you cannot charge an extra fee for travel.
         </Text>
 
-        {/* Map/List Toggle */}
-        <View style={styles.toggle}>
-          <TouchableOpacity
-            style={[styles.toggleBtn, mode === 'map' && styles.activeBtn]}
-            onPress={() => setMode('map')}
-          >
-            <Text style={[styles.toggleText, mode === 'map' && styles.activeText]}>
-              Map
-            </Text>
-          </TouchableOpacity>
+        {/* Map only */}
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          initialRegion={initialRegion}
+        >
+          {coordinates ? (
+            <Marker coordinate={coordinates} pinColor={COLORS.SECONDARY} />
+          ) : (
+            <Marker coordinate={{ latitude: 13.0059, longitude: 5.2476 }} pinColor={COLORS.SECONDARY} />
+          )}
+        </MapView>
 
-          <TouchableOpacity
-            style={[styles.toggleBtn, mode === 'list' && styles.activeBtn]}
-            onPress={() => setMode('list')}
-          >
-            <Text style={[styles.toggleText, mode === 'list' && styles.activeText]}>
-              List
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Distance Slider */}
+        <View style={styles.distanceSection}>
+          <Text style={styles.distanceTitle}>
+            Distance <Text style={styles.distanceValue}>{distanceKm} km</Text>
+          </Text>
 
-        {/* Content */}
-        {mode === 'map' ? (
-          <MapView
-            provider="google"
-            style={styles.map}
-            initialRegion={{
-              latitude: 13.0059,
-              longitude: 5.2476,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }}
-          >
-            <Marker coordinate={{ latitude: 13.0059, longitude: 5.2476 }} />
-            <Marker coordinate={{ latitude: 13.01, longitude: 5.25 }} />
-            <Marker coordinate={{ latitude: 13.0, longitude: 5.24 }} />
-          </MapView>
-        ) : (
-          <FlatList
-            data={AREAS}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.row}
-                onPress={() => toggleArea(item)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    selected.includes(item) && styles.checked,
-                  ]}
-                />
-                <Text style={styles.areaText}>{item}</Text>
-              </TouchableOpacity>
-            )}
+          <Slider
+            minimumValue={1}
+            maximumValue={50}
+            step={1}
+            value={distanceKm}
+            minimumTrackTintColor={COLORS.PRIMARY}
+            maximumTrackTintColor="#E5E5E5"
+            thumbTintColor={COLORS.PRIMARY}
+            onValueChange={(val: number) => setDistanceKm(Math.round(val))}
           />
-        )}
+
+        </View>
 
         {/* Continue Button */}
         <TouchableOpacity
-          disabled={mode === 'list' && selected.length === 0}
-          style={[
-            styles.continueBtn,
-            mode === 'list' && selected.length === 0 && styles.disabledBtn,
-          ]}
+          style={styles.continueBtn}
           onPress={handleContinue}
           activeOpacity={0.7}
         >
-          <Text
-            style={[
-              styles.continueText,
-              mode === 'list' && selected.length === 0 && styles.disabledText,
-            ]}
-          >
-            Continue
-          </Text>
+          <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -168,7 +133,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: scale(10),
   },
   content: {
@@ -178,7 +143,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize(24),
     fontWeight: 'bold',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.sm,
   },
   subtitle: {
@@ -187,65 +152,18 @@ const styles = StyleSheet.create({
     marginBottom: margin.lg,
     lineHeight: fontSize(20),
   },
-  toggle: {
-    flexDirection: 'row',
-    backgroundColor: '#E0E0E0',
-    borderRadius: scale(25),
-    padding: scale(4),
-    marginBottom: margin.lg,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: padding.md,
-    borderRadius: scale(20),
-    alignItems: 'center',
-  },
-  activeBtn: {
-    backgroundColor: '#3FA565',
-  },
-  toggleText: {
-    fontSize: fontSize(14),
-    color: '#555',
-  },
-  activeText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
   map: {
-    flex: 1,
+    height: scale(360),
     borderRadius: scale(12),
     marginBottom: margin.lg,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: padding.lg,
-    paddingHorizontal: padding.md,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  checkbox: {
-    width: scale(22),
-    height: scale(22),
-    borderRadius: scale(6),
-    borderWidth: 2,
-    borderColor: '#ccc',
-    marginRight: padding.md,
-  },
-  checked: {
-    backgroundColor: '#3FA565',
-    borderColor: '#3FA565',
-  },
-  areaText: {
-    fontSize: fontSize(16),
-    color: '#333',
-  },
   continueBtn: {
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     paddingVertical: padding.lg,
     borderRadius: scale(10),
     alignItems: 'center',
     marginBottom: margin.xl,
+    marginTop: margin.lg,
   },
   disabledBtn: {
     backgroundColor: '#E0E0E0',
@@ -255,7 +173,21 @@ const styles = StyleSheet.create({
     fontSize: fontSize(16),
     fontWeight: '600',
   },
-  disabledText: {
-    color: '#555',
+  distanceSection: {
+    marginBottom: margin.lg,
+  },
+  distanceTitle: {
+    fontSize: fontSize(14),
+    color: '#444',
+    marginBottom: margin.sm,
+  },
+  distanceValue: {
+    fontWeight: '700',
+    color: COLORS.PRIMARY,
+  },
+  distanceHint: {
+    marginTop: margin.xs,
+    fontSize: fontSize(12),
+    color: '#777',
   },
 });

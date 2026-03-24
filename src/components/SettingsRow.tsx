@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { scale, fontSize, padding } from '../utils/responsive';
 import CustomIcon, { IconNames } from './Icon';
+import { COLORS } from '../utils/constants';
 
 interface SettingsRowProps {
   title: string;
@@ -14,7 +15,7 @@ export default function SettingsRow({ title, icon, onPress }: SettingsRowProps) 
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.rowLeft}>
         <View style={styles.iconBox}>
-          <CustomIcon name={icon} size={scale(18)} color="#3FA565" />
+          <CustomIcon name={icon} size={scale(18)} color={COLORS.PRIMARY} />
         </View>
         <Text style={styles.rowText}>{title}</Text>
       </View>

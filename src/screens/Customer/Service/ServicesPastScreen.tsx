@@ -10,6 +10,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { navigate } from '../../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../../utils/responsive';
+import { COLORS } from '../../../utils/constants';
 
 const PAST_SERVICES = [
   { id: '1', serviceType: 'Cleaning', name: 'Nicolas bond', date: 'Thursday, 9 Oct. 2025', time: '10:00 AM' },
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize(20),
     fontWeight: '700',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     marginBottom: margin.lg,
   },
   card: {
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: scale(14),
     marginTop: margin.md,

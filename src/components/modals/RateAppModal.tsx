@@ -4,6 +4,7 @@ import Modal from 'react-native-modal';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CustomIcon from '../Icon';
 import { scale, fontSize, padding } from '../../utils/responsive';
+import { COLORS } from '../../utils/constants';
 
 interface RateAppModalProps {
   visible: boolean;
@@ -119,19 +120,19 @@ const styles = StyleSheet.create({
     paddingVertical: scale(14),
     borderRadius: scale(12),
     borderWidth: 2,
-    borderColor: '#3FA565',
+    borderColor: COLORS.PRIMARY,
     alignItems: 'center',
   },
   cancelText: {
     fontSize: fontSize(16),
     fontWeight: '600',
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
   },
   submitButton: {
     flex: 1,
     paddingVertical: scale(14),
     borderRadius: scale(12),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     alignItems: 'center',
   },
   submitText: {

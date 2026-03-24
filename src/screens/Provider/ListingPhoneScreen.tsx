@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,19 +21,45 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  setActiveStep,
+  setPhoneNumber,
+  resetListingDraft,
+} from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ListingPhoneScreen() {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
+  const phoneNumber = draft.phoneNumber ?? '';
   const countryCode = '+234';
 
+  useEffect(() => {
+    dispatch(setActiveStep('listingPhone'));
+  }, [dispatch]);
+
+  const canContinue = phoneNumber.trim().length > 0;
+
   const handleContinue = () => {
+    if (!canContinue) return;
+    dispatch(setActiveStep('listingVerification'));
     navigate('ListingVerification');
   };
 
-  const handleSaveAndExit = () => {
-    goBack();
+  const handleSaveAndExit = async () => {
+    dispatch(setActiveStep('listingPhone'));
+    await saveListingDraftBackupToLocalStorage({
+      ...draft,
+      activeStep: 'listingPhone',
+      updatedAt: Date.now(),
+    });
+    // Clear redux values immediately after saving backup.
+    dispatch(resetListingDraft());
+    navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
   };
 
   return (
@@ -88,7 +114,7 @@ export default function ListingPhoneScreen() {
               placeholder="Enter phone number"
               placeholderTextColor={colors.textMuted}
               value={phoneNumber}
-              onChangeText={setPhoneNumber}
+              onChangeText={(text) => dispatch(setPhoneNumber(text))}
               keyboardType="phone-pad"
             />
           </View>
@@ -98,6 +124,7 @@ export default function ListingPhoneScreen() {
             onPress={handleContinue}
             variant="primary"
             style={styles.continueButton}
+            disabled={!canContinue}
           />
         </ScrollView>
       </KeyboardAvoidingView>

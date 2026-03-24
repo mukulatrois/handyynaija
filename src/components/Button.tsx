@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: '#3FA565',
+    backgroundColor: '#49712E',
   },
   secondary: {
     backgroundColor: '#18375F',

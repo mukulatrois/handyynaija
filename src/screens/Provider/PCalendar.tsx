@@ -13,7 +13,7 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { fontSize, padding, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
-import { HandleBar, CloseButton } from '../../components';
+import { HandleBar, CloseButton, CommonAppHeader } from '../../components';
 import { navigate } from '../../navigation/navigationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Loadingcomponent } from '../../components/LoadingComponent';
@@ -163,6 +163,7 @@ export default function PCalendar() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {loading && <Loadingcomponent />}
+      <CommonAppHeader />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Calendar</Text>

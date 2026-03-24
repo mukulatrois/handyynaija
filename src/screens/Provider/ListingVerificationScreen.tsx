@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -21,12 +21,23 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch } from '../../store/hooks';
+import { resetListingDraft, setActiveStep } from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
+import { useAppSelector } from '../../store/hooks';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 export default function ListingVerificationScreen() {
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
   const [otp, setOtp] = useState(['', '', '', '']);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  useEffect(() => {
+    dispatch(setActiveStep('listingVerification'));
+  }, [dispatch]);
 
   const handleOtpChange = (value: string, index: number) => {
     if (value.length > 1) {
@@ -61,6 +72,7 @@ export default function ListingVerificationScreen() {
   };
 
   const handleContinue = () => {
+    dispatch(setActiveStep('listingAboutMe'));
     navigate('ListingAboutMe');
   };
 
@@ -76,7 +88,17 @@ export default function ListingVerificationScreen() {
             <Icon name="chevron-back" size={scale(24)} color={PRIMARY_GREEN} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={goBack}
+            onPress={async () => {
+              dispatch(setActiveStep('listingVerification'));
+              await saveListingDraftBackupToLocalStorage({
+                ...draft,
+                activeStep: 'listingVerification',
+                updatedAt: Date.now(),
+              });
+              // Clear redux values immediately after saving backup.
+              dispatch(resetListingDraft());
+              navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
+            }}
             style={styles.saveExitButton}
             activeOpacity={0.7}
           >
@@ -99,7 +121,9 @@ export default function ListingVerificationScreen() {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (inputRefs.current[index] = ref)}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 style={styles.otpInput}
                 value={digit}
                 onChangeText={(value) => handleOtpChange(value, index)}

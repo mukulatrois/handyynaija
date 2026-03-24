@@ -7,8 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { fontSize, padding, margin, borderRadius, scale } from '../../utils/responsive';
 import { colors } from '../../theme/colors';
-import { LogoutModal } from '../../components';
+import { CommonAppHeader, LogoutModal } from '../../components';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { COLORS } from '../../utils/constants';
 
 const LOGOUT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/logout';
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
@@ -49,7 +50,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   icon,
   text,
   onPress,
-  iconColor = '#3FA565',
+  iconColor = COLORS.PRIMARY,
 }) => {
   return (
     <TouchableOpacity
@@ -90,10 +91,13 @@ export default function PProfile() {
 
           if (!isActive) return;
           console.log(res, "res");
+    
+          
           if (res.ok) {
             const data = await res.json();
 
             const user = data?.data?.user ?? data?.user ?? data?.data ?? data;
+            console.log(user, "user");
             if (isActive) setProfile(user ?? null);
           } else {
             const errorData = await res.json();   // read error response
@@ -170,22 +174,22 @@ export default function PProfile() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+          <CommonAppHeader />
         {/* User Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {profile?.avatar || profile?.photo || profile?.image ? (
+            {profile?.avatar || profile?.profilePicture || profile?.image ? (
               <Image
                 source={{
                   uri:
-                    (profile?.avatar as string) ??
-                    (profile?.photo as string) ??
-                    (profile?.image as string),
+                    
+                    profile?.profilePicture as string,
                 }}
                 style={styles.avatar}
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Icon name="person-outline" size={scale(28)} color="#3FA565" />
+                <Icon name="person-outline" size={scale(28)} color={COLORS.PRIMARY} />
               </View>
             )}
           </View>
@@ -243,7 +247,7 @@ export default function PProfile() {
         <SectionHeader title="Do you like the app?" />
         <MenuItem icon="star-outline" text="Will you give us 5 stars?😊" />
         <View style={styles.separator} />
-        <MenuItem icon="share-social-outline" text="Share the HandyNaija App" />
+        <MenuItem icon="share-social-outline" text="Share the Jolloyard App" />
         <View style={styles.separator} />
 
         {/* SUPPORT CENTRE Section */}
@@ -252,7 +256,7 @@ export default function PProfile() {
         <View style={styles.separator} />
         <MenuItem icon="bulb-outline" text="How can we improve?" />
         <View style={styles.separator} />
-        <MenuItem icon="help-circle-outline" text="About HandyNaija App" />
+        <MenuItem icon="help-circle-outline" text="About Jolloyard App" />
         <View style={styles.separator} />
         <MenuItem icon="shield-checkmark-outline" text="Privacy policy" />
         <View style={styles.separator} />
@@ -284,7 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   profileHeader: {
     flexDirection: 'row',
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
   },
   viewProfileLink: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
   },
   sectionHeader: {

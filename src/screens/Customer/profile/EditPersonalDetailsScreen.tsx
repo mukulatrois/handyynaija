@@ -24,6 +24,7 @@ import {
   ImageLibraryOptions,
   CameraOptions,
 } from 'react-native-image-picker';
+import { COLORS } from '../../../utils/constants';
 
 const MAX_NAME_LENGTH = 50;
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -31,6 +32,19 @@ const DELETE_ACCOUNT_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/u
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
+
+const createAvatarPayload = (fileUri: string) => {
+  const normalizedUri =
+    Platform.OS === 'ios' && fileUri.startsWith('file://')
+      ? fileUri.replace('file://', '')
+      : fileUri;
+
+  return {
+    uri: normalizedUri,
+    type: 'image/jpeg',
+    name: `avatar-${Date.now()}.jpg`,
+  };
+};
 
 export default function EditPersonalDetailsScreen() {
   const [name, setName] = useState('Paschaloliver');
@@ -72,8 +86,8 @@ export default function EditPersonalDetailsScreen() {
             if (user.phone || user.phone_number) {
               setPhone(user.phone || user.phone_number);
             }
-            if (user.avatar || user.photo || user.image) {
-              setAvatar(user.avatar || user.photo || user.image);
+            if (user.profilePicture || user.photo || user.image) {
+              setAvatar(user.profilePicture || user.photo || user.image);
             }
           }
         }
@@ -148,8 +162,17 @@ export default function EditPersonalDetailsScreen() {
       formData.append('name', name);
       formData.append('email', email);
       formData.append('phone', phone);
-      if (avatarFile) {
-        formData.append('avatar', avatarFile as any);
+      const fileToUpload =
+        avatarFile ||
+        (avatar &&
+        (avatar.startsWith('file://') || avatar.startsWith('content://'))
+          ? createAvatarPayload(avatar)
+          : null);
+
+      if (fileToUpload) {
+        // Keep both keys to support whichever field name backend expects.
+        formData.append('avatar', fileToUpload as any);
+        formData.append('profile_picture', fileToUpload as any);
       }
 
       const res = await fetch(PROFILE_API_URL, {
@@ -215,7 +238,7 @@ export default function EditPersonalDetailsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.headerLeft}>
-            <CustomIcon name="arrow-back" size={scale(24)} color="#3FA565" />
+            <CustomIcon name="arrow-back" size={scale(24)} color={COLORS.PRIMARY} />
             <Text style={styles.headerTitle}>Edit Details</Text>
           </TouchableOpacity>
         </View>
@@ -238,7 +261,7 @@ export default function EditPersonalDetailsScreen() {
                   <CustomIcon
                     name={IconNames.person}
                     size={scale(40)}
-                    color="#3FA565"
+                    color={COLORS.PRIMARY}
                   />
                 </View>
               )}
@@ -284,6 +307,7 @@ export default function EditPersonalDetailsScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={false}
               />
             </View>
             <View style={styles.inputDivider} />
@@ -335,7 +359,7 @@ export default function EditPersonalDetailsScreen() {
             onPress={handlePickFromGallery}
             activeOpacity={0.7}
           >
-            <CustomIcon name="image-outline" size={scale(22)} color="#3FA565" />
+            <CustomIcon name="image-outline" size={scale(22)} color={COLORS.PRIMARY} />
             <Text style={styles.sheetRowText}>Select from gallery</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -343,7 +367,7 @@ export default function EditPersonalDetailsScreen() {
             onPress={handleOpenCamera}
             activeOpacity={0.7}
           >
-            <CustomIcon name="camera-outline" size={scale(22)} color="#3FA565" />
+            <CustomIcon name="camera-outline" size={scale(22)} color={COLORS.PRIMARY} />
             <Text style={styles.sheetRowText}>Open camera</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -418,7 +442,7 @@ const styles = StyleSheet.create({
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: '#3FA565',
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -453,7 +477,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: fontSize(14),
-    color: '#3FA565',
+    color: COLORS.PRIMARY,
     fontWeight: '500',
   },
   sheetContainer: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,24 +21,57 @@ import {
 import { colors } from '../../theme/colors';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { Button } from '../../components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  setActiveStep,
+  setPrice,
+  setServiceName,
+  resetListingDraft,
+} from '../../store/listingDraftSlice';
+import { saveListingDraftBackupToLocalStorage } from '../../utils/listingDraftStorage';
+import { COLORS } from '../../utils/constants';
 
-const PRIMARY_GREEN = '#3FA565';
+const PRIMARY_GREEN = COLORS.PRIMARY;
 
 type Props = {
   route: { params?: { serviceName?: string } };
 };
 
 export default function ListingPriceScreen({ route }: Props) {
-  const serviceName = route.params?.serviceName ?? 'handyman';
-  const [price, setPrice] = useState('');
+  const dispatch = useAppDispatch();
+  const draft = useAppSelector((s) => s.listingDraft);
+
+  const serviceName =
+    route.params?.serviceName ?? draft.serviceName ?? 'handyman';
+  const price = draft.price ?? '';
+
+  const canSave = useMemo(() => price.trim().length > 0, [price]);
+
+  useEffect(() => {
+    dispatch(setActiveStep('listingPrice'));
+    if (route.params?.serviceName) {
+      dispatch(setServiceName(route.params.serviceName));
+    }
+  }, [dispatch, route.params?.serviceName]);
 
   const handleSave = () => {
-    navigate('ListingPhone');
+    if (!canSave) return;
+    dispatch(setActiveStep('listingInformationInterest'));
+    navigate('ListingInformationInterest');
   };
 
-  const handleSaveAndExit = () => {
-    handleSave();
-    goBack();
+  const handleSaveAndExit = async () => {
+    if (!canSave) return;
+    dispatch(setActiveStep('listingPrice'));
+    // Persist explicit JSON backup for "Save and exit".
+    await saveListingDraftBackupToLocalStorage({
+      ...draft,
+      activeStep: 'listingPrice',
+      updatedAt: Date.now(),
+    });
+    // Clear redux values immediately after saving backup.
+    dispatch(resetListingDraft());
+    navigate('ProviderTabs' as any, { screen: 'Listings' } as any);
   };
 
   return (
@@ -61,6 +94,7 @@ export default function ListingPriceScreen({ route }: Props) {
             onPress={handleSaveAndExit}
             style={styles.saveExitButton}
             activeOpacity={0.7}
+            disabled={!canSave}
           >
             <Text style={styles.saveExitText}>Save and exit</Text>
           </TouchableOpacity>
@@ -85,7 +119,7 @@ export default function ListingPriceScreen({ route }: Props) {
               placeholder="Enter Price"
               placeholderTextColor={colors.textMuted}
               value={price}
-              onChangeText={setPrice}
+              onChangeText={(text) => dispatch(setPrice(text))}
               keyboardType="decimal-pad"
             />
             <Text style={styles.currency}>₦</Text>
@@ -105,6 +139,7 @@ export default function ListingPriceScreen({ route }: Props) {
             onPress={handleSave}
             variant="primary"
             style={styles.saveButton}
+            disabled={!canSave}
           />
         </ScrollView>
       </KeyboardAvoidingView>
