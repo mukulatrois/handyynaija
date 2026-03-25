@@ -17,6 +17,7 @@ import {
 } from 'react-native-image-picker';
 import { Loadingcomponent } from '../../../components/LoadingComponent';
 import { COLORS } from '../../../utils/constants';
+import PhoneInput from "react-native-phone-number-input";
 
 const ME_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/auth/me';
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -55,6 +56,8 @@ export default function PersonalDetailsScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const phoneInput = useRef(null);
+
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<any | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -351,7 +354,7 @@ export default function PersonalDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-    {saving &&  <Loadingcomponent  />}
+      {saving && <Loadingcomponent />}
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -441,17 +444,52 @@ export default function PersonalDetailsScreen() {
               />
             </View>
 
-            {/* <View style={styles.inputRow}>
-              <RNTextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="Phone"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="phone-pad"
-                editable={isEditing}
-              />
-            </View> */}
+            <View style={styles.inputRow}>
+              {isEditing ? (
+                <PhoneInput
+                  ref={phoneInput}
+                  defaultValue={phone}
+                  defaultCode="IN"
+                  layout="first"
+
+                  onChangeText={(text) => setPhone(text)}
+                  onChangeFormattedText={(text) => setPhone(text)}
+
+                  flagButtonStyle={{
+                    width: 0,
+                  }}
+
+                  containerStyle={{
+                    flex: 1,
+                    backgroundColor: 'transparent',
+                  }}
+
+                  textContainerStyle={{
+                    backgroundColor: 'transparent',
+                    paddingVertical: 0,
+                    paddingLeft: 0,
+                  }}
+
+                  textInputStyle={{
+                    fontSize: fontSize(16),
+                    color: colors.text,
+                    padding: 0,
+                  }}
+
+                  codeTextStyle={{
+                    fontSize: fontSize(16),
+                  }}
+                />
+              ) : (
+                <RNTextInput
+                  style={[styles.input, styles.inputDisabled]}
+                  value={phone}
+                  placeholder="Phone"
+                  placeholderTextColor={colors.textMuted}
+                  editable={false}
+                />
+              )}
+            </View>
           </View>
 
           {/* Save Button */}
@@ -479,7 +517,6 @@ export default function PersonalDetailsScreen() {
         ref={bottomSheetRef}
         height={scale(220)}
         openDuration={250}
-        closeOnDragDown
         closeOnPressMask
         customStyles={{
           container: styles.sheetContainer,

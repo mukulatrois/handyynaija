@@ -25,6 +25,9 @@ import {
   CameraOptions,
 } from 'react-native-image-picker';
 import { COLORS } from '../../../utils/constants';
+import PhoneInput from "react-native-phone-number-input";
+import { colors } from '../../../theme/colors';
+
 
 const MAX_NAME_LENGTH = 50;
 const PROFILE_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/users/profile';
@@ -49,6 +52,7 @@ const createAvatarPayload = (fileUri: string) => {
 export default function EditPersonalDetailsScreen() {
   const [name, setName] = useState('Paschaloliver');
   const [email, setEmail] = useState('Paschaloliver@example.com');
+  const phoneInput = useRef(null);
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<any | null>(null);
@@ -165,7 +169,7 @@ export default function EditPersonalDetailsScreen() {
       const fileToUpload =
         avatarFile ||
         (avatar &&
-        (avatar.startsWith('file://') || avatar.startsWith('content://'))
+          (avatar.startsWith('file://') || avatar.startsWith('content://'))
           ? createAvatarPayload(avatar)
           : null);
 
@@ -327,16 +331,39 @@ export default function EditPersonalDetailsScreen() {
             </View>
             <View style={styles.inputDivider} />
 
-            {/* <View style={styles.inputRow}>
-              <RNTextInput
-                style={styles.input}
-                placeholder="Phone"
-                placeholderTextColor="#999"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-            </View> */}
+            <PhoneInput
+              ref={phoneInput}
+              defaultValue={phone}
+              layout="first"
+
+              onChangeText={(text) => setPhone(text)}
+              onChangeFormattedText={(text) => setPhone(text)}
+
+              flagButtonStyle={{
+                width: 0,
+              }}
+
+              containerStyle={{
+                flex: 1,
+                backgroundColor: 'transparent',
+              }}
+
+              textContainerStyle={{
+                backgroundColor: 'transparent',
+                paddingVertical: 0,
+                paddingLeft: 0,
+              }}
+
+              textInputStyle={{
+                fontSize: fontSize(16),
+                color: colors.text,
+                padding: padding.lg,
+              }}
+
+              codeTextStyle={{
+                fontSize: fontSize(16),
+              }}
+            />
           </View>
 
           {/* Save Button */}
@@ -360,7 +387,6 @@ export default function EditPersonalDetailsScreen() {
         ref={bottomSheetRef}
         height={scale(220)}
         openDuration={250}
-        closeOnDragDown
         closeOnPressMask
         customStyles={{
           container: styles.sheetContainer,

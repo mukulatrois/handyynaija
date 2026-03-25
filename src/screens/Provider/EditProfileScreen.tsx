@@ -11,6 +11,8 @@ import CustomIcon, { IconNames } from '../../components/Icon';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { launchCamera, launchImageLibrary, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker';
 import { COLORS } from '../../utils/constants';
+import PhoneInput from "react-native-phone-number-input";
+
 
 const PRIMARY_GREEN = COLORS.PRIMARY;
 const NAME_MAX_LENGTH = 50;
@@ -64,6 +66,7 @@ export default function EditProfileScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const phoneInput = useRef(null);
   const [about, setAbout] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<any | null>(null);
@@ -191,7 +194,7 @@ export default function EditProfileScreen() {
         avatarFileRef.current ||
         avatarFile ||
         (currentAvatar &&
-        (currentAvatar.startsWith('file://') || currentAvatar.startsWith('content://'))
+          (currentAvatar.startsWith('file://') || currentAvatar.startsWith('content://'))
           ? createAvatarPayload(currentAvatar)
           : null);
 
@@ -321,13 +324,39 @@ export default function EditProfileScreen() {
               editable={false}
             />
 
-            <RNTextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="Phone"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="phone-pad"
+            <PhoneInput
+              ref={phoneInput}
+              defaultValue={phone}
+              // defaultCode="IN"
+              layout="first"
+
+              onChangeText={(text) => setPhone(text)}
+              onChangeFormattedText={(text) => setPhone(text)}
+              flagButtonStyle={{
+                width: 0,
+              }}
+
+              containerStyle={{
+                width: '100%',
+                backgroundColor: '#F5F5F5',
+                borderRadius: borderRadius.lg,
+                marginBottom: margin.md,
+              }}
+
+              textContainerStyle={{
+                backgroundColor: 'transparent',
+                paddingVertical: padding.sm,
+              }}
+
+              textInputStyle={{
+                fontSize: fontSize(16),
+                color: colors.text,
+              }}
+
+              codeTextStyle={{
+                fontSize: fontSize(16),
+                marginLeft: 10, // thoda spacing
+              }}
             />
           </View>
 
@@ -371,7 +400,6 @@ export default function EditProfileScreen() {
         ref={bottomSheetRef}
         height={scale(220)}
         openDuration={250}
-        closeOnDragDown
         closeOnPressMask
         customStyles={{
           container: styles.sheetContainer,

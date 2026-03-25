@@ -36,6 +36,7 @@
     "react-native-maps": "^1.27.1",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-pager-view": "^8.0.0",
+    "react-native-phone-number-input": "^2.1.0",
     "react-native-raw-bottom-sheet": "^3.0.0",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.23.0",
