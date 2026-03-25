@@ -53,7 +53,7 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <CommonAppHeader />
+      {/* <CommonAppHeader /> */}
       <ServiceScreenHeader
         title="Favorites"
         titleColor={COLORS.PRIMARY}

@@ -20,6 +20,8 @@ export type ListingDraftState = {
   draftId?: string;
   activeStep: ListingWizardStep;
   serviceName?: string;
+  // Backend identifier for the selected service (required for POST /providers/listings).
+  serviceId?: string;
 
   price?: string;
   galleryImages: GalleryImage[];
@@ -39,6 +41,7 @@ const initialState: ListingDraftState = {
   draftId: undefined,
   activeStep: 'createService',
   serviceName: undefined,
+  serviceId: undefined,
   price: '',
   galleryImages: [],
   experience: '',
@@ -65,6 +68,10 @@ const listingDraftSlice = createSlice({
     },
     setServiceName(state, action: PayloadAction<string | undefined>) {
       state.serviceName = action.payload;
+      state.updatedAt = Date.now();
+    },
+    setServiceId(state, action: PayloadAction<string | undefined>) {
+      state.serviceId = action.payload;
       state.updatedAt = Date.now();
     },
     setPrice(state, action: PayloadAction<string>) {
@@ -110,6 +117,7 @@ export const {
   restoreListingDraft,
   setActiveStep,
   setServiceName,
+  setServiceId,
   setPrice,
   setGalleryImages,
   setExperience,

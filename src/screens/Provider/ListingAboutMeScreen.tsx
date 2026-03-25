@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   View,
   Text,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   scale,
   fontSize,
@@ -39,21 +41,136 @@ const guidelines = [
   { text: 'Links to web page', good: false },
 ];
 
+const AUTH_TOKEN_KEY = 'auth_accessToken';
+const CREATE_LISTING_URL =
+  'https://jolloyard-be.myfileshosting.com/api/v1/providers/listings';
+
+// Maps UI option ids to backend numeric codes (as shown in your curl example).
+const experienceLevelMap: Record<string, string> = {
+  exp_0_2: '1',
+  exp_2_5: '2',
+  exp_5_15: '3',
+  exp_15_plus: '4',
+};
+
+const worksInServiceIndustryMap: Record<string, string> = {
+  industry_no: '1',
+  industry_yes: '2',
+};
+
+const employmentStatusMap: Record<string, string> = {
+  status_cleaning: '1',
+  status_other: '2',
+  status_student: '3',
+};
+
+const personalSituationMap: Record<string, string> = {
+  statement_supplement: '1',
+  statement_new: '2',
+  statement_clients: '3',
+  statement_free_schedule: '4',
+};
+
 export default function ListingAboutMeScreen() {
   const dispatch = useAppDispatch();
   const draft = useAppSelector((s) => s.listingDraft);
   const description = draft.aboutMeDescription ?? '';
+  const [submitting, setSubmitting] = useState(false);
+
+  const experienceLevel = experienceLevelMap[draft.experience ?? ''];
+  const worksInServiceIndustry = worksInServiceIndustryMap[draft.industry ?? ''];
+  const employmentStatus = employmentStatusMap[draft.status ?? ''];
+  const personalSituation = personalSituationMap[draft.statement ?? ''];
+
+  const canContinue = useMemo(() => {
+    const hasDescription = description.trim().length > 0;
+    const hasService = Boolean(draft.serviceId);
+    const hasPrice = (draft.price ?? '').trim().length > 0;
+    const hasImages = (draft.galleryImages ?? []).length > 0;
+    const hasMappedFields =
+      Boolean(experienceLevel) &&
+      Boolean(worksInServiceIndustry) &&
+      Boolean(employmentStatus) &&
+      Boolean(personalSituation);
+
+    return hasDescription && hasService && hasPrice && hasImages && hasMappedFields;
+  }, [
+    description,
+    draft.galleryImages,
+    draft.price,
+    draft.serviceId,
+    employmentStatus,
+    experienceLevel,
+    personalSituation,
+    worksInServiceIndustry,
+  ]);
 
   useEffect(() => {
     dispatch(setActiveStep('listingAboutMe'));
   }, [dispatch]);
 
-  const canContinue = description.trim().length > 0;
+  const handleContinue = async () => {
+    if (!canContinue || submitting) return;
 
-  const handleContinue = () => {
-    if (!description.trim()) return;
-    dispatch(setActiveStep('listingPhone'));
-    navigate('ListingPhone');
+    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) {
+      Alert.alert('Session expired', 'Please log in again.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const formData = new FormData();
+      formData.append('serviceId', String(draft.serviceId ?? ''));
+      formData.append('pricePerHour', String(draft.price ?? '').trim());
+      formData.append('description', description.trim());
+
+      (draft.galleryImages ?? []).forEach((img, idx) => {
+        if (!img.uri) return;
+        // React Native expects file objects for multipart form uploads.
+        formData.append('workImages', {
+          uri: img.uri,
+          type: img.type ?? 'image/jpeg',
+          name: img.fileName ?? `work-image-${idx}.jpg`,
+        } as any);
+      });
+
+      if (!experienceLevel || !worksInServiceIndustry || !employmentStatus || !personalSituation) {
+        throw new Error('Invalid listing info selected.');
+      }
+
+      formData.append('experienceLevel', experienceLevel);
+      formData.append('worksInServiceIndustry', worksInServiceIndustry);
+      formData.append('employmentStatus', employmentStatus);
+      formData.append('personalSituation', personalSituation);
+
+      const res = await fetch(CREATE_LISTING_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // RN will handle the boundary; setting this header is usually ok for multipart.
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const message =
+          data?.message ?? data?.error ?? 'Failed to create listing. Please try again.';
+        throw new Error(message);
+      }
+
+      // Move to phone step after successful creation.
+      dispatch(setActiveStep('listingPhone'));
+      navigate('ListingPhone');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Something went wrong while creating listing.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -137,7 +254,7 @@ export default function ListingAboutMeScreen() {
           ))}
 
           <Button
-            title="Continue"
+            title={submitting ? 'Submitting...' : 'Continue'}
             onPress={handleContinue}
             variant="primary"
             style={styles.continueButton}

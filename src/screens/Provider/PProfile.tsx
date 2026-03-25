@@ -174,7 +174,7 @@ export default function PProfile() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-          <CommonAppHeader />
+          {/* <CommonAppHeader /> */}
         {/* User Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>

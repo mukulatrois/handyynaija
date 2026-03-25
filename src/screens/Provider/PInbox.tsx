@@ -285,7 +285,7 @@ export default function PInbox() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-        <CommonAppHeader />
+        {/* <CommonAppHeader /> */}
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Inbox</Text>

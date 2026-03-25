@@ -164,7 +164,7 @@ export default function PCalendar() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {loading && <Loadingcomponent />}
-      <CommonAppHeader />
+      {/* <CommonAppHeader /> */}
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Calendar</Text>

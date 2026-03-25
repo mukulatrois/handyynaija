@@ -384,7 +384,7 @@ export default function PRequests() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <CommonAppHeader />
+      {/* <CommonAppHeader /> */}
       <View style={styles.header}>
         <Text style={styles.title}>Requests History</Text>
       </View>

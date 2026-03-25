@@ -30,7 +30,7 @@ export default function InboxScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-       <CommonAppHeader />
+       {/* <CommonAppHeader /> */}
       <ServiceScreenHeader title="Inbox" titleColor={COLORS.PRIMARY} titleStyle={{ fontSize: 28 }} />
 
       <View style={{ flex: 1 }}>
