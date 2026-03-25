@@ -96,7 +96,7 @@ export default function SelectCountryScreen() {
         />
 
         <View style={styles.footer}>
-          <Text style={styles.footerTitle}>Haven't we reached your area yet?</Text>
+          {/* <Text style={styles.footerTitle}>Haven't we reached your area yet?</Text>
           <Text style={styles.footerText}>
             <Text
               style={styles.footerLink}
@@ -106,7 +106,7 @@ export default function SelectCountryScreen() {
               Request an opening in your area
             </Text>
             {' '}and we will do our best to reach you as soon as possible.
-          </Text>
+          </Text> */}
 
           {selectedCountry && (
             <Button
@@ -196,8 +196,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: margin.xl,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
   },
   footerTitle: {
     fontSize: fontSize(16),
