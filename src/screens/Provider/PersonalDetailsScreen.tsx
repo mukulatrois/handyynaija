@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useCallback, useState } from 'react';
 import {
   View,
@@ -178,7 +174,7 @@ export default function PersonalDetailsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Summary */}
-        <View style={styles.profileSummary}>
+        <View style={styles.profile}>
           {profile?.avatar || profile?.profilePicture || profile?.image ? (
             <Image
               source={{
@@ -193,38 +189,57 @@ export default function PersonalDetailsScreen() {
           )}
           <Text style={styles.name}>{getDisplayName(profile)}</Text>
           <View style={styles.statsRow}>
-            <TouchableOpacity style={styles.statItem}>
-              <View style={styles.statMain}>
-                <FontAwesome name="star" size={scale(16)} color="#FFA500" />
-                <Text style={styles.statValue}>5</Text>
+            <View style={styles.stat}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.statNumber}>5</Text>
+                <FontAwesome name="star" size={18} color="#F5B041" />
               </View>
-              <Text style={[styles.statLabel, styles.statLabelReviews]}>13 reviews</Text>
-            </TouchableOpacity>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>19</Text>
+              <Text style={styles.statLabelUnderline}>13 reviews</Text>
+            </View>
+
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>19</Text>
               <Text style={styles.statLabel}>Services</Text>
             </View>
           </View>
         </View>
-        <View style={styles.profileDivider} />
+        <View style={styles.divider} />
 
-        {/* Overall Rating - 5 + star, Outstanding, (13 ratings) below */}
-        <View style={styles.ratingsSection}>
-          <View style={styles.ratingsHeader}>
-            <View style={styles.ratingMainRow}>
-              <FontAwesome name="star" size={scale(18)} color="#FFA500" />
-              <Text style={styles.outstandingText}>5 Outstanding</Text>
-            </View>
-            <Text style={styles.ratingsCount}>(13 ratings)</Text>
+        {/* ABOUT */}
+        <Text style={styles.sectionTitle}>About me</Text>
+        <Text style={styles.about}>
+          I am a professional service provider with over 10 years of experience in my field. I am dedicated to providing high-quality services and ensuring customer satisfaction. I have a strong work ethic and am committed to delivering excellent results for my clients. I am passionate about what I do and always strive to exceed expectations.
+        </Text>
+
+
+        {/* RATINGS */}
+        <View style={styles.ratingHeader}>
+          <Text style={styles.bigRating}>5</Text>
+          <FontAwesome name="star" size={20} color="#F5B041" />
+          <View>
+            <Text style={styles.outstanding}>Outstanding</Text>
+            <Text style={styles.smallText}>(13 ratings)</Text>
           </View>
-          {RATING_CATEGORIES.map((item) => (
-            <View key={item.label} style={styles.ratingRow}>
-              <Text style={styles.ratingLabel}>{item.label}</Text>
-              <RatingBar value={item.value} />
-              <Text style={styles.ratingValue}>{item.value}</Text>
-            </View>
-          ))}
         </View>
+
+        {RATING_CATEGORIES.map((item) => (
+          <View key={item.label} style={styles.ratingRow}>
+
+            <Text style={styles.ratingLabel}>
+              {item.label}
+            </Text>
+
+            <View style={styles.ratingBarContainer}>
+              <RatingBar value={item.value} />
+            </View>
+
+            <Text style={styles.ratingValue}>
+              {item.value}
+            </Text>
+
+          </View>
+        ))}
+
 
         {/* Comments - list with dividers, grey checkmark, star on far right */}
         <Text style={styles.commentsHeader}>Comments</Text>
@@ -309,36 +324,101 @@ const styles = StyleSheet.create({
     paddingHorizontal: padding.lg,
     paddingTop: padding.lg,
   },
-  profileSummary: {
-    alignItems: 'center',
-    marginBottom: scale(16),
-  },
+
   avatarPlaceholder: {
-    width: scale(100),
-    height: scale(100),
-    borderRadius: scale(50),
+    width: scale(150),
+    height: scale(150),
+    borderRadius: scale(100),
     marginBottom: scale(12),
     backgroundColor: '#E8F5EC',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  profile: { alignItems: 'center', marginTop: 20 },
+
   avatar: {
-    width: scale(100),
-    height: scale(100),
-    borderRadius: scale(50),
-    marginBottom: scale(12),
+   width: scale(150),
+    height: scale(150),
+    borderRadius: 60,
   },
+
   name: {
-    fontSize: fontSize(20),
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: scale(12),
+    fontSize: 20,
+    fontWeight: '700',
+    marginVertical: 10,
   },
+
   statsRow: {
     flexDirection: 'row',
-    gap: scale(40),
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
   },
+
+  stat: { alignItems: 'center' },
+
+  statNumber: { fontSize: 26, fontWeight: '700' },
+
+  statLabel: { color: '#000' },
+
+  statLabelUnderline: { textDecorationLine: 'underline' },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#eee',
+    marginVertical: 20,
+  },
+
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.PRIMARY,
+  },
+
+  about: {
+    marginVertical: 10,
+    color: '#333',
+  },
+
+  ratingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    margin: 16,
+  },
+
+  bigRating: { fontSize: 28, fontWeight: '700' },
+
+  outstanding: { fontSize: 20, fontWeight: '700' },
+
+  smallText: { color: '#999' },
+
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 14,
+  },
+
+  ratingLabel: {
+    width: 150, // 👈 fixed width (important for alignment)
+    fontSize: 16,
+    color: '#000',
+  },
+
+  ratingBarContainer: {
+    flex: 1, // 👈 bar full stretch lega
+    marginHorizontal: 10,
+  },
+
+  ratingValue: {
+    width: 40, // 👈 fixed width (right align ke liye)
+    textAlign: 'right',
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+  },
+
   statItem: {
     alignItems: 'center',
   },
@@ -352,11 +432,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
   },
-  statLabel: {
-    fontSize: fontSize(12),
-    color: '#666',
-    marginTop: scale(2),
-  },
+
   statLabelReviews: {
     textDecorationLine: 'underline',
     color: '#000',
@@ -387,37 +463,20 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: scale(4),
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: scale(10),
-    gap: scale(12),
-  },
-  ratingLabel: {
-    flex: 0,
-    width: wp(22),
-    fontSize: fontSize(14),
-    color: '#333',
-  },
+
   ratingBarTrack: {
-    flex: 1,
-    height: scale(8),
-    backgroundColor: '#E8E8E8',
-    borderRadius: scale(4),
-    overflow: 'hidden',
+    width: '100%',
+    height: 8,
+    backgroundColor: '#D3D3D3',
+    borderRadius: 10,
   },
+
   ratingBarFill: {
     height: '100%',
-    backgroundColor: '#FFA500',
-    borderRadius: scale(4),
+    backgroundColor: '#F5B041',
+    borderRadius: 10,
   },
-  ratingValue: {
-    width: scale(32),
-    fontSize: fontSize(14),
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'right',
-  },
+
   commentsHeader: {
     fontSize: fontSize(18),
     fontWeight: '700',
