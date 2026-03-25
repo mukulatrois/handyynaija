@@ -161,7 +161,7 @@ const MyAccountScreen = (props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonAppHeader />
+      {/* <CommonAppHeader /> */}
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* Profile */}
@@ -266,7 +266,7 @@ const MyAccountScreen = (props) => {
           onPress={() => setLogoutModalVisible(true)}
         />
 
-        {/* <View style={{ height: 40 }} /> */}
+        {/* <View style={{ height: 40 }} />                   */}
       </ScrollView>
 
       <ShareAppModal

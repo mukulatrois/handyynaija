@@ -15,10 +15,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { goBack, navigate } from '../../navigation/navigationService';
-import { Button } from '../../components';
+import { Button, IconNames } from '../../components';
 import { scale, fontSize, padding, margin, borderRadius } from '../../utils/responsive';
 import { setProviderPhotoSelected } from '../../providerRegister/providerRegisterStore';
 import { COLORS } from '../../utils/constants';
+import CustomIcon from '../../components/Icon';
 
 const CROP_SIZE = 400;
 
@@ -151,7 +152,7 @@ export default function ProviderUploadPhotoScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={scale(22)} color={COLORS.PRIMARY} />
+       <CustomIcon name={IconNames.arrowBack} size={scale(24)} color={COLORS.PRIMARY} />
         </TouchableOpacity>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: '45%' }]} />

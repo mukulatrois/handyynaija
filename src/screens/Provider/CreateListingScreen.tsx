@@ -27,6 +27,7 @@ import {
   resetListingDraft,
   setActiveStep,
   setServiceName,
+  setServiceId,
 } from '../../store/listingDraftSlice';
 import { COLORS } from '../../utils/constants';
 
@@ -177,9 +178,11 @@ export default function CreateListingScreen() {
     fetchCategories();
   }, [dispatch, fetchCategories]);
 
-  const goToListingPrice = (serviceTitle: string) => {
+  const goToListingPrice = (serviceTitle: string, serviceId?: string) => {
     const title = String(serviceTitle ?? '').trim();
+    const id = String(serviceId ?? '').trim();
     dispatch(setServiceName(title || undefined));
+    dispatch(setServiceId(id || undefined));
     dispatch(setActiveStep('listingPrice'));
     navigate('ListingPrice' as any, { serviceName: title } as any);
   };
@@ -224,7 +227,7 @@ export default function CreateListingScreen() {
       return;
     }
 
-    goToListingPrice(cat.title);
+    goToListingPrice(cat.title, cat.id);
   };
 
   const handleBreadcrumbPress = () => {
@@ -341,9 +344,7 @@ export default function CreateListingScreen() {
                       key={svc.id}
                       style={styles.categoryTile}
                       activeOpacity={0.7}
-                      onPress={() =>
-                        goToListingPrice(svc.title)
-                      }
+                      onPress={() => goToListingPrice(svc.title, svc.id)}
                     >
                       <View style={styles.categoryCard}>
                         <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>
@@ -375,9 +376,7 @@ export default function CreateListingScreen() {
                     key={item.id}
                     style={styles.categoryTile}
                     activeOpacity={0.7}
-                    onPress={() =>
-                      goToListingPrice(item.title)
-                    }
+                    onPress={() => goToListingPrice(item.title, item.id)}
                   >
                     <View style={styles.categoryCard}>
                       <View style={[styles.categoryIconWrap, styles.categoryIconWrapSub]}>

@@ -81,7 +81,7 @@ export default function StackNavigator() {
           headerShown: false,
           animation: 'slide_from_right',
         }}
-        // initialRouteName='ProviderSelectCountry'
+        // initialRouteName='ProviderProfileInfo'
         initialRouteName='Splash'
       >
         <Stack.Screen name="Home" component={Home} />

@@ -39,13 +39,15 @@ import { COLORS } from '../../utils/constants';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const SAVE_PROVIDER_DETAIL_API_URL = 'https://jolloyard-be.myfileshosting.com/api/v1/providers/save-provider-detail';
+const REST_COUNTRIES_API_URL = 'https://restcountries.com/v3.1/all?fields=name';
+const COUNTRIESNOW_CITIES_API_URL = 'https://countriesnow.space/api/v0.1/countries/cities';
 const AUTH_TOKEN_KEY = 'auth_accessToken';
 const AUTH_USER_KEY = 'auth_user';
 
 const ERROR_RED = '#D32F2F';
 
 const GENDERS = ['Male', 'Female', 'Other'];
-const COUNTRIES = Object.values(countries)
+const fallbackCountries = Object.values(countries)
   .map((c) => c.name)
   .sort((a, b) => a.localeCompare(b));
 const NIGERIAN_CITIES = [
@@ -122,6 +124,7 @@ function DropdownField({
   onSelect,
   error,
   disabled,
+  onDisabledPress,
 }: {
   label?: string;
   placeholder: string;
@@ -130,6 +133,7 @@ function DropdownField({
   onSelect: (item: string) => void;
   error?: string;
   disabled?: boolean;
+  onDisabledPress?: () => void;
 }) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
@@ -153,11 +157,13 @@ function DropdownField({
       <TouchableOpacity
         style={[styles.dropdownTouch, error && styles.inputError, disabled && styles.dropdownDisabledTouch]}
         onPress={() => {
-          if (disabled) return;
+          if (disabled) {
+            onDisabledPress?.();
+            return;
+          }
           setVisible(true);
         }}
         activeOpacity={0.7}
-        disabled={disabled}
       >
         <Text style={[styles.dropdownText, !value && styles.placeholder]}>
           {value || placeholder}
@@ -264,7 +270,42 @@ export default function ProviderProfileInfoScreen() {
     };
   }, []);
   
+  const [countriesOptions, setCountriesOptions] = useState<string[]>(fallbackCountries);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCountries = async () => {
+      try {
+        const res = await fetch(REST_COUNTRIES_API_URL);
+        const json = await res.json().catch(() => []);
+
+        const list =
+          Array.isArray(json) && json.length > 0
+            ? json
+                .map((c: any) => c?.name?.common)
+                .filter((n: any): n is string => typeof n === 'string' && n.trim().length > 0)
+            : [];
+
+        const uniqueSorted = Array.from(new Set(list)).sort((a, b) => a.localeCompare(b));
+        if (isMounted && uniqueSorted.length > 0) {
+          setCountriesOptions(uniqueSorted);
+        }
+      } catch {
+        // Keep fallbackCountries on failure.
+      } finally {
+        // No-op: we keep fallbackCountries while the fetch runs.
+      }
+    };
+
+    loadCountries();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const [citiesOptions, setCitiesOptions] = useState<string[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -472,6 +513,67 @@ export default function ProviderProfileInfoScreen() {
     if (hasValue) return undefined;
     return (touched[field] || submitCount > 0) ? err : undefined;
   };
+
+  // Load cities for the selected country of birth.
+  // This replaces the hardcoded Nigerian cities list.
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCities = async () => {
+      const country = values.countryOfBirth?.trim();
+      if (!country) {
+        setCitiesOptions([]);
+        setFieldValue('cityOfBirth', '');
+        setFieldTouched('cityOfBirth', false);
+        return;
+      }
+
+      setSaving(true);
+      // When country changes, city becomes invalid.
+      setFieldValue('cityOfBirth', '');
+      setFieldTouched('cityOfBirth', false);
+      setCitiesOptions([]);
+
+      try {
+        const res = await fetch(COUNTRIESNOW_CITIES_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        const list: unknown[] = Array.isArray(data?.data) ? (data.data as unknown[]) : [];
+
+        const cleaned: string[] = list
+          .filter((c): c is string => typeof c === 'string')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0);
+
+        const uniqueSorted: string[] = Array.from(new Set(cleaned)).sort((a: string, b: string) =>
+          a.localeCompare(b),
+        );
+
+        if (!isMounted) return;
+
+        // Fallback to Nigerian cities when Nigeria is selected but API returns empty.
+        if (uniqueSorted.length === 0 && country.toLowerCase() === 'nigeria') {
+          setCitiesOptions(NIGERIAN_CITIES);
+        } else {
+          setCitiesOptions(uniqueSorted);
+        }
+      } catch {
+        if (!isMounted) return;
+        setCitiesOptions(country.toLowerCase() === 'nigeria' ? NIGERIAN_CITIES : []);
+      } finally {
+        if (isMounted) setSaving(false);
+      }
+    };
+
+    loadCities();
+    return () => {
+      isMounted = false;
+    };
+  }, [values.countryOfBirth]);
 
   const onSavePress = () => {
     setUploadValidationTriggered(true);
@@ -728,7 +830,7 @@ export default function ProviderProfileInfoScreen() {
         <DropdownField
           placeholder="Country of birth"
           value={values.countryOfBirth}
-          options={COUNTRIES}
+          options={countriesOptions}
           onSelect={(item) => {
             setFieldValue('countryOfBirth', item);
             setFieldTouched('countryOfBirth', true);
@@ -738,10 +840,16 @@ export default function ProviderProfileInfoScreen() {
         <DropdownField
           placeholder="City of birth"
           value={values.cityOfBirth}
-          options={NIGERIAN_CITIES}
+          options={citiesOptions}
           onSelect={(item) => {
             setFieldValue('cityOfBirth', item);
             setFieldTouched('cityOfBirth', true);
+          }}
+          disabled={!values.countryOfBirth || citiesLoading}
+          onDisabledPress={() => {
+            if (!values.countryOfBirth) {
+              Alert.alert('Required', 'Please select country of birth first.');
+            }
           }}
           error={showError('cityOfBirth')}
         />
@@ -778,7 +886,7 @@ export default function ProviderProfileInfoScreen() {
         <DropdownField
           placeholder="Country of the document"
           value={values.countryOfDoc}
-          options={COUNTRIES}
+          options={countriesOptions}
           onSelect={(item) => {
             setFieldValue('countryOfDoc', item);
             setFieldTouched('countryOfDoc', true);
@@ -927,7 +1035,7 @@ export default function ProviderProfileInfoScreen() {
           label="Country"
           placeholder="Country"
           value={values.country}
-          options={COUNTRIES}
+          options={countriesOptions}
           onSelect={(item) => {
             setFieldValue('country', item);
             setFieldTouched('country', true);
@@ -999,18 +1107,36 @@ export default function ProviderProfileInfoScreen() {
             </Text>
             <View style={styles.docModalFrame}>
               {activeDocSide === 'back' && identityDocBackUri ? (
-                <Image
-                  source={{ uri: identityDocBackUri }}
-                  style={styles.docModalPreviewImage}
-                  resizeMode="cover"
-                />
+                <View style={styles.docModalPreviewContainer}>
+                  <Image
+                    source={{ uri: identityDocBackUri }}
+                    style={styles.docModalPreviewImage}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.docModalRemoveButton}
+                    activeOpacity={0.8}
+                    onPress={() => setIdentityDocBackUri(null)}
+                  >
+                    <Icon name="close-circle" size={scale(26)} color="red" />
+                  </TouchableOpacity>
+                </View>
               ) : null}
               {activeDocSide !== 'back' && identityDocFrontUri ? (
-                <Image
-                  source={{ uri: identityDocFrontUri }}
-                  style={styles.docModalPreviewImage}
-                  resizeMode="cover"
-                />
+                <View style={styles.docModalPreviewContainer}>
+                  <Image
+                    source={{ uri: identityDocFrontUri }}
+                    style={styles.docModalPreviewImage}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.docModalRemoveButton}
+                    activeOpacity={0.8}
+                    onPress={() => setIdentityDocFrontUri(null)}
+                  >
+                    <Icon name="close-circle" size={scale(26)} color="red" />
+                  </TouchableOpacity>
+                </View>
               ) : null}
               {((activeDocSide === 'back' && !identityDocBackUri) ||
                 (activeDocSide !== 'back' && !identityDocFrontUri)) && (
@@ -1039,34 +1165,65 @@ export default function ProviderProfileInfoScreen() {
               </View>
             </View>
             <View style={styles.docModalButtonsRow}>
-              <TouchableOpacity
-                style={styles.docModalButton}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (activeDocSide === 'back') {
-                    takePhotoWithCamera(setIdentityDocBackUri, false);
-                  } else {
-                    takePhotoWithCamera(setIdentityDocFrontUri, false);
-                  }
-                }}
-              >
-                <Icon name="camera-outline" size={scale(18)} color="#fff" />
-                <Text style={styles.docModalButtonText}>Take Photo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.docModalButtonOutline}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (activeDocSide === 'back') {
-                    pickImageFromGallery(setIdentityDocBackUri);
-                  } else {
-                    pickImageFromGallery(setIdentityDocFrontUri);
-                  }
-                }}
-              >
-                <Icon name="cloud-upload-outline" size={scale(18)} color={COLORS.PRIMARY} />
-                <Text style={styles.docModalButtonTextOutline}>Upload</Text>
-              </TouchableOpacity>
+              {activeDocSide === 'back' ? (
+                identityDocBackUri ? (
+                  <TouchableOpacity
+                    style={styles.docModalButton}
+                    activeOpacity={0.7}
+                    onPress={() => setDocModalVisible(false)}
+                  >
+                    <Icon name="checkmark-circle" size={scale(18)} color="#fff" />
+                    <Text style={styles.docModalButtonText}>Continue</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.docModalButton}
+                      activeOpacity={0.7}
+                      onPress={() => takePhotoWithCamera(setIdentityDocBackUri, false)}
+                    >
+                      <Icon name="camera-outline" size={scale(18)} color="#fff" />
+                      <Text style={styles.docModalButtonText}>Take Photo</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.docModalButtonOutline}
+                      activeOpacity={0.7}
+                      onPress={() => pickImageFromGallery(setIdentityDocBackUri)}
+                    >
+                      <Icon name="cloud-upload-outline" size={scale(18)} color={COLORS.PRIMARY} />
+                      <Text style={styles.docModalButtonTextOutline}>Upload</Text>
+                    </TouchableOpacity>
+                  </>
+                )
+              ) : identityDocFrontUri ? (
+                <TouchableOpacity
+                  style={styles.docModalButton}
+                  activeOpacity={0.7}
+                  onPress={() => setDocModalVisible(false)}
+                >
+                  <Icon name="checkmark-circle" size={scale(18)} color="#fff" />
+                  <Text style={styles.docModalButtonText}>Continue</Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.docModalButton}
+                    activeOpacity={0.7}
+                    onPress={() => takePhotoWithCamera(setIdentityDocFrontUri, false)}
+                  >
+                    <Icon name="camera-outline" size={scale(18)} color="#fff" />
+                    <Text style={styles.docModalButtonText}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.docModalButtonOutline}
+                    activeOpacity={0.7}
+                    onPress={() => pickImageFromGallery(setIdentityDocFrontUri)}
+                  >
+                    <Icon name="cloud-upload-outline" size={scale(18)} color={COLORS.PRIMARY} />
+                    <Text style={styles.docModalButtonTextOutline}>Upload</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </SafeAreaView>
@@ -1409,6 +1566,20 @@ const styles = StyleSheet.create({
   docModalPreviewImage: {
     width: '100%',
     height: '100%',
+  },
+  docModalPreviewContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  docModalRemoveButton: {
+    position: 'absolute',
+    top: scale(10),
+    right: scale(10),
+    zIndex: 2,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: scale(20),
+    padding: scale(2),
   },
   docModalChecklist: {
     marginBottom: margin.xl,
