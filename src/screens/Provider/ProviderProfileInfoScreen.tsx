@@ -32,7 +32,7 @@ import {
 import { TextInput, Button } from '../../components';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { RootStackParamList } from '../../navigation/navigationService';
-import { setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
+import { ProviderRegisterProfileInfo, setProviderProfileInfo } from '../../providerRegister/providerRegisterStore';
 import { Loadingcomponent } from '../../components/LoadingComponent';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { COLORS } from '../../utils/constants';
@@ -66,7 +66,6 @@ type DocType = 'government_id' | 'passport';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().trim().required('Please fill in the field'),
-  surname: Yup.string().trim().required('Please fill in the field'),
   gender: Yup.string().required('Please fill in the field'),
   dateOfBirth: Yup.string().required('Please fill in the field'),
   countryOfBirth: Yup.string().required('Please fill in the field'),
@@ -83,7 +82,6 @@ const validationSchema = Yup.object().shape({
 
 type FormValues = {
   name: string;
-  surname: string;
   gender: string;
   dateOfBirth: string;
   countryOfBirth: string;
@@ -101,7 +99,6 @@ type FormValues = {
 
 const initialValues: FormValues = {
   name: '',
-  surname: '',
   gender: '',
   dateOfBirth: '',
   countryOfBirth: '',
@@ -238,6 +235,36 @@ export default function ProviderProfileInfoScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProviderProfileInfo'>>();
   console.log('route', route.params);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAuthData = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(AUTH_USER_KEY);
+        console.log(stored, "stored");
+
+        if (stored) {
+          try {
+            const user = JSON.parse(stored)
+            setFieldValue('name', user.name);
+          } catch {
+            // ignore
+          }
+        }
+
+        if (!isMounted) return;
+      } catch {
+        // ignore
+      }
+    };
+
+    loadAuthData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  
+
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -249,7 +276,6 @@ export default function ProviderProfileInfoScreen() {
   const [activeDocSide, setActiveDocSide] = useState<'front' | 'back' | null>(null);
 
   const nameRef = useRef<RNTextInput | null>(null);
-  const surnameRef = useRef<RNTextInput | null>(null);
   const documentNumberRef = useRef<RNTextInput | null>(null);
   const streetRef = useRef<RNTextInput | null>(null);
   const streetNumberRef = useRef<RNTextInput | null>(null);
@@ -287,7 +313,6 @@ export default function ProviderProfileInfoScreen() {
         formData.append('provider_id', providerId);
         formData.append('phone_number', phoneNumber);
         formData.append('name', values.name.trim());
-        formData.append('surname', values.surname.trim());
         formData.append('gender', values.gender.toLowerCase());
         formData.append('date_of_birth', formatDateForApi(values.dateOfBirth));
         formData.append('birth_country', values.countryOfBirth);
@@ -353,7 +378,9 @@ export default function ProviderProfileInfoScreen() {
           return;
         }
 
-        await setProviderProfileInfo(values);
+        // `ProviderRegisterProfileInfo` still expects `surname`; this screen no longer collects it.
+        const profileInfo: ProviderRegisterProfileInfo = { ...values, surname: '' };
+        await setProviderProfileInfo(profileInfo);
         navigate('ProviderTabs');
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Network error. Please try again.';
@@ -613,25 +640,15 @@ export default function ProviderProfileInfoScreen() {
         {/* Personal details */}
         <Text style={styles.sectionTitle}>Personal details</Text>
         <TextInput
-          placeholder="Name"
+          placeholder="Full Name"
           value={values.name}
           onChangeText={(text) => setFieldValue('name', text)}
           onBlur={() => setFieldTouched('name')}
           inputRef={nameRef}
           returnKeyType="next"
           blurOnSubmit={false}
-          onSubmitEditing={() => surnameRef.current?.focus()}
           error={showError('name')}
-        />
-        <TextInput
-          placeholder="Surname"
-          value={values.surname}
-          onChangeText={(text) => setFieldValue('surname', text)}
-          onBlur={() => setFieldTouched('surname')}
-          inputRef={surnameRef}
-          returnKeyType="next"
-          blurOnSubmit={false}
-          error={showError('surname')}
+          editable={false}
         />
         <DropdownField
           placeholder="Gender"

@@ -1,16 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
+  Alert,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Switch,
   ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { goBack, navigate } from '../../navigation/navigationService';
 import { scale, fontSize, padding, margin } from '../../utils/responsive';
 import CustomIcon, { IconNames } from '../../components/Icon';
@@ -28,9 +29,8 @@ const DAYS = [
   'Sunday',
 ];
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-const PICKER_ITEM_HEIGHT = scale(44);
+const WHEEL_VIEW_HEIGHT = scale(160);
 
 type TimeSlot = { from: string; until: string };
 type DaySchedule = { available: boolean; slots: TimeSlot[] };
@@ -68,30 +68,52 @@ export default function WorkScheduleScreen() {
   const [timePickerTarget, setTimePickerTarget] = useState<TimePickerTarget | null>(null);
   const [pickerHour, setPickerHour] = useState(8);
   const [pickerMinute, setPickerMinute] = useState(0);
-  const hourWheelRef = useRef<ScrollView>(null);
-  const minuteWheelRef = useRef<ScrollView>(null);
+  const pickerDate = new Date();
+  pickerDate.setHours(pickerHour, pickerMinute, 0, 0);
 
-  useEffect(() => {
-    if (!timePickerTarget) return;
-    const t = setTimeout(() => {
-      const paddingY = PICKER_ITEM_HEIGHT * 2;
-      const hourIdx = HOURS.indexOf(pickerHour);
-      const minIdx = MINUTES.indexOf(pickerMinute);
-      hourWheelRef.current?.scrollTo({
-        y: Math.max(0, hourIdx * PICKER_ITEM_HEIGHT),
-        animated: false,
-      });
-      minuteWheelRef.current?.scrollTo({
-        y: Math.max(0, minIdx * PICKER_ITEM_HEIGHT),
-        animated: false,
-      });
-    }, 100);
-    return () => clearTimeout(t);
-  }, [timePickerTarget]);
+  const timeToMinutes = (time: string): number | null => {
+    if (!time) return null;
+    const parsed = parseTime(time);
+    return parsed.hour * 60 + parsed.minute;
+  };
+
+  const validateAndMaybeAlertTimeRange = (
+    day: string,
+    slotIndex: number,
+    field: 'from' | 'until',
+    nextValue: string,
+  ): boolean => {
+    const slot = schedule[day]?.slots[slotIndex];
+    if (!slot) return true;
+
+    const fromValue = field === 'from' ? nextValue : slot.from;
+    const untilValue = field === 'until' ? nextValue : slot.until;
+
+    const fromMinutes = timeToMinutes(fromValue);
+    const untilMinutes = timeToMinutes(untilValue);
+
+    // Only validate once both values exist.
+    if (fromMinutes === null || untilMinutes === null) return true;
+
+    // "until" must be strictly after "from".
+    if (untilMinutes <= fromMinutes) {
+      Alert.alert('Invalid time range', 'Please select a future time from start time.');
+      return false;
+    }
+
+    return true;
+  };
 
   const openTimePicker = (day: string, slotIndex: number, field: 'from' | 'until') => {
     const slot = schedule[day]?.slots[slotIndex];
     if (!slot) return;
+
+    // Prevent setting "until" before user selects a "from" time.
+    if (field === 'until' && !slot.from) {
+      Alert.alert('Missing start time', 'Please select start time first.');
+      return;
+    }
+
     const parsed = parseTime(slot[field] || '00:00');
     setPickerHour(parsed.hour);
     setPickerMinute(MINUTES.includes(parsed.minute) ? parsed.minute : MINUTES[0]);
@@ -100,10 +122,51 @@ export default function WorkScheduleScreen() {
 
   const closeTimePicker = () => setTimePickerTarget(null);
 
+  const onTimeChange = (event: any, selectedDate?: Date) => {
+    if (!timePickerTarget || !selectedDate) return;
+
+    const nextHour = selectedDate.getHours();
+    const nextMinuteRaw = selectedDate.getMinutes();
+
+    // Keep minutes on the same 5-minute grid we allow in the UI.
+    const nextMinute = MINUTES.includes(nextMinuteRaw)
+      ? nextMinuteRaw
+      : MINUTES.reduce((prev, cur) =>
+          Math.abs(cur - nextMinuteRaw) < Math.abs(prev - nextMinuteRaw) ? cur : prev,
+        MINUTES[0],
+      );
+
+    setPickerHour(nextHour);
+    setPickerMinute(nextMinute);
+
+    // On Android the picker is a native dialog, so apply immediately.
+    if (Platform.OS === 'android') {
+      if (event?.type === 'dismissed') {
+        closeTimePicker();
+        return;
+      }
+      const value = formatTime(nextHour, nextMinute);
+      const ok = validateAndMaybeAlertTimeRange(
+        timePickerTarget.day,
+        timePickerTarget.slotIndex,
+        timePickerTarget.field,
+        value,
+      );
+      if (!ok) {
+        closeTimePicker();
+        return;
+      }
+      updateSlot(timePickerTarget.day, timePickerTarget.slotIndex, timePickerTarget.field, value);
+      closeTimePicker();
+    }
+  };
+
   const confirmTimePicker = () => {
     if (!timePickerTarget) return;
     const { day, slotIndex, field } = timePickerTarget;
     const value = formatTime(pickerHour, pickerMinute);
+    const ok = validateAndMaybeAlertTimeRange(day, slotIndex, field, value);
+    if (!ok) return;
     updateSlot(day, slotIndex, field, value);
     closeTimePicker();
   };
@@ -150,56 +213,27 @@ export default function WorkScheduleScreen() {
     });
   };
 
-  const hasActiveDay = Object.values(schedule).some(
-    (d) => d.available && d.slots.length > 0,
-  );
-
-  const renderWheel = (
-    options: number[],
-    value: number,
-    onChange: (v: number) => void,
-    scrollRef?: React.RefObject<ScrollView | null>,
-  ) => {
-    const paddingY = PICKER_ITEM_HEIGHT * 2;
-    return (
-      <ScrollView
-        ref={scrollRef}
-        style={styles.wheel}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={PICKER_ITEM_HEIGHT}
-        decelerationRate="fast"
-        contentContainerStyle={{ paddingVertical: paddingY }}
-        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const y = e.nativeEvent.contentOffset.y;
-          const i = Math.round((y + paddingY) / PICKER_ITEM_HEIGHT);
-          const clamped = Math.max(0, Math.min(i, options.length - 1));
-          onChange(options[clamped]);
-        }}
-      >
-        {options.map((opt) => (
-          <TouchableOpacity
-            key={opt}
-            style={[styles.wheelItem, { height: PICKER_ITEM_HEIGHT }]}
-            onPress={() => onChange(opt)}
-          >
-            <Text
-              style={[
-                styles.wheelItemText,
-                value === opt && styles.wheelItemTextSelected,
-              ]}
-            >
-              {String(opt).padStart(2, '0')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+  const hasAnySelectedDay = Object.values(schedule).some((d) => d.available);
+  const areAllSelectedDaysComplete = Object.values(schedule)
+    .filter((d) => d.available)
+    .every(
+      (d) =>
+        d.slots.length > 0 &&
+        d.slots.every((s) => Boolean(s.from) && Boolean(s.until)),
     );
-  };
+
+  const canContinue = hasAnySelectedDay && areAllSelectedDaysComplete;
 
   const handleContinue = () => {
-    if (hasActiveDay) {
-      navigate('ProviderProfileInfo', route.params ? { ...route.params } : undefined);
+    if (!canContinue) {
+      Alert.alert(
+        'Incomplete schedule',
+        'Please select both From and Until time for the selected days.',
+      );
+      return;
     }
+
+    navigate('ProviderProfileInfo', route.params ? { ...route.params } : undefined);
   };
 
   return (
@@ -285,15 +319,15 @@ export default function WorkScheduleScreen() {
         })}
 
         <TouchableOpacity
-          disabled={!hasActiveDay}
-          style={[styles.continueBtn, !hasActiveDay && styles.disabledBtn]}
+          disabled={!canContinue}
+          style={[styles.continueBtn, !canContinue && styles.disabledBtn]}
           onPress={handleContinue}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.continueText,
-              !hasActiveDay && styles.disabledText,
+              !canContinue && styles.disabledText,
             ]}
           >
             Continue
@@ -301,40 +335,61 @@ export default function WorkScheduleScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Time selector modal */}
-      <Modal
-        isVisible={timePickerTarget !== null}
-        onBackdropPress={closeTimePicker}
-        onBackButtonPress={closeTimePicker}
-        backdropOpacity={0.5}
-        style={styles.timePickerModal}
-        avoidKeyboard
-      >
-        <View style={styles.timePickerContainer}>
-          <Text style={styles.timePickerTitle}>Select time</Text>
-          <View style={styles.timePickerWheels}>
-            {renderWheel(HOURS, pickerHour, setPickerHour, hourWheelRef)}
-            <Text style={styles.timePickerColon}>:</Text>
-            {renderWheel(MINUTES, pickerMinute, setPickerMinute, minuteWheelRef)}
+      {/* Android time picker */}
+      {timePickerTarget !== null && Platform.OS === 'android' && (
+        <DateTimePicker
+          value={pickerDate}
+          mode="time"
+          display="default"
+          onChange={onTimeChange}
+          minuteInterval={5}
+          // Show AM/PM instead of 24-hour time.
+          is24Hour={false}
+        />
+      )}
+
+      {/* iOS time picker */}
+      {timePickerTarget !== null && Platform.OS === 'ios' && (
+        <Modal
+          isVisible
+          onBackdropPress={closeTimePicker}
+          onBackButtonPress={closeTimePicker}
+          backdropOpacity={0.5}
+          style={styles.timePickerModal}
+          avoidKeyboard
+        >
+          <View style={styles.timePickerContainer}>
+            <Text style={styles.timePickerTitle}>Select time</Text>
+            <View style={styles.timePickerWheels}>
+              <DateTimePicker
+                value={pickerDate}
+                mode="time"
+                display="spinner"
+                onChange={onTimeChange}
+                minuteInterval={5}
+                // Show AM/PM instead of 24-hour time.
+                is24Hour={false}
+              />
+            </View>
+            <View style={styles.timePickerButtons}>
+              <TouchableOpacity
+                style={styles.timePickerCancelBtn}
+                onPress={closeTimePicker}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.timePickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.timePickerDoneBtn}
+                onPress={confirmTimePicker}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.timePickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={styles.timePickerButtons}>
-            <TouchableOpacity
-              style={styles.timePickerCancelBtn}
-              onPress={closeTimePicker}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.timePickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.timePickerDoneBtn}
-              onPress={confirmTimePicker}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.timePickerDoneText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -465,7 +520,8 @@ const styles = StyleSheet.create({
     marginBottom: margin.xl,
   },
   disabledBtn: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLORS.PRIMARY,
+    opacity: 0.5,
   },
   continueText: {
     color: '#fff',
@@ -473,7 +529,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   disabledText: {
-    color: '#555',
+    color: '#fff',
   },
   timePickerModal: {
     justifyContent: 'flex-end',
@@ -495,36 +551,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   timePickerWheels: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F5F5F5',
     borderRadius: scale(12),
     paddingVertical: padding.sm,
     marginBottom: margin.xl,
-    minHeight: scale(160),
-  },
-  wheel: {
-    width: scale(72),
-    maxHeight: scale(160),
-  },
-  wheelItem: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  wheelItemText: {
-    fontSize: fontSize(18),
-    color: '#999',
-  },
-  wheelItemTextSelected: {
-    color: '#000',
-    fontWeight: '600',
-  },
-  timePickerColon: {
-    fontSize: fontSize(20),
-    fontWeight: '600',
-    color: '#000',
-    marginHorizontal: 4,
+    minHeight: WHEEL_VIEW_HEIGHT,
   },
   timePickerButtons: {
     flexDirection: 'row',
