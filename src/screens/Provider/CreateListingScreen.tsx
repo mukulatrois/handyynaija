@@ -71,54 +71,6 @@ type ApiServicesResponse = {
   results?: ApiService[];
 };
 
-const fallbackMainCategories: CategoryItem[] = [
-  { id: 'home', title: 'Home', image: require('../../Images/serachImg/Home.png') },
-  { id: 'tech', title: 'Tech & IT Support', image: require('../../Images/serachImg/Tech.png') },
-  { id: 'beauty', title: 'Beauty', image: require('../../Images/serachImg/Beauty.png') },
-  { id: 'repair', title: 'Repair & Maintenance', image: require('../../Images/serachImg/repair.png') },
-  { id: 'auto', title: 'Automobile', image: require('../../Images/serachImg/Automobile.png') },
-  { id: 'media', title: 'Media & Events', image: require('../../Images/serachImg/media.png') },
-  { id: 'others', title: 'Others', image: require('../../Images/serachImg/Others.png') },
-];
-
-const homeSubCategories: CategoryItem[] = [
-  { id: 'cleaning', title: 'Cleaning', image: require('../../Images/serachImg/Cleaning.png') },
-  { id: 'ironing', title: 'Ironing', image: require('../../Images/serachImg/ironing.png') },
-  { id: 'handyman', title: 'Handyman', image: require('../../Images/serachImg/Handyman.png') },
-  { id: 'painting', title: 'Painting', image: require('../../Images/serachImg/Painting.png') },
-  { id: 'interior', title: 'Interior Design', image: require('../../Images/serachImg/interior.png') },
-  { id: 'pest', title: 'Pest Control', image: require('../../Images/serachImg/PestControl.png') },
-  { id: 'kitchen', title: 'Kitchen Installation', image: require('../../Images/serachImg/Kitchen.png') },
-];
-
-const beautySubCategories: CategoryItem[] = [
-  { id: 'salon', title: 'Salon at home', image: require('../../Images/serachImg/Salon.png') },
-  { id: 'manicure', title: 'Manicure & Pedicure', image: require('../../Images/serachImg/Manicure.png') },
-  { id: 'haircut', title: 'Haircut & Styling', image: require('../../Images/serachImg/Haircut.png') },
-];
-
-const mediaSubCategories: CategoryItem[] = [
-  { id: 'photo', title: 'Photo/Video grapher', image: require('../../Images/serachImg/Photo.png') },
-  { id: 'birthday', title: 'Birthday/ Event Planner', image: require('../../Images/serachImg/Birthday.png') },
-  { id: 'dj', title: 'DJ & Sounds Setup', image: require('../../Images/serachImg/Sounds.png') },
-  { id: 'mc', title: 'MC', image: require('../../Images/serachImg/MC.png') },
-  { id: 'comedian', title: 'Comedian', image: require('../../Images/serachImg/Comedian.png') },
-];
-
-const repairSubCategories: CategoryItem[] = [
-  { id: 'electrician', title: 'Electrician', image: require('../../Images/serachImg/Electrician.png') },
-  { id: 'plumber', title: 'Plumber', image: require('../../Images/serachImg/Plumber.png') },
-  { id: 'appliances', title: 'Appliances', image: require('../../Images/serachImg/Appliances.png') },
-  { id: 'ac', title: 'AC Servicing', image: require('../../Images/serachImg/AC.png') },
-];
-
-const autoSubCategories: CategoryItem[] = [
-  { id: 'carwash', title: 'Car Wash', image: require('../../Images/serachImg/Car.png') },
-  { id: 'bike', title: 'Bike Services', image: require('../../Images/serachImg/Bike.png') },
-  { id: 'carrepair', title: 'Car Repair', image: require('../../Images/serachImg/CarRepair.png') },
-  { id: 'battery', title: 'Battery Jumpstart', image: require('../../Images/serachImg/Battery.png') },
-];
-
 const CIRCLE_SIZE = wp(20);
 const CIRCLE_SIZE_SUB = wp(22);
 
@@ -137,14 +89,6 @@ export default function CreateListingScreen() {
   const [loadingServices, setLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState<string | null>(null);
   const [failedServiceImages, setFailedServiceImages] = useState<Record<string, true>>({});
-
-  const subItemsMap: Record<string, typeof homeSubCategories> = {
-    home: homeSubCategories,
-    beauty: beautySubCategories,
-    media: mediaSubCategories,
-    repair: repairSubCategories,
-    auto: autoSubCategories,
-  };
 
   const resolveApiImageSource = (value?: string) => {
     if (!value) return undefined;
@@ -185,7 +129,7 @@ export default function CreateListingScreen() {
       const mapped = (data.categories ?? [])
         .map(mapApiCategory)
         .filter((c) => c.id && c.title);
-      setApiCategories(mapped.length ? mapped : null);
+      setApiCategories(mapped);
     } catch (e) {
       setApiCategories(null);
       setCategoriesError('Could not load categories. Please try again.');
@@ -197,6 +141,7 @@ export default function CreateListingScreen() {
   const fetchServicesByCategory = useCallback(async (categoryId: string) => {
     setLoadingServices(true);
     setServicesError(null);
+    setServices([]);
     try {
       const url = `https://jolloyard-be.myfileshosting.com/api/v1/services?categoryId=${encodeURIComponent(
         categoryId
@@ -239,10 +184,7 @@ export default function CreateListingScreen() {
     navigate('ListingPrice' as any, { serviceName: title } as any);
   };
 
-  const mainCategories = useMemo(
-    () => (apiCategories && apiCategories.length ? apiCategories : fallbackMainCategories),
-    [apiCategories]
-  );
+  const mainCategories = useMemo(() => apiCategories ?? [], [apiCategories]);
 
   const selectedApiCategory = useMemo(() => {
     if (!selectedCategory || !apiCategories?.length) return null;
@@ -252,9 +194,8 @@ export default function CreateListingScreen() {
   const subItems: CategoryItem[] = useMemo(() => {
     if (!selectedCategory) return [];
     const apiSubs = selectedApiCategory?.subcategories ?? [];
-    if (apiSubs.length) return apiSubs;
-    return subItemsMap[selectedCategory.id] ?? [];
-  }, [selectedApiCategory, selectedCategory, subItemsMap]);
+    return apiSubs;
+  }, [selectedApiCategory, selectedCategory]);
 
   const displayItems: CategoryItem[] = selectedCategory ? subItems : mainCategories;
 
@@ -266,10 +207,12 @@ export default function CreateListingScreen() {
 
   const handleCategoryPress = (cat: CategoryItem) => {
     const apiHasSubs = (cat.subcategories?.length ?? 0) > 0;
-    const fallbackHasSubs = !!subItemsMap[cat.id];
-
-    if (apiHasSubs || fallbackHasSubs) {
+    if (apiHasSubs) {
       setSelectedCategory({ id: cat.id, title: cat.title });
+      // Avoid showing services from a previous category selection.
+      setServices([]);
+      setServicesError(null);
+      setFailedServiceImages({});
       return;
     }
 
@@ -346,6 +289,13 @@ export default function CreateListingScreen() {
             returnKeyType="search"
           />
         </View>
+
+        {!selectedCategory && !loadingCategories && !categoriesError && mainCategories.length === 0 && (
+          <View style={styles.loadingRow}>
+            <Icon name="alert-circle-outline" size={scale(18)} color={colors.textMuted} />
+            <Text style={styles.loadingText}>No categories found.</Text>
+          </View>
+        )}
 
         {/* Breadcrumb: ← Home */}
         {selectedCategory && (
